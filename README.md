@@ -1,9 +1,7 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="dev/ui/header-logo.png">
-  <img src="dev/ui/about-logo.png" alt="Gearhead Skunkworks" width="180">
-</picture>
+![Gearhead Skunkworks](dev/ui/about-logo.png#gh-light-mode-only)
+![Gearhead Skunkworks](dev/ui/header-logo.png#gh-dark-mode-only)
 
 # Apophis-OG
 
