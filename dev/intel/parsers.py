@@ -11,7 +11,7 @@ import io
 import json
 import re
 
-from . import classify, model, roles
+from . import classify, model, roles, tlds
 
 MAX_BYTES = 5 * 1024 * 1024
 MAX_IOCS = 50000
@@ -134,7 +134,14 @@ _SPLIT = re.compile(r"[\s,;|]+")
 _STRIP = "()<>\"'`[]{}|;,"
 
 
-def _scan_line(line, source, out, seen, heading="", first_only_files=True, extra_ctx=""):
+def looks_like_report(text):
+    """True for prose (an advisory or article) rather than a list: at least 30 non-blank lines and 15% of
+    them have six or more words (a list of indicators has almost none). Real indicators in a report are defanged; live links are citations."""
+    lines = [l for l in str(text).splitlines()[:50000] if l.strip()]
+    return len(lines) >= 30 and sum(1 for l in lines if len(l.split()) >= 6) * 100 >= 15 * len(lines)
+
+
+def _scan_line(line, source, out, seen, heading="", first_only_files=True, extra_ctx="", report=False):
     if len(line) > 20000:
         line = line[:20000]
     toks = [t for t in _SPLIT.split(line) if t]
@@ -161,6 +168,10 @@ def _scan_line(line, source, out, seen, heading="", first_only_files=True, extra
         defanged = classify.refang(tok) != tok
         if t == "filename" and not (idx == 0 or "/" in canon or "\\" in canon):
             continue
+        if t in ("domain", "url") and report and not defanged:
+            continue                     # a live link in a report is a citation, not an indicator
+        if t == "domain" and not defanged and classify.tld_of(canon) not in tlds.TLDS | classify.COMMON_TLDS:
+            continue                     # ntds.dit, webclient.downloadstring: not a real top-level domain
         if t == "domain" and not (defanged or idx == 0 or classify.is_trusted_tld(canon)):
             continue
         if t == "domain" and not (defanged or classify.is_trusted_tld(canon) or len(toks) <= 3):
@@ -178,6 +189,7 @@ def parse_text(text, source="paste", max_bytes=MAX_BYTES):
     Filenames and bare words are only taken when they are the first item on a line (or are paths).
     """
     text = _to_text(text, max_bytes)
+    report = looks_like_report(text)
     out, seen, heading, done = [], {}, "", set()
     for line in text.splitlines()[:200000]:
         if len(out) >= MAX_IOCS:
@@ -196,7 +208,7 @@ def parse_text(text, source="paste", max_bytes=MAX_BYTES):
         if len(s) > 20000:
             s = s[:20000]
         # inline comment after " #" / " ;" becomes context only
-        _scan_line(s, source, out, seen, heading)
+        _scan_line(s, source, out, seen, heading, report=report)
     return out
 
 

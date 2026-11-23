@@ -20,6 +20,7 @@ import re
 from urllib.parse import urlsplit
 
 from . import actions as _actions
+from intel import cve_profiles as _cve_profiles
 from . import addressing, attack, families, schema
 
 PREFERRED = {
@@ -205,6 +206,14 @@ def _initial_access(b):
                 params["path"] = path
         b.add(acts, "phishing_visit", [(b.comp, b.ref(i))], params, [i],
               "%s: a user visited this phishing page and submitted dummy credentials" % b.label(i), at=0)
+    vsrc = _outside_source(b)
+    for i in b.by_role.get("vulnerability", [])[:MAX_PHISH]:
+        ioc = b.iocs[i]
+        pr = _cve_profiles.match(ioc) if ioc["type"] == "cve" else None
+        if pr:
+            b.add(acts, "exploit_probe", [(b.ref(vsrc) if vsrc is not None else "attacker", "web")],
+                  {"profile": pr["id"], "cve": ioc["value"]}, [i],
+                  "%s: an internet host probed the %s with the shape of an attempt (no exploit content)" % (ioc["value"], pr["what"]), at=0)
     if "initial_access" in b.o["include"]:
         src = _outside_source(b)
         if src is not None:
@@ -513,7 +522,8 @@ def compile_campaign(iocs, options=None, name=None):
         elif gate or tactic in ("execution", "command-and-control"):
             notes.append("no %s stage: nothing to build it from" % _title(tactic))
     expect = [{"technique": t, "stage": s["id"]} for s in stages for t in s["techniques"]]
-    vulns = [i for i in clean if i["type"] == "cve" and i["role"] == "vulnerability"]
+    probed = {i for s in stages for a in s["actions"] if a["action"] == "exploit_probe" for i in a["ioc"]}
+    vulns = [i for k, i in enumerate(clean) if i["type"] == "cve" and i["role"] == "vulnerability" and k not in probed]
     pairs = []
     for i in vulns:
         for t in i.get("techniques") or []:
@@ -521,7 +531,7 @@ def compile_campaign(iocs, options=None, name=None):
                 pairs.append({"technique": t, "cve": i["value"]})
     expect += pairs
     if vulns:
-        notes.append("%d vulnerability indicator(s) carried as detection expectations (%d technique pairs); no traffic exploits a CVE"
+        notes.append("%d vulnerability indicator(s) carried as detection expectations (%d technique pairs); no network-facing product matched, so no traffic"
                      % (len(vulns), len(pairs)))
     used = {i for s in stages for a in s["actions"] for i in a["ioc"]}
     nm = re.sub(r"[\x00-\x1f\x7f-\x9f\u200b-\u200f\u202a-\u202e\u2066-\u2069]", "", str(name or "")).strip() or "Campaign %s" % tag
@@ -554,7 +564,7 @@ def explain_campaign(campaign):
                 used.add(i)
                 if i < len(iocs):
                     lines.append("        from IOC #%d %s %s (role %s)" % (i + 1, iocs[i]["type"], _short(iocs[i]["value"], 80), iocs[i]["role"]))
-    vuln = [i for i in range(len(iocs)) if iocs[i]["type"] == "cve" and iocs[i]["role"] == "vulnerability"]
+    vuln = [i for i in range(len(iocs)) if iocs[i]["type"] == "cve" and iocs[i]["role"] == "vulnerability" and i not in used]
     used |= set(vuln)
     if vuln:
         lines.append("%d vulnerability indicators are carried as detection expectations, not traffic" % len(vuln))
@@ -599,6 +609,8 @@ def observability(campaign):
         if i in used:
             if typ in _WIRE_TYPES:
                 obs, reason = True, "an action in this campaign puts it on the wire"
+            elif typ == "cve":
+                obs, reason = True, "an inert exploit-attempt probe of the affected product is on the wire"
             else:
                 obs, reason = True, ("carried by an observable action (the download that delivers it): "
                                      "the file transfer is on the wire, this indicator identifies it")

@@ -20,7 +20,7 @@
  "explain": [
   "no Execution stage: nothing to build it from",
   "no Command And Control stage: nothing to build it from",
-  "3 vulnerability indicator(s) carried as detection expectations (4 technique pairs); no traffic exploits a CVE"
+  "3 vulnerability indicator(s) carried as detection expectations (4 technique pairs); no network-facing product matched, so no traffic"
  ],
  "iocs": [
   {

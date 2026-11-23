@@ -432,6 +432,16 @@ def _kev_techniques(v):
     return out[:3]
 
 
+def _kev_note(v):
+    """'Vendor Product: Name | what CISA says | Required action: ...'. The part before the first ' | ' is what
+    cve_profiles matches on; the rest is the plain-language description the indicator card shows."""
+    head = "%s %s: %s" % (v.get("vendorProject", ""), v.get("product", ""), v.get("vulnerabilityName", ""))
+    parts = [head, str(v.get("shortDescription") or "").strip()]
+    if str(v.get("requiredAction") or "").strip():
+        parts.append("CISA action: " + str(v["requiredAction"]).strip())
+    return " | ".join(p for p in parts if p)
+
+
 def _parse_kev(raw):
     d = parsers._json_load(raw, FETCH_MAX)
     out, seen = [], {}
@@ -442,7 +452,7 @@ def _parse_kev(raw):
         tags += [str(v.get(k)).strip()[:40] for k in ("vendorProject", "product") if str(v.get(k) or "").strip()]
         ioc = parsers._make(str(v.get("cveID", "")), "cisa-kev", "", confidence=95, tags=tags,
                             techniques=_kev_techniques(v), first_seen=v.get("dateAdded"),
-                            note="%s %s: %s" % (v.get("vendorProject", ""), v.get("product", ""), v.get("vulnerabilityName", "")))
+                            note=_kev_note(v))
         if ioc is not None:
             ioc["why"] = "CISA lists this CVE as exploited in the wild; carried as a detection expectation (%s)" % (
                 ", ".join(ioc.get("techniques") or []) or "no technique implied")

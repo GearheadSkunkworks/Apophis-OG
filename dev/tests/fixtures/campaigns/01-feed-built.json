@@ -207,7 +207,7 @@
  ],
  "explain": [
   "18 C2 indicators found; the first 8 are beaconed to",
-  "4 vulnerability indicator(s) carried as detection expectations (4 technique pairs); no traffic exploits a CVE"
+  "4 vulnerability indicator(s) carried as detection expectations (4 technique pairs); no network-facing product matched, so no traffic"
  ],
  "iocs": [
   {

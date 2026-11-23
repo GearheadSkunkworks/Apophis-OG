@@ -247,6 +247,8 @@ def intel_fetch(data):
         iocs = sources.fetch(feed, limit=limit, key=key.strip() or None, offline=offline,
                               fresh=fresh, **params)
         kept, dropped = filters.clean(iocs)
+        from intel import describe
+        kept, dropped = describe.annotate(kept, dropped)
     except Exception as e:                                            # noqa: BLE001 -- feed failures are shown inline
         name = type(e).__name__
         msg = _plain(e, secrets) if name in ("FeedError", "ValueError") else "the feed request failed (%s)" % name
@@ -272,10 +274,12 @@ def intel_parse(data):
     try:
         iocs = parsers.parse_any(text, source=source)
         kept, dropped = filters.clean(iocs)
+        from intel import describe
+        kept, dropped = describe.annotate(kept, dropped)
     except ValueError as e:
         raise ApiError(400, _plain(e)) from None
     return 200, {"iocs": _json_safe(kept), "count": len(kept), "dropped": _dropped_rows(dropped),
-                 "formats": _detect_format(text)}
+                 "formats": _detect_format(text), "report": parsers.looks_like_report(text)}
 
 
 # ---------------------------------------------------------------- catalog endpoints
@@ -378,8 +382,35 @@ def campaign_observability(data):
         errors = getattr(e, "errors", None) or [str(e)]
         raise ApiError(400, _plain(errors[0]), errors=[_plain(x) for x in errors[:50]]) from None
     rows = compiler.observability(camp)
-    return 200, {"observability": _json_safe(rows),
+    plan = [{"name": st.get("name"), "narrative": st.get("narrative", ""), "actions": len(st.get("actions") or [])}
+            for st in camp.get("stages", [])]
+    return 200, {"observability": _json_safe(rows), "plan": _json_safe(plan),
                  "observable": sum(1 for r in rows if r.get("observable")), "total": len(rows)}
+
+
+def campaign_preview(data):
+    """What one indicator alone will put on the wire: compile it by itself (no optional stages) and list the
+    actions that used it, from the compiler's own output so the preview cannot drift from the capture."""
+    actions, _t, _s, compiler, *_ = _engine()
+    data = _need_obj(data)
+    ioc = data.get("ioc")
+    if not isinstance(ioc, dict):
+        raise ApiError(400, "'ioc' must be an indicator object")
+    opts = dict(data.get("options") if isinstance(data.get("options"), dict) else {}, include=[])
+    try:
+        camp = compiler.compile_campaign([ioc], options=opts)
+    except ValueError as e:
+        raise ApiError(400, _plain((getattr(e, "errors", None) or [str(e)])[0])) from None
+    actions.load_all()
+    rows = []
+    for st in camp.get("stages", []):
+        for a in st.get("actions", []):
+            if 0 in a.get("ioc", []):
+                sp = actions.get(a["action"])
+                rows.append({"stage": st.get("name"), "action": a["action"], "title": sp.title if sp else a["action"],
+                             "protocols": list(sp.protocols) if sp else [], "summary": sp.summary if sp else "",
+                             "from": a["from"], "to": a["to"], "explain": a.get("explain", "")})
+    return 200, {"actions": _json_safe(rows), "observable": bool(rows)}
 
 
 def campaign_validate(data):
@@ -882,6 +913,7 @@ _POST = {
     "/api/intel/parse": intel_parse,
     "/api/campaign/compile": campaign_compile,
     "/api/campaign/observability": campaign_observability,
+    "/api/campaign/preview": campaign_preview,
     "/api/campaign/validate": campaign_validate,
     "/api/campaign/estimate": campaign_estimate,
     "/api/campaign/run": campaign_run,

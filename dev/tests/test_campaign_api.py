@@ -218,6 +218,16 @@ class TestCampaign(ApiCase):
             self.assertIn(k, d)
         self.assertEqual(d["errors"], [])
 
+    def test_preview_one_indicator(self):
+        s, d = self.post("/api/campaign/preview", {"ioc": {"type": "ipv4", "value": "203.0.113.5", "role": "c2"}})
+        self.assertEqual(s, 200)
+        self.assertTrue(d["observable"])
+        self.assertTrue(all(r["protocols"] and r["summary"] for r in d["actions"]))
+        s, d = self.post("/api/campaign/observability", {"iocs": IOCS})
+        self.assertTrue(d["plan"] and all({"name", "narrative", "actions"} <= set(p) for p in d["plan"]))
+        s, d = self.post("/api/campaign/preview", {"ioc": "x"})
+        self.assertEqual(s, 400)
+
     def test_compile_with_options(self):
         s, d = self.post("/api/campaign/compile", {"iocs": IOCS, "options": {"beacons_per_c2": 2}})
         self.assertEqual(s, 200)

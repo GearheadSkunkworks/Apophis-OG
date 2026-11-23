@@ -39,7 +39,13 @@ ALLOW_DOMAINS = {
     "akamaiedge.net", "fastly.net", "digicert.com", "letsencrypt.org", "ubuntu.com", "debian.org",
     "yahoo.com", "youtube.com", "dropbox.com", "adobe.com", "zoom.us", "slack.com", "cisco.com",
     "oracle.com", "ibm.com", "paypal.com", "ntp.org", "pool.ntp.org", "root-servers.net",
+    # government, standards and the security press: reference sites that reports cite, never attacker hosts
+    "cisa.gov", "dhs.gov", "usa.gov", "fbi.gov", "nist.gov", "mitre.org", "cve.org", "first.org", "stopransomware.gov",
+    "fortinet.com", "trendmicro.com", "sophos.com", "crowdstrike.com", "talosintelligence.com", "paloaltonetworks.com",
+    "mandiant.com", "virustotal.com", "bleepingcomputer.com", "securityaffairs.com", "techtarget.com", "krebsonsecurity.com",
+    "thehackernews.com", "arcticwolf.com", "truesec.com", "itsecurityguru.org", "welivesecurity.com", "securelist.com",
 }
+_REFERENCE_TLDS = {"gov", "mil", "edu"}          # any host under these is a public institution, not infrastructure to replay
 _RESERVED_NAMES = {"example.com", "example.org", "example.net"}
 _RESERVED_TLDS = {"example", "test", "invalid", "localhost"}
 
@@ -86,7 +92,7 @@ def _allow_listed(ioc):
         return False
     if t == "url" and h in ALLOW_IPS:
         return True
-    return any(h == d or h.endswith("." + d) for d in ALLOW_DOMAINS)
+    return h.rsplit(".", 1)[-1] in _REFERENCE_TLDS or any(h == d or h.endswith("." + d) for d in ALLOW_DOMAINS)
 
 
 def clean(iocs, allow_private=False, drop_documentation=False, allow_list=True):

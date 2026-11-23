@@ -80,7 +80,7 @@ class TestModel(unittest.TestCase):
                           tags=["A", "a", " b "], techniques=["t1071.001", "bogus", "T1059"],
                           first_seen="2026-01-02 03:04:05")
         self.assertEqual(i["confidence"], 100)
-        self.assertEqual(len(i["note"]), 200)
+        self.assertEqual(len(i["note"]), 500)
         self.assertEqual(i["tags"], ["a", "b"])
         self.assertEqual(i["techniques"], ["T1071.001", "T1059"])
         self.assertEqual(i["first_seen"], "2026-01-02T03:04:05Z")

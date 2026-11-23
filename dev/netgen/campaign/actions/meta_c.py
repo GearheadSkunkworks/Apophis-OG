@@ -50,6 +50,18 @@ META = {
                      "a single 302 with a session cookie")],
         "wire": "HTTPS tcp/443, inbound, 2 sessions, 24 POSTs of about 40 bytes, 401 JSON replies, about 0.7 s apart",
     },
+    "exploit_probe": {
+        "plain": "An internet host requests the characteristic page of a product named in a known-exploited vulnerability, then posts "
+                 "a dummy form, and the server refuses. Defenders see the shape of an attempt against that product, with no exploit content.",
+        "tells": ["One GET of the product's endpoint, then two form POSTs of about 7 bytes to its endpoints",
+                  "The first reply is 200, the POST replies are 403 with a tiny body",
+                  "A request header carries the CVE id (X-Request-Tag)"],
+        "filters": [("Probe requests", "ip.src == {src_ip} && http.request.method == \"POST\" && http.request.uri == \"{p:path}\"",
+                     "two POSTs after the first GET"),
+                    ("Refusals", "ip.src == {dst_ip} && http.response.code == 403", "a 403 for each POST"),
+                    ("CVE tag", "http.request.line contains \"X-Request-Tag\"", "the CVE id on every request")],
+        "wire": "HTTPS tcp/443 (HTTP tcp/80 for appliances), inbound, 3 requests: a 200, then two 403 replies",
+    },
     # ------------------------------------------------------------------ execution
     "ssh_remote_exec": {
         "plain": "A host runs a one-line command on a Linux server over SSH, three times in a row, the way a script does. "

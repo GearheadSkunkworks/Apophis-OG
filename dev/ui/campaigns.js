@@ -714,7 +714,8 @@
         absorb(res, filename || 'Pasted text');
         var nIn = Array.isArray(res.iocs) ? res.iocs.length : 0;
         var nLines = String(text).split(/\r?\n/).filter(function (l) { var t = l.trim(); return t && t.charAt(0) !== '#'; }).length;
-        if (!res.error && !filename && nLines > nIn) say(statusLine.textContent + ' ' + (nLines - nIn) + ' of ' + nLines + ' pasted lines were not recognised as indicators and were left out.', 'info');
+        if (!res.error && res.report) say(statusLine.textContent.replace(/\d+ of \d+ pasted lines[^.]*\./, '') + ' This reads as a report: only addresses and defanged hosts (hxxp, [.]) were taken; live links are treated as references. Hashes, file names and CVEs in prose cannot be played.', 'info');
+        else if (!res.error && !filename && nLines > nIn) say(statusLine.textContent + ' ' + (nLines - nIn) + ' of ' + nLines + ' pasted lines were not recognised as indicators and were left out.', 'info');
         if (warn) say(statusLine.textContent + ' ' + warn, 'info');
       }, function (err) {
         say((filename || 'Pasted text') + ': ' + err.message + (warn ? ' ' + warn : ''), 'err'); toast(err.message, 'error');
@@ -810,7 +811,13 @@
     //      engine's (POST /api/campaign/observability, debounced on edits); a tiny static fallback
     //      covers the kinds that never produce traffic so the badge is right instantly. SSOT:
     //      compiler.observability. A vulnerability/CVE or a bare hash is carried, not generated.
-    var obsCache = {}, obsTimer = null;
+    var obsCache = {}, obsTimer = null, planBox = el('div', {'class': 'hint'});
+    function renderPlan(plan) {
+      clear(planBox);
+      if (!plan || !plan.length) return;
+      planBox.appendChild(el('div', {}, 'This selection will build ' + plan.length + ' stage' + (plan.length === 1 ? '' : 's') + ':'));
+      plan.forEach(function (st) { planBox.appendChild(el('div', {}, st.name + ' (' + st.actions + ' action' + (st.actions === 1 ? '' : 's') + '): ' + st.narrative)); });
+    }
     function obsKey(i) { return i.type + '\u0000' + String(i.value == null ? '' : i.value).toLowerCase(); }
     function staticVerdict(i) {
       if (i.type === 'cve' || i.role === 'vulnerability')
@@ -830,13 +837,13 @@
     function refreshObservability() {
       obsTimer = null;
       var inc = includedIocs(OGC.state.iocs);
-      if (!inc.length) { obsCache = {}; renderTable(); return; }
+      if (!inc.length) { obsCache = {}; renderPlan(null); renderTable(); return; }
       OGC.api.post('/api/campaign/observability', {iocs: inc, options: cloneOptions(OGC.state.options)}).then(function (res) {
         var m = {};
         ((res && res.observability) || []).forEach(function (v) {
           m[v.type + '\u0000' + String(v.value == null ? '' : v.value).toLowerCase()] = {observable: !!v.observable, reason: v.reason};
         });
-        obsCache = m; renderTable();
+        obsCache = m; renderPlan(res && res.plan); renderTable();
       }, function () { /* keep the last good verdicts on a transient error */ });
     }
     function renderTable() {
@@ -850,13 +857,25 @@
         var sel = el('select', {'aria-label': 'Role of ' + i.value, onchange: function () {
           i.role = sel.value; i._roleEdited = true; renderChips(); emit('iocs', {iocs: OGC.state.iocs}); scheduleObservability();
         }}, ROLES.map(function (r) { return el('option', {value: r, selected: r === i.role}, r); }));
+        var pv = el('div', {'class': 'hint', hidden: true});
+        var pvBtn = el('button', {type: 'button', 'class': 'ogc-link', onclick: function () {
+          if (!pv.hidden) { pv.hidden = true; return; }
+          pv.hidden = false; pv.textContent = 'Working out the traffic…';
+          OGC.api.post('/api/campaign/preview', {ioc: stripIoc(i), options: cloneOptions(OGC.state.options)}).then(function (res) {
+            clear(pv);
+            if (!res.actions.length) { pv.textContent = 'No traffic: nothing in the campaign uses this indicator.'; return; }
+            res.actions.forEach(function (a) {
+              pv.appendChild(el('div', {}, a.title + ' (' + a.protocols.join(', ') + '): ' + a.from + ' to ' + a.to + '. ' + a.summary));
+            });
+          }, function (e) { pv.textContent = String(e && e.message || e); });
+        }}, 'Preview traffic');
         tbody.appendChild(el('tr', {},
           el('td', {'class': 'ogc-c-use'}, cb), el('td', {}, sel),
           el('td', {'class': 'ogc-c-wire'}, wireBadge(i)), el('td', {}, i.type),
           el('td', {'class': 'ogc-value', title: i.value}, i.value),
           el('td', {'class': 'ogc-c-num'}, String(i.confidence)),
           el('td', {'class': 'ogc-trunc', title: i.source}, i.source),
-          el('td', {'class': 'ogc-trunc ogc-why', title: i.why}, i.why)));
+          el('td', {'class': 'ogc-why', title: i.why}, i.card ? el('div', {}, el('div', {}, i.card.what), el('div', {'class': 'hint'}, i.card.traffic), pvBtn, pv) : i.why)));
       });
       table.hidden = OGC.state.iocs.length === 0;
       emptyNote.hidden = OGC.state.iocs.length !== 0;
@@ -998,6 +1017,7 @@
         el('div', {}, el('label', {'for': 'ogc-o-family'}, 'Beacon look (malware family)'), familySel)),
       el('fieldset', {'class': 'ogc-fs'}, el('legend', {}, 'Stages to include'), incBoxes),
       el('fieldset', {'class': 'ogc-fs'}, el('legend', {}, 'Address mode'), addrBox, realNote),
+      planBox,
       el('div', {'class': 'ogc-actions'}, compileBtn, compileHint),
       compileMsg);
 

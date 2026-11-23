@@ -11,7 +11,7 @@ from netgen.campaign.actions import load_all
 from netgen.campaign.actions.meta_c import META
 
 TOKENS = {
-    "initial-access": ["exposed_service_login", "phishing_visit", "web_login_spray"],
+    "initial-access": ["exploit_probe", "exposed_service_login", "phishing_visit", "web_login_spray"],
     "execution": ["ssh_remote_exec", "winrm_exec"],
     "persistence": ["remote_schtask", "svcctl_persist"],
     "privilege-escalation": ["gpo_modify", "privileged_group_add"],

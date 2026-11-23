@@ -2,7 +2,7 @@
 
 An IOC is a plain JSON-serialisable dict:
   type, value, role, confidence (0-100), source, tags, techniques,
-  first_seen (ISO-8601 or None), note (<= 200 chars), why (one sentence).
+  first_seen (ISO-8601 or None), note (<= 500 chars), why (one sentence).
 Nothing here touches the network or the packet engine.
 """
 import re
@@ -106,7 +106,7 @@ def new_ioc(type, value, *, role="unknown", confidence=50, source="", tags=None,
         "tags": norm_tags(tags),
         "techniques": norm_techniques(techniques),
         "first_seen": _iso(first_seen),
-        "note": clean_text(note),
+        "note": clean_text(note, 500),
         "why": clean_text(why, 160),
     }
 
