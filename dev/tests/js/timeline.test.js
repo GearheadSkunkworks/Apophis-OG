@@ -24,3 +24,10 @@ test('ruler uses elapsed hours, never clock times', () => {
   assert.strictEqual(l[0], 'start'); assert.strictEqual(l[l.length - 1], '16 h');
   assert.ok(l.every(t => !/:/.test(t) && !/[ap]m/i.test(t)));
 });
+
+test('blocks that end and start together get different rows, so they never touch', () => {
+  const r = T.layout([{name: 'a', left: 0, width: 10}, {name: 'b', left: 10, width: 10}]);
+  assert.notStrictEqual(r.items[0].row, r.items[1].row);
+  const far = T.layout([{name: 'a', left: 0, width: 10}, {name: 'b', left: 11, width: 10}]);
+  assert.strictEqual(far.items[1].row, 0);      // a clear gap lets them share a row
+});

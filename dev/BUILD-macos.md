@@ -40,7 +40,7 @@ cd "$P"
 # PYTHONPATH matters: the spec PyInstaller writes runs collect_submodules() before --paths is applied, so without it
 # the netgen/intel/diagrams submodules are silently NOT collected and the app starts with only some campaign actions.
 PYTHONPATH="$P" /tmp/og-build-venv/bin/pyinstaller --noconfirm --windowed \
-  --name "OpenGenerator" \
+  --name "OpenGenerator" --icon "$P/assets/gearhead.icns" \
   --osx-bundle-identifier com.example.trafficgen \
   --distpath "$B/dist" --workpath "$B/build" --specpath "$B" \
   --add-data "$P/ui:ui"                  --add-data "$P/assets:assets" \

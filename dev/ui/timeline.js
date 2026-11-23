@@ -6,6 +6,7 @@
   'use strict';
   var TRACK_MIN = 16 * 60;
   var LANES = ['SEC', 'PERF', 'CRYP', 'REPLAY'];
+  var GAP = 0.6;     // percent of the track kept clear after a block, so blocks that end and start together never touch
 
   /* items: [{name, left, width}] in percent. Greedy packing into sub-rows so markers never overlap.
      Returns {items: [{name, left, width, row}] sorted by left, rows}. */
@@ -15,7 +16,7 @@
     var out = sorted.map(function (it) {
       var r = 0;
       while (r < rowEnds.length && rowEnds[r] > it.left + 0.0001) r++;
-      rowEnds[r] = it.left + it.width;
+      rowEnds[r] = it.left + it.width + GAP;
       return {name: it.name, left: it.left, width: it.width, row: r};
     });
     return {items: out, rows: Math.max(1, rowEnds.length)};
@@ -40,7 +41,7 @@
   function create(cfg) {
     var doc = cfg.doc || root.document;
     var C = cfg.cards;
-    var playhead = null, phNode = null;
+    var playhead = null, phNode = null, tipNode = null, bandNode = null, gridNode = null;
     function applyPlayhead() {
       if (!phNode) return;
       if (playhead == null) { phNode.hidden = true; return; }
@@ -49,6 +50,30 @@
       phNode.setAttribute('aria-label', 'Build progress, about ' + Math.round(playhead) + ' percent');
     }
     function setPlayhead(pct) { playhead = pct == null ? null : Math.max(0, Math.min(100, pct)); applyPlayhead(); }
+    /* Hover or focus: dim the other blocks, shade the block's span across every lane, and float its name above it.
+       Nothing here changes the layout, so the graphic never moves under the pointer. */
+    function showTip(b, text, left, width) {
+      if (!tipNode) return;
+      gridNode.classList.add('tlx-focus');
+      var prev = gridNode.querySelector('.tlx-mk.hot'); if (prev) prev.classList.remove('hot');
+      b.classList.add('hot');
+      bandNode.hidden = false;
+      if (bandNode.style) { bandNode.style.left = 'calc(140px + (100% - 140px) * ' + (left / 100) + ')'; bandNode.style.width = 'calc((100% - 140px) * ' + (width / 100) + ')'; }
+      tipNode.textContent = text; tipNode.hidden = false;
+      if (b.getBoundingClientRect && gridNode.getBoundingClientRect) {
+        var g = gridNode.getBoundingClientRect(), r = b.getBoundingClientRect();
+        var x = r.left - g.left + r.width / 2, tw = tipNode.offsetWidth || 0;
+        x = Math.max(tw / 2 + 4, Math.min(g.width - tw / 2 - 4, x));       // keep the tip inside the graphic
+        tipNode.style.left = x + 'px';
+        tipNode.style.top = (r.top - g.top - 6) + 'px';
+      }
+    }
+    function hideTip() {
+      if (!tipNode) return;
+      gridNode.classList.remove('tlx-focus');
+      var h = gridNode.querySelector('.tlx-mk.hot'); if (h) h.classList.remove('hot');
+      bandNode.hidden = true; tipNode.hidden = true;
+    }
     function render() {
       while (cfg.host.firstChild) cfg.host.removeChild(cfg.host.firstChild);
       var mods = cfg.getModules(), sel = cfg.getSelected();
@@ -74,17 +99,19 @@
         lab.appendChild(el(doc, 'small', null, inLane.filter(function (m) { return sel.has(m.name); }).length + ' in capture'));
         var trk = el(doc, 'div', 'tlx-trk', null, {role: 'group', 'aria-label': info.heading + ' scenarios'});
         trk.style.setProperty('--c', 'var(' + info.token + ')');
-        trk.style.height = 'calc(' + lay.rows + ' * var(--tlrow, 10px) + 6px)';      // one block thickness in every lane
-        var btns = [];
+        trk.style.height = 'calc(' + lay.rows + ' * var(--tlrow, 10px) + 4px)';      // one block thickness in every lane
+        var btns = [], k = 0;
         lay.items.forEach(function (it) {
           var m = byName[it.name], on = sel.has(it.name);
           if (!on) return;                                  // drawn only when in the capture
-          var b = el(doc, 'button', 'tlx-mk' + (on ? ' on' : ''), '', {type: 'button', 'aria-pressed': on ? 'true' : 'false',
-            'aria-label': (m.title || m.name) + ', ' + (on ? 'in capture' : 'not in capture') + ', ' + m.window,
-            title: (m.title || m.name) + ' (' + m.window + ')'});
+          var b = el(doc, 'button', 'tlx-mk' + (on ? ' on' : '') + (k++ % 2 ? ' alt' : ''), '', {type: 'button', 'aria-pressed': on ? 'true' : 'false',
+            'aria-label': (m.title || m.name) + ', ' + (on ? 'in capture' : 'not in capture') + ', ' + m.window});
           b.dataset.mod = m.name;
           setPct(b, 'left', it.left); setPct(b, 'width', it.width);
           if (b.style) b.style.top = 'calc(3px + ' + it.row + ' * var(--tlrow, 10px))';
+          var say = function () { showTip(b, m.title || m.name, it.left, it.width); };
+          b.addEventListener('mouseenter', say); b.addEventListener('focus', say);
+          b.addEventListener('mouseleave', hideTip); b.addEventListener('blur', hideTip);
           b.addEventListener('click', function () { cfg.open(m.name, b); });
           b.addEventListener('keydown', function (ev) {
             var i = btns.indexOf(b), j = -1;
@@ -101,6 +128,9 @@
       nd.appendChild(el(doc, 'div', 'tlx-lab', 'Normal day'));
       nd.appendChild(el(doc, 'div', 'tlx-normal', 'always on, the whole 16 hours'));
       grid.appendChild(nd);
+      bandNode = el(doc, 'div', 'tlx-band', null, {'aria-hidden': 'true'}); bandNode.hidden = true; grid.appendChild(bandNode);
+      tipNode = el(doc, 'div', 'tlx-tip', null, {'aria-hidden': 'true'}); tipNode.hidden = true; grid.appendChild(tipNode);
+      gridNode = grid;
       phNode = el(doc, 'div', 'tlx-ph', null, {role: 'img'}); phNode.hidden = true; grid.appendChild(phNode);
       applyPlayhead();
       cfg.host.appendChild(grid);

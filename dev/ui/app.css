@@ -559,13 +559,13 @@ body:has(#og-toast:not([hidden])) .ogc-toasts{top:calc(var(--tb-h) + 12px + 64px
 #view-build .phead{margin-bottom:8px;} #view-build{padding-top:18px;}
 #timeline-panel{padding:12px 16px;} #timeline-panel .panel-h{margin-bottom:8px;}
 .tlx{gap:4px;} .tlx-lab{padding-top:2px;font-size:.8125rem;} .tlx-lab small{font-size:.6875rem;}
-.tlx-mk{height:calc(var(--tlrow,10px) - 2px);min-width:10px;} .tlx-mk::after{content:"";position:absolute;inset:-2px;}
+.tlx-mk{height:calc(var(--tlrow,10px) - 3px);min-width:10px;} .tlx-mk::after{content:"";position:absolute;inset:-2px;}
 .tlx-trk{border-radius:2px;} .tlx-normal{height:22px;} .tlx-ruler{height:14px;} .tlx-key{margin-top:4px;}
 .dock .scalehead{display:flex;align-items:baseline;gap:10px;} .dock .scalehead .estline{margin:0 0 0 auto;font-size:.75rem;}
 .dock .scalehead .estline b{font-size:.8125rem;}
 .dock #capdate-note{display:none;}
 .dock{padding:8px 28px 10px;} .dock .stopnote{font-size:.75rem;}
-#timeline-panel{--tlrow:clamp(8px,calc((100vh - 650px) / 48),11px);}  /* taller screens give the timeline taller rows */
+#timeline-panel{--tlrow:clamp(12px,calc((100vh - 560px) / 20),15px);}  /* taller screens give the timeline taller rows */
 .dk-sub .stops button{white-space:nowrap;}
 
 /* the active starting point */

@@ -51,6 +51,9 @@ STATIC_FILES = {                      # exact-name allow-list for GET /ui/<name>
     "gearhead-mark.png": "image/png",                          # the brand mark, used as a mask by theme.css
     "explainer.js": "text/javascript; charset=utf-8",         # animated explainer and zone map
     "timeline.js": "text/javascript; charset=utf-8",          # capture-day timeline
+    "help.js": "text/javascript; charset=utf-8",              # in-app Help: search and article view
+    "help.css": "text/css; charset=utf-8",
+    "help-articles.json": "application/json; charset=utf-8",  # the how-to articles
     "scenario-cards.js": "text/javascript; charset=utf-8",   # category rail, chooser tools and scenario cards
     "scenario-cards.css": "text/css; charset=utf-8",
     "geo-world.json": "application/json; charset=utf-8",

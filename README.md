@@ -24,7 +24,7 @@ Synthetic network traffic for testing and demoing NDR and NPM tools.
 
 The company doesn't exist. Neither do its servers, employees, or printers. The packets are real, though, and so are the attacks hidden inside them. If your detection tool is any good, it will notice. If it isn't, you'll find out in a lab instead of during an incident.
 
-> Apophis is the Egyptian serpent of chaos. This tool makes chaos on purpose, on your own network, with permission.
+> Apophis is the Egyptian serpent of chaos. This tool makes chaos on purpose, in your environment, with your permission, and at your request.
 
 ## What it is
 

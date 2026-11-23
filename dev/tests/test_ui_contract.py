@@ -39,7 +39,7 @@ LEGACY_IDS = [
     "tcstop", "tctarget", "tctargethint", "themesel", "usernet",
 ]
 
-VIEWS = ("build", "campaigns", "replay", "captures", "lab", "settings")
+VIEWS = ("build", "campaigns", "replay", "captures", "lab", "help", "settings")
 
 
 class TestUiContract(unittest.TestCase):

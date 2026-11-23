@@ -159,9 +159,18 @@ body.scard-open{overflow:hidden;}
   background-image:linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:calc(100% / 8) 100%;}
 .tlx-mk{position:absolute;min-width:12px;padding:0;border-radius:2px;cursor:pointer;
   background:transparent;border:1px solid var(--c);}
-.tlx-mk.on{background:var(--c);box-shadow:0 0 10px color-mix(in srgb,var(--c) 60%,transparent);}
-.tlx-mk:hover{box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 40%,transparent);}
-.tlx-mk:focus-visible{outline:2px solid var(--cy);outline-offset:2px;z-index:2;}
+/* a block is a solid bar with a 1px halo in the track colour, so neighbours read as separate blocks; every other block in a lane is a shade lighter */
+.tlx-mk.on{background:var(--c);box-shadow:0 0 0 1px var(--p2);}
+.tlx-mk.on.alt{background:color-mix(in srgb,var(--c) 72%,var(--p2));}
+.tlx-mk:focus-visible{outline:2px solid var(--ink);outline-offset:1px;z-index:2;}
+/* hover or focus: the other blocks recede, this one lifts with a ring, its span is shaded down every lane, and its name floats above it */
+.tlx-focus .tlx-mk.on:not(.hot){opacity:.28;}
+.tlx-mk.hot{z-index:3;outline:2px solid var(--ink);outline-offset:1px;background:var(--c);box-shadow:0 0 0 1px var(--p2),0 2px 10px rgba(0,0,0,.45);}
+.tlx-band{position:absolute;top:0;bottom:0;z-index:0;pointer-events:none;background:color-mix(in srgb,var(--ink) 9%,transparent);
+  border-left:1px dashed var(--ln2);border-right:1px dashed var(--ln2);}
+.tlx-band[hidden],.tlx-tip[hidden]{display:none;}
+.tlx-tip{position:absolute;z-index:4;pointer-events:none;transform:translate(-50%,-100%);white-space:nowrap;max-width:min(520px,90%);overflow:hidden;text-overflow:ellipsis;
+  padding:4px 8px;border-radius:3px;font-size:0.8125rem;font-weight:600;color:var(--ink);background:var(--p1);border:1px solid var(--ln2);box-shadow:0 4px 14px rgba(0,0,0,.4);}
 .tlx-normal{flex:1;display:flex;align-items:center;padding:0 12px;height:28px;border:1px solid var(--ln2);border-radius:3px;font-size:0.7812rem;color:var(--mu);
   background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--cy) 10%,var(--p2)) 0 8px,var(--p2) 8px 16px);}
 .tlx-key{margin-top:8px;}

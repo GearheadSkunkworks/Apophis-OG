@@ -1,0 +1,467 @@
+{
+ "articles": [
+  {
+   "id": "build-a-capture",
+   "kind": "workflow",
+   "title": "Build a capture",
+   "summary": "Generate a pcap, then find the files.",
+   "keywords": [
+    "make a pcap",
+    "fake traffic",
+    "generate capture",
+    "create pcap",
+    "compose",
+    "baseline",
+    "scale",
+    "output folder",
+    "generate",
+    "simulated network traffic"
+   ],
+   "where": "Compose",
+   "related": [
+    "baseline-and-scale",
+    "company-and-industry",
+    "scenarios-and-categories",
+    "captures-and-files",
+    "generation-report",
+    "replay-a-capture",
+    "build-a-campaign"
+   ],
+   "body": "## Steps\n\n1. Under Starting point, pick one button: Clean baseline, Security, Performance, Crypto posture, OT / ICS day or Incident replay. Clean baseline adds no scenarios.\n2. Under Choose scenarios, change the selection if you want. Use the category rail, the search box and the family chips to find scenarios. Press Details on a scenario to open its card, then Add to capture or Remove from capture. The strip above, The capture day, shows where each scenario falls in the 16 hours.\n3. In the right panel, set Company name and Industry. Both are optional. A blank company name becomes Example. See [[company-and-industry]].\n4. Set Capture date. It starts as today. Pin a date to make two runs comparable.\n5. Set Size with the slider or Quick sample, Standard or Full day. The slider starts at 0.10x, and the line beside it estimates file size and packet count. See [[baseline-and-scale]].\n6. Open More options to change the Output folder (default `~/OpenGenerator-Captures`) or untick the certificate and threat collection exports, both ticked by default. Advanced: addressing and OT changes the user and server networks or adds an OT network. See [[addressing-and-networks]].\n7. Press Generate capture. Stop cancels and discards the partial capture. When the build ends, the app moves to Captures.\n\n## Find your files\n\nIn Captures, the file table lists the pcap first, such as `example-all-in-one.pcap`. Press Reveal in folder to open it. See [[generation-report]] and [[captures-and-files]].\n\n## If something goes wrong\n\n- Generate capture is disabled. Hover over it. The message names the missing dependency or empty field. Settings has a Re-check button.\n- The build shows Failed. Try a smaller size.\n- Captures says No capture yet. No build has finished in this session. Check the output folder named in Earlier captures, or build one from Compose."
+  },
+  {
+   "id": "import-and-validate-a-pcap",
+   "kind": "workflow",
+   "title": "Import and validate a pcap",
+   "summary": "Turn your own pcap into a recipe and add it to a build.",
+   "keywords": [
+    "import pcap",
+    "own pcap",
+    "existing capture",
+    "recreate traffic",
+    "profile pcap",
+    "recipe",
+    "custom scenario",
+    "copy traffic",
+    "validate",
+    "compare captures",
+    "rebuild"
+   ],
+   "where": "Lab",
+   "related": [
+    "lab-import-pcap",
+    "lab-recipes",
+    "build-a-capture",
+    "settings-and-lab-switch",
+    "addressing-and-networks",
+    "captures-and-files"
+   ],
+   "body": "## Before you start\n\n- Switch on Lab tools in Settings. See [[settings-and-lab-switch]].\n- The file must be a pcap or pcapng of 1 GiB or less.\n\n## Steps\n\n1. Click Lab in the top bar, then Import pcap. The step strip shows Choose a file, Profile, Save recipe and Add as scenario.\n2. Pick a file. The list under the strip shows up to five captures from your output folder, each with a Choose button. For any other file, type its full path in Or type a path and press Tab or click away.\n3. Wait for Reading the capture. Four tiles appear: Flows, Protocols, Duration and Size. If the file cannot be read, a red message says why and the strip returns to Choose a file.\n4. Click Open profile report. A new tab shows what the app found and which protocols it can and cannot recreate. See [[lab-import-pcap]].\n5. Click Save recipe. The app writes `<capture name>-recipe.json` into your output folder and shows the path and flow count. Add as custom scenario and Reveal in folder appear.\n6. Click Add as custom scenario. The Recipes tab opens and the recipe joins Custom recipes in the next build. See [[lab-recipes]].\n7. Go back to Compose and click Generate capture. The build includes one CUSTOM scenario for each recipe in the list. See [[build-a-capture]].\n8. When the build finishes, return to Lab, Import pcap. Under Check the rebuild, type the new capture's path in Capture built from the recipe, then click Compare with the original. A report opens in a new tab.\n\n## What the result means\n\nThe new capture uses the app's own hosts, addresses and users, not those in your file. Protocols the app has no builder for are listed as not recreated and left out. See [[addressing-and-networks]].\n\n## If something goes wrong\n\n- Enter a file path first, or click the field and pick a suggestion: the path box was empty.\n- The file is not a pcap or pcapng: choose a different file.\n- The CUSTOM scenario is missing from the build: open Lab, Recipes and check the list.\n- Compare with the original asks for a path: fill in both the original path in Or type a path and the new capture path."
+  },
+  {
+   "id": "replay-a-capture",
+   "kind": "workflow",
+   "title": "Replay a capture onto a sensor",
+   "summary": "Play a capture onto a network interface.",
+   "keywords": [
+    "replay",
+    "tcpreplay",
+    "play pcap",
+    "send traffic",
+    "inject packets",
+    "sensor",
+    "interface",
+    "span",
+    "tap",
+    "monitor window",
+    "stop replay"
+   ],
+   "where": "Replay",
+   "related": [
+    "build-a-capture",
+    "captures-and-files",
+    "lab-sensor-pushes",
+    "baseline-and-scale",
+    "settings-and-lab-switch"
+   ],
+   "body": "Replay needs tcpreplay, which you install separately.\n\n## Before you start\n\n- Have a capture. See [[build-a-capture]].\n- Know which network card is cabled to the sensor's monitoring port or SPAN or TAP feed.\n- Expect a macOS administrator prompt. The password goes to macOS, not to this app.\n\n## Steps\n\n1. Click Replay in the top bar, or Replay this capture in Captures after a build. Use for replay on an earlier capture does the same for that file.\n2. Check the dependency chips under Replay on the wire. If tcpreplay is missing, a red message gives the install command. Install it, then reload the page.\n3. Capture file holds your last build. Type another path to replay a different file.\n4. Choose the card in Replay interface. The app marks one as recommended.\n5. Choose a Speed. Original timing x multiplier is the default: 1 is real time, 2 is twice as fast, 0.5 is half speed. Top speed, Fixed packets/sec and Fixed Mbps ignore the capture's timing.\n6. Set Loops. 1 plays the capture once. 0 repeats until you stop it.\n7. Leave Open a monitor window ticked to get a Terminal window showing tcpreplay's output. Control-C there stops the replay without a password.\n8. Tick I understand - start the replay. Start replay stays greyed out until you do.\n9. Click Start replay and approve the macOS prompt. The progress panel shows Played as a percentage, send rate and elapsed time. The top bar chip changes to Replaying.\n10. When it ends the title reads Replay complete. Click Stop replay to end it early; the title then reads Stopped, noting the capture was partly played.\n\n- The replay runs as a separate process. Reloading the page, opening a second tab or restarting the app does not stop it. Quitting the app on purpose does.\n- A sensor with the matching threat collection raises threat matches during replay. See [[lab-sensor-pushes]].\n\n## If something goes wrong\n\n- Start replay stays disabled: tick the acknowledgement, install tcpreplay, or wait for a running replay to finish.\n- Could not start replay: read the message under the form. The app re-checks the file and interface before it asks for a password."
+  },
+  {
+   "id": "build-a-campaign",
+   "kind": "workflow",
+   "title": "Build a campaign",
+   "summary": "Turn threat indicators into attack traffic.",
+   "keywords": [
+    "campaign",
+    "threat indicators",
+    "ioc",
+    "attack traffic",
+    "mitre attack",
+    "feed",
+    "stix",
+    "compile",
+    "arm campaign",
+    "malware beacon",
+    "c2"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "build-a-capture",
+    "replay-a-capture",
+    "addressing-and-networks",
+    "generation-report",
+    "scenarios-and-categories"
+   ],
+   "body": "Nothing is sent to any real host. The builder only writes packets to a file.\n\n## Steps\n\n1. Open Campaigns. The Campaign builder shows four steps: Type, Indicators, Build and Save & run. On Type, pick Build from indicators and press Choose indicators. The other choices are Open a saved campaign (Open the library) and Start from scratch (Start empty).\n2. On Indicators, either press Fetch next to a feed under Public feeds, or open Paste or load a file, paste text or press Load file, then press Add pasted indicators. Indicators per fetch sets how many to ask for. Some feeds need an API key, typed in the box beside the feed.\n3. Review the table. Each row has a type and a role. Use the Role, Type and Text filters to narrow it. The Dropped fold lists what was removed, such as private addresses and duplicates.\n4. Under Compile a campaign, type a Campaign name. Choose the Compromised host, Lateral movement target, Beacons per C2, Start time, Speed and Beacon look (malware family). Tick the Stages to include. Pick the Address mode. Mapped is the default and moves indicator addresses into a benchmark range, so the capture holds no real third-party address.\n5. Press Compile campaign. When it succeeds, the builder reports how many stages it drafted and opens the Build step.\n6. On Build, read the stages and actions. You can add a stage, move, duplicate or delete stages and actions, and change each action's settings. An estimate appears once the campaign is valid. Fix anything listed under Problems with the campaign.\n7. On Save & run, Check shows whether the campaign is valid. Name and save has Save to library and Download JSON.\n8. Under Run it, tick Use this campaign in the next capture.\n9. Go to Compose and press Generate capture. The capture uses the Compose settings for size, company, networks and scenarios, and adds the campaign on top.\n10. In Captures, the result card has campaign results: what ran, packets per action, the indicators as they appear in the capture and the files written. Open the campaign diagram opens a printable page. See [[generation-report]].\n\n## Real addresses\n\nRun it also offers Real addresses. Type `REAL` to confirm. The file then holds the indicators' own public addresses, and replaying it on a routed network can reach real hosts, so use an isolated lab only. See [[addressing-and-networks]].\n\n## If something goes wrong\n\n- Compile campaign asks for a selection. Select at least one indicator.\n- Feeds show an error. A feed may need a key, or the network may be down. Paste a list or load a file instead.\n- Many indicators show unknown. Add a role word such as `c2` or `scanner` to the line in your file and add it again.\n- The campaign is not added. The Run it panel says it has problems. Open Check and fix them."
+  },
+  {
+   "id": "lab-import-pcap",
+   "kind": "tool",
+   "title": "Import pcap (Lab)",
+   "summary": "Profile a pcap and save a recipe from it.",
+   "keywords": [
+    "import pcap",
+    "profile",
+    "pcap profile",
+    "profile report",
+    "recipe",
+    "analyze pcap",
+    "protocols in pcap",
+    "compare",
+    "reproducible",
+    "lab"
+   ],
+   "where": "Lab",
+   "related": [
+    "import-and-validate-a-pcap",
+    "lab-recipes",
+    "captures-and-files",
+    "addressing-and-networks",
+    "settings-and-lab-switch"
+   ],
+   "body": "The tab shows only when Lab tools are on. See [[settings-and-lab-switch]].\n\nThe tool reads a pcap or pcapng and builds a profile: protocol and byte mix, hosts and roles, conversations, ports, timing, TLS and DNS names. From the profile it writes a recipe.\n\n## What you give it and what you get\n\n- Input: a pcap or pcapng, up to 1 GiB. Choose one of the five most recent captures in your output folder, or type a path.\n- Open profile report: a report in a new tab naming the protocols the app can recreate and those it cannot.\n- Save recipe: writes `<capture name>-recipe.json` into your output folder, then offers Add as custom scenario and Reveal in folder.\n- Compare with the original: takes a capture built from the recipe and lists which of the original's protocols came back.\n\n- Payload contents are never stored in the recipe.\n- The rebuild uses the app's simulated hosts and addresses, so addresses from your file do not appear. See [[addressing-and-networks]].\n- Protocols the app has no builder for are reported as not recreated and left out.\n\nFull steps: [[import-and-validate-a-pcap]]. Saved recipes: [[lab-recipes]]."
+  },
+  {
+   "id": "lab-recipes",
+   "kind": "tool",
+   "title": "Recipes (Lab)",
+   "summary": "The recipes the next build uses.",
+   "keywords": [
+    "recipes",
+    "custom recipe",
+    "add recipe",
+    "remove recipe",
+    "custom scenario",
+    "recipe file",
+    "json",
+    "next build",
+    "lab"
+   ],
+   "where": "Lab",
+   "related": [
+    "import-and-validate-a-pcap",
+    "lab-import-pcap",
+    "scenarios-and-categories",
+    "build-a-capture",
+    "settings-and-lab-switch"
+   ],
+   "body": "The tab shows only when Lab tools are on. See [[settings-and-lab-switch]].\n\nA recipe is a JSON description of a scenario. The tool keeps a list of recipe files, and each one adds a CUSTOM scenario when you build in Compose.\n\n## What you give it and what you get\n\n- Input: type a path in Recipe file, or click the field and pick a recipe found in your output folder. Click Add recipe, or press Enter. A red message under the field reports a problem with the file.\n- Output: the list under Custom recipes in the next build. Each row shows the path and a Remove button.\n\n## When to use it\n\nUse it after you save a recipe from [[lab-import-pcap]], or when you have a recipe file from someone else.\n\n- Remove takes a recipe out of the list. It does not delete the file.\n- A recipe that names protocols the app cannot build still adds the scenario. The unsupported flows are skipped and reported.\n\nFull steps: [[import-and-validate-a-pcap]]."
+  },
+  {
+   "id": "lab-sensor-pushes",
+   "kind": "tool",
+   "title": "Sensor pushes",
+   "summary": "Send a threat collection or replace decryption keys.",
+   "keywords": [
+    "sensor push",
+    "threat collection",
+    "push certificates",
+    "decryption keys",
+    "upload stix",
+    "api key",
+    "appliance",
+    "danger zone",
+    "ssl keys",
+    "threat intelligence",
+    "delete keys"
+   ],
+   "where": "Sensor pushes",
+   "related": [
+    "replay-a-capture",
+    "lab-modules",
+    "settings-and-lab-switch",
+    "captures-and-files"
+   ],
+   "body": "Turn on Lab tools in Settings to see this page ([[settings-and-lab-switch]]).\n\nSensor pushes sends material from a build to a monitoring appliance over its REST API. One panel is safe to repeat. The other deletes data on the target.\n\n## Push the threat collection\n\nA capture exports a file of the external indicators it used: command-and-control, exfiltration and malware-delivery hosts. Loading it into an appliance lets the appliance match those hosts when you replay the capture.\n\nThe push replaces only the collection the tool owns, named ExampleThreatCollection.\n\nYou give it:\n\n- Appliance address\n- API key\n- Threat collection file\n- Upload to: A sensor (standalone) or A console. A console syncs indicators to its connected sensors.\n- Generate detections on an indicator match, on by default. With it off, matching hosts are tagged but no detection is raised.\n\nCheck appliance is read-only. It confirms the address and key, and says whether a previous collection will be replaced. Push threat collection runs the upload. The panel then shows counts for indicators in the file, imported, replaced and detections, plus a log.\n\n## Danger zone: push certificates\n\nThis panel is marked Destructive. Push certificates deletes every SSL decryption key already on the sensor, then uploads the certificates for the current capture. Deleted keys cannot be recovered.\n\nYou give it a sensor address, an API key, a certificates folder, and a protocol and port. The protocol is HTTP, SMTP or LDAP, and the port defaults to 443. A key with no protocol mapping decrypts nothing.\n\nCheck sensor is read-only. It reports how many existing keys would be deleted. Push certificates stays disabled until the address, key and a valid port are filled in. Clicking it opens Replace all decryption keys?, where you press and hold Hold to delete and replace for 1.5 seconds.\n\n- Run the certificate push only against a laboratory sensor.\n- Appliances present a self-signed certificate. The connection is encrypted, but the app does not verify who answers, so confirm the address.\n- The API key is held in memory only and is forgotten when you close the page.\n"
+  },
+  {
+   "id": "lab-modules",
+   "kind": "tool",
+   "title": "Capability modules",
+   "summary": "Load, unload and test optional add-ons.",
+   "keywords": [
+    "modules",
+    "capability modules",
+    "plugins",
+    "add-on",
+    "load module",
+    "unload",
+    "self-test",
+    "auto-load",
+    "extension",
+    "3rd-party",
+    "beta"
+   ],
+   "where": "Modules",
+   "related": [
+    "settings-and-lab-switch",
+    "scenarios-and-categories",
+    "baseline-and-scale",
+    "build-a-capture"
+   ],
+   "body": "A capability module is an add-on you load and unload while the app runs.\n\nIt is under Lab, so turn on Lab tools in Settings first. See [[settings-and-lab-switch]]. A module can add a scenario to the list in [[scenarios-and-categories]].\n\n## What you see\n\nA line at the top counts what the app has built in: scenarios, diagrams, encoders, exporters and providers. Each module is a card with its name, kind, version and description. A loaded module shows loaded.\n\n- Example marks a reference sample.\n- 3rd-party marks a module added after install.\n- Test runs the module's self-test and reports PASS or FAIL. It is enabled only while the module is loaded.\n- Auto-load on startup keeps the module loaded after a restart.\n- Test all loaded reports how many loaded modules passed.\n\n## Effects on a capture\n\nScenario and encoder modules change the packets of a capture. While one is loaded, a note beside Generate says so; unload it to return to the baseline. demo_encoder and demo_scenario, both examples, change a capture. See [[baseline-and-scale]].\n\nLoading a scenario module updates the scenario grid.\n\nModules run with the app's own access to your computer. Only add modules you trust."
+  },
+  {
+   "id": "settings-and-lab-switch",
+   "kind": "note",
+   "title": "Settings and the Lab switch",
+   "summary": "Lab switch, appearance, defaults and API keys.",
+   "keywords": [
+    "settings",
+    "lab tools",
+    "lab tab",
+    "show lab",
+    "palette",
+    "theme",
+    "dark mode",
+    "output folder",
+    "default size",
+    "forget keys",
+    "api keys"
+   ],
+   "where": "Settings",
+   "related": [
+    "lab-modules",
+    "lab-sensor-pushes",
+    "sessions",
+    "lab-import-pcap"
+   ],
+   "body": "Settings is the slider icon in the top bar.\n\n## Lab tools\n\nLab tools is off at first. Turn it on and a Lab tab appears, holding Import pcap, Recipes, Sensor pushes and Modules. Turn it off and Lab disappears; if you were on it, the app returns you to Compose. The choice is remembered in this browser.\n\nSee [[lab-import-pcap]], [[lab-recipes]], [[lab-sensor-pushes]] and [[lab-modules]].\n\n## Appearance\n\nPalette offers Slate Blue (the default), Forge, Teal, Sage and Clay. Theme is Dark, Light or System.\n\n## Defaults\n\n- Output folder is where captures are written. See [[captures-and-files]].\n- Default size is Quick sample, Standard or Full day. Changing it resets Compose's size.\n\n## Sessions, Checks and API keys\n\nSee [[sessions]] for Sessions. Checks lists the dependency checks, with a Re-check button. API keys has a Forget stored keys button."
+  },
+  {
+   "id": "sessions",
+   "kind": "note",
+   "title": "Sessions",
+   "summary": "Saved form choices.",
+   "keywords": [
+    "session",
+    "save settings",
+    "restore",
+    "start fresh",
+    "named session",
+    "remember",
+    "load session",
+    "reset",
+    "last session"
+   ],
+   "where": "Settings",
+   "related": [
+    "settings-and-lab-switch",
+    "build-a-capture",
+    "company-and-industry",
+    "captures-and-files"
+   ],
+   "body": "A session is the state of the form: company, industry, networks, scale, ticked scenarios, OT options and replay settings.\n\n## The last session\n\nThe app saves your choices a moment after you change them. At the next start it restores them and shows Restored your last session, with a Start fresh button.\n\nTo turn this off, use Settings, Sessions, Restore my last session on start. Settings under Defaults take priority over a restored session.\n\n## Named sessions\n\nUnder Settings, Sessions, type a name (up to 80 characters) in Save current state as and click Save. The session appears in a list with two buttons.\n\n- Load puts that session's values back into the form.\n- Delete removes it.\n\n## What is never saved\n\nAPI keys, passwords, tokens and acknowledgement ticks are never stored. Lab tools, the palette and theme, and the output folder default are kept separately. See [[settings-and-lab-switch]]."
+  },
+  {
+   "id": "updates",
+   "kind": "note",
+   "title": "Updates",
+   "summary": "Patches and full releases.",
+   "keywords": [
+    "update",
+    "upgrade",
+    "new version",
+    "patch",
+    "install update",
+    "release",
+    "download",
+    "check for updates",
+    "restart"
+   ],
+   "where": "",
+   "related": [
+    "settings-and-lab-switch",
+    "sessions",
+    "captures-and-files"
+   ],
+   "body": "The download-arrow icon in the top bar, labelled Check for updates, opens a dialog.\n\n## You are up to date\n\nThe dialog says You are up to date and names your version.\n\n## A patch is available\n\nA patch is a version whose last number is above zero, such as 5.3.1 after 5.3.0. The dialog shows the new version, your version and the release notes. Installing restarts the app, so finish any capture in progress first.\n\nClick Install and restart, or Later. The page reloads when the app is back. If it does not return within a minute, open the app again from Applications.\n\nIf the install fails, the dialog says The update was not installed and nothing is changed.\n\n\n## A full release is available\n\nA new minor or major version, such as 5.4.0 or 6.0.0, is a download. The dialog offers Open releases page.\n\n## A copy that runs from source\n\nThe dialog tells you to update it with git pull.\n\n## If the check fails\n\nThe dialog says Could not check for updates. Try again in a moment."
+  },
+  {
+   "id": "baseline-and-scale",
+   "kind": "note",
+   "title": "The normal day and the Size setting",
+   "summary": "The 16-hour day and the Size setting.",
+   "keywords": [
+    "size",
+    "scale",
+    "slider",
+    "baseline",
+    "normal day",
+    "clean baseline",
+    "how big",
+    "file size",
+    "packets",
+    "quick sample",
+    "full day",
+    "fake traffic",
+    "make a pcap"
+   ],
+   "where": "Compose",
+   "related": [
+    "build-a-capture",
+    "scenarios-and-categories",
+    "captures-and-files",
+    "generation-report"
+   ],
+   "body": "Every capture contains a normal business day for the simulated company, 16 hours long, from 05:00 to 21:00 on the capture date. With no scenarios selected, the button reads Generate baseline day.\n\n## The Size setting\n\nDrag the slider or press a preset. The number beside the slider is a multiplier from 0.001 to 1.\n\n- Quick sample (0.02): builds in seconds.\n- Standard (0.1): about 1.4 million packets of background plus the scenarios.\n- Full day (1): about 10 million packets and 7 GB.\n\nSmaller sizes keep the same mix of protocols.\n\n## Size estimate\n\nNext to the slider, an estimate such as \"~0.9 GB · ~1.4M packets\" covers the normal day plus each selected scenario. An armed campaign is added as a fixed amount. The note under the presets gives a build time, based on about 30,000 packets a second.\n\n## What changes with Size\n\nThe background day always grows with Size. Each scenario card has a chip, Fixed size or Grows with size. A growing scenario puts in less traffic at a small Size, so a volume-based detection can miss it.\n\nWith the OT network on, the polling interval is the biggest control on capture size."
+  },
+  {
+   "id": "company-and-industry",
+   "kind": "note",
+   "title": "Company name and industry",
+   "summary": "Who the simulated organization is.",
+   "keywords": [
+    "company name",
+    "industry",
+    "domain",
+    "active directory",
+    "host names",
+    "brand",
+    "organization",
+    "root ca",
+    "custom company",
+    "rename",
+    "fake company"
+   ],
+   "where": "Compose",
+   "related": [
+    "build-a-capture",
+    "addressing-and-networks",
+    "captures-and-files"
+   ],
+   "body": "## Company name\n\nType up to 40 characters. A blank field becomes Example. The name sets:\n\n- the Active Directory and DNS domain\n- the host name prefix\n- the Root CA\n- the organization name that appears on the wire\n\nWith the default name, the domain is `corp.example.local` and host names start with `EXL-`. File names follow the name: `example-all-in-one.pcap`, or `acme-all-in-one.pcap` for Acme.\n\n## Industry\n\nChoose Logistics (the default), Manufacturing, Technology, Education, Healthcare, Finance, Retail, Energy or Government. It combines with the name, so Example and Logistics gives Example Logistics.\n\nChoosing Energy adds two OT protocol options for electric utilities: synchrophasor (IEEE C37.118) and inter-control-centre data exchange (MMS over TCP 102).\n\nName and industry do not change the host count or traffic volume. Networks are set separately: [[addressing-and-networks]]."
+  },
+  {
+   "id": "addressing-and-networks",
+   "kind": "note",
+   "title": "Addressing and networks",
+   "summary": "User, server and OT networks.",
+   "keywords": [
+    "ip addresses",
+    "subnet",
+    "network",
+    "cidr",
+    "user network",
+    "server network",
+    "ot network",
+    "address range",
+    "class c",
+    "change ip",
+    "vlan"
+   ],
+   "where": "Compose",
+   "related": [
+    "build-a-capture",
+    "company-and-industry",
+    "scenarios-and-categories",
+    "captures-and-files"
+   ],
+   "body": "You can change the simulated company's network addresses to fit your lab.\n\n## Where to find the settings\n\nIn Compose, open More options, then Advanced: addressing and OT. The first two fields are User network (class C) and Server network (class C), with example values such as `10.10.10.0/24` and `10.10.20.0/24`.\n\n## User and server networks\n\nThe user network holds 127 hosts: workstations, phones, access points, printers and boards. The server network holds 16: domain controllers, file, SQL and web servers, the phone system and the sensor.\n\nBoth must be /24 networks, and they must differ. Every host keeps its own last number when you change a network.\n\nExternal addresses never change, including the threat-intelligence indicators used by security scenarios.\n\n## OT network\n\nTick Add an OT network (class C) and type one /24 for the lowest control levels. The app adds two more /24 networks for site operations and the industrial DMZ. OT is off by default, and OT scenarios do nothing until you turn it on.\n\nClassify those subnets in your monitoring platform before relying on OT results. Otherwise the OT devices land in an external or unknown zone."
+  },
+  {
+   "id": "generation-report",
+   "kind": "note",
+   "title": "The generation report",
+   "summary": "Packets by protocol for your last build.",
+   "keywords": [
+    "report",
+    "packets by protocol",
+    "protocol breakdown",
+    "what is in my pcap",
+    "generation report",
+    "csv",
+    "counts",
+    "percent"
+   ],
+   "where": "Compose",
+   "related": [
+    "build-a-capture",
+    "captures-and-files",
+    "baseline-and-scale",
+    "import-and-validate-a-pcap"
+   ],
+   "body": "The generation report shows what a build wrote to the capture.\n\n## How to open it\n\nAfter a build, open More options in Compose and press View generation report, or press Generation report in the Next row in Captures. It opens in a new browser tab. Before your first build, the Compose button is disabled and Captures has no report button.\n\n## What the report shows\n\nSix numbers: Packets, Capture size, Protocols, Most packets, Scale and Scenarios. Below are a bar chart of packets by protocol and a table with each protocol's packet count and percentage, largest first.\n\n## How the counts are made\n\nEvery frame is classified as it is written, so the counts are exact. Tunnelled traffic counts as its outer protocol.\n\n## The CSV copy\n\nThe same table is written beside the capture as a file ending in `-generation-report.csv`, with the columns `protocol`, `packets` and `percent`.\n\n## Other reports\n\nOpen report in the Earlier captures list opens a profile of that capture file. See [[import-and-validate-a-pcap]]."
+  },
+  {
+   "id": "captures-and-files",
+   "kind": "note",
+   "title": "Captures and the files a build writes",
+   "summary": "What a build writes and where it goes.",
+   "keywords": [
+    "output folder",
+    "files",
+    "pcap file",
+    "captures",
+    "tls keys",
+    "certs",
+    "stix",
+    "threat collection",
+    "manifest",
+    "where is my capture",
+    "delete capture",
+    "restore"
+   ],
+   "where": "Captures",
+   "related": [
+    "build-a-capture",
+    "replay-a-capture",
+    "generation-report",
+    "baseline-and-scale",
+    "company-and-industry"
+   ],
+   "body": "## Where files go\n\nA build writes to the Output folder, set in Compose under More options or in Settings. The two stay in sync. The default is `~/OpenGenerator-Captures`.\n\n## What a build writes\n\n- The capture, named `example-all-in-one.pcap` by default.\n- A TLS key log ending in `-tls-keys.log`, in the format Wireshark reads.\n- A `certs` folder with a certificate and key for each simulated server, plus the issuing CA. Written when Export server certs + keys is ticked.\n- A threat collection as `.stix.json` and `.csv` files, listing only the indicators your scenarios put on the wire. Written when Export threat collection is ticked.\n- A build manifest ending in `.manifest.json`, recording the scenarios placed and the packets each produced.\n- A generation report CSV. See [[generation-report]].\n\n## When a build ends\n\nThe app switches to Captures. Packets by scenario lists each scenario with its packets, its size and whether it grows with the Size setting.\n\nStop discards the partial capture and key log. A failed build shows the error and the end of the log.\n\n## Earlier captures\n\nBelow the result, captures in your output folder are listed newest first, with Open report, Use for replay and Remove. Use for replay opens Replay with that file filled in.\n\nRemove moves the capture and its related files to a holding folder; it does not delete them. A Removed list appears with a Restore button for each item."
+  },
+  {
+   "id": "scenarios-and-categories",
+   "kind": "note",
+   "title": "Starting points, categories and scenario cards",
+   "summary": "Starting points, categories and cards.",
+   "keywords": [
+    "scenario",
+    "starting point",
+    "category",
+    "security",
+    "performance",
+    "crypto",
+    "ot",
+    "incident replay",
+    "card",
+    "timeline",
+    "map",
+    "choose",
+    "incidents",
+    "attacks"
+   ],
+   "where": "Compose",
+   "related": [
+    "build-a-capture",
+    "baseline-and-scale",
+    "addressing-and-networks",
+    "build-a-campaign",
+    "lab-recipes"
+   ],
+   "body": "A scenario is network behaviour added on top of the normal day. See [[baseline-and-scale]].\n\n## Starting points\n\nThe Starting point panel in Compose has six buttons: Clean baseline, Security, Performance, Crypto posture, OT / ICS day and Incident replay. Each selects a group of scenarios. Pressing a lit button again removes its scenarios, unless another lit group also covers them. Clean baseline clears everything. OT / ICS day also turns on the OT network.\n\n## Choose scenarios\n\nThe category list on the left has these families: Security, Performance, Crypto posture, Incident replays and Custom recipes. Security has Initial access, Credential access, Discovery, Lateral movement, Command and control, Exfiltration, Impact and Multi-stage campaign. Performance has Slow applications, Packet loss and retransmits, DNS and DHCP faults and Capacity. Crypto posture has Weak TLS and Certificate problems.\n\nSearch scenarios matches title, id, protocol and category. Family chips narrow the list. Select all and the per-category select and clear buttons change many scenarios at once.\n\n## Scenario cards\n\nOpen a card with Details or from the timeline. It shows:\n\n- chips for family, category, OT-only and Fixed size or Grows with size; a Needs verification chip marks a draft description\n- Your sensor should show\n- the protocols and hosts involved\n- When it happens, its place in the 16 hours\n- What happens, step by step\n\nVisualize opens a diagram when one exists. Add to capture or Remove from capture changes your selection.\n\n## The capture day\n\nThe Timeline view has one lane per family, a ruler from start to 16 h, and an always-on Normal day lane. Press a marker to open its card. Map lists scenarios by network zone."
+  }
+ ]
+}

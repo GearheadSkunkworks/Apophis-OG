@@ -39,6 +39,7 @@
 <link rel="stylesheet" href="/ui/campaigns.css">
 <link rel="stylesheet" href="/ui/campaigns-sensor.css">
 <link rel="stylesheet" href="/ui/campaigns-board.css">
+<link rel="stylesheet" href="/ui/help.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -60,6 +61,8 @@
     <span class="chip ok" id="enginechip" role="status"><span class="dot" aria-hidden="true"></span><span id="enginetxt">Checking</span></span>
     <button type="button" class="ibtn" id="updatebtn" aria-label="Check for updates" title="Check for updates">
       <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 11 12 15.5 16.5 11M5 19h14"/></svg></button>
+    <button type="button" class="ibtn" id="helpbtn" data-view="help" aria-label="Help" title="Help (Ctrl or Cmd + K)">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8M12 17v.01"/></svg></button>
     <button type="button" class="ibtn" id="settingsbtn" data-view="settings" aria-label="Settings" title="Settings">
       <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
     <a class="ibtn" id="aboutlink" href="/about" target="_blank" rel="noopener" aria-label="About"
@@ -713,6 +716,11 @@
   </section>
 </section>
 
+<!-- ======================================================== HELP -->
+<section class="view" id="view-help" data-view="help" hidden aria-label="Help">
+  <div class="hp-wrap" id="helproot"><p class="hint">Help needs its script (/ui/help.js) to load.</p></div>
+</section>
+
 <!-- ======================================================== SETTINGS -->
 <section class="view" id="view-settings" data-view="settings" hidden aria-labelledby="h-settings">
   <div class="phead">
@@ -832,6 +840,7 @@ replay shells out to <code>tcpreplay</code> and needs root, which macOS prompts 
 <script src="/ui/explainer.js"></script>
 <script src="/ui/scenario-cards.js"></script>
 <script src="/ui/timeline.js"></script>
+<script src="/ui/help.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 let poll = null;
@@ -2335,7 +2344,7 @@ checkDeps().then(adoptRunningReplay);
 // ---------------------------------------------------------------- shell: views, tabs, Lab switch
 // The page is one document with six views (sections toggled with the hidden attribute). The last view
 // is remembered for the browser session; Lab is reachable only while the Settings switch is on.
-const VIEWS = ['build', 'campaigns', 'replay', 'captures', 'lab', 'settings'];
+const VIEWS = ['build', 'campaigns', 'replay', 'captures', 'lab', 'help', 'settings'];
 let labOn = false, curView = 'build';
 try{ labOn = localStorage.getItem('og-lab') === '1'; }catch(e){}
 
@@ -2344,14 +2353,37 @@ function showView(name, opts){
   if(name === 'lab' && !labOn) name = 'build';
   curView = name;
   document.querySelectorAll('main > .view').forEach(v => { v.hidden = (v.dataset.view !== name); });
-  document.querySelectorAll('#mainnav .tab, #settingsbtn').forEach(b => {
+  document.querySelectorAll('#mainnav .tab, #settingsbtn, #helpbtn').forEach(b => {
     if(b.dataset.view === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
   document.body.dataset.view = name;
+  if(name === 'help') helpInit();          // also covers a reload that restores the Help view
   try{ sessionStorage.setItem('og-view', name); }catch(e){}
   if(!(opts && opts.keep)) window.scrollTo(0, 0);
 }
-document.querySelectorAll('#mainnav .tab, #settingsbtn').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+document.querySelectorAll('#mainnav .tab, #settingsbtn, #helpbtn').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+
+// ---- Help: plain-language search over /ui/help-articles.json; Ctrl/Cmd+K opens it from anywhere ----
+const TAB_LABELS = {build: 'Compose', campaigns: 'Campaigns', replay: 'Replay', captures: 'Captures', lab: 'Lab', settings: 'Settings'};
+let helpUi = null, helpFrom = 'build';
+async function helpInit(){
+  if(helpUi || !window.OGHelp) return;
+  helpUi = OGHelp.create({host: $('helproot')});
+  try{
+    const r = await fetch('/ui/help-articles.json'); if(!r.ok) throw new Error(r.status);
+    helpUi.load((await r.json()).articles);
+    helpUi.setContext(() => TAB_LABELS[helpFrom] || '');
+  }catch(e){ $('helproot').textContent = 'Help could not be loaded.'; helpUi = null; }
+}
+function openHelp(){
+  if(curView !== 'help') helpFrom = curView;
+  showView('help');
+  helpInit().then(() => { if(helpUi){ helpUi.setContext(() => TAB_LABELS[helpFrom] || ''); helpUi.focusSearch(); } });
+}
+$('helpbtn').addEventListener('click', e => { e.stopImmediatePropagation(); openHelp(); }, true);
+document.addEventListener('keydown', e => {
+  if((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k'){ e.preventDefault(); openHelp(); }
+});
 document.querySelectorAll('[data-skipto]').forEach(a => a.addEventListener('click', e => {
   e.preventDefault(); showView('build', {keep: true}); const t = $(a.dataset.skipto); if(t){ t.scrollIntoView({block: 'start'}); t.focus({preventScroll: true}); }
 }));
