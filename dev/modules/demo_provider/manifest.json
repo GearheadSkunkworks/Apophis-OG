@@ -1,0 +1,8 @@
+{
+  "name": "demo_provider",
+  "version": "1.0",
+  "kind": "provider",
+  "description": "Reference provider module: registers a no-op SensorProvider named 'demo' into sensorops.",
+  "requires": [],
+  "example": true
+}

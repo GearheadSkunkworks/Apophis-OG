@@ -1,0 +1,2731 @@
+{
+ "emitted": 48,
+ "entries": [
+  {
+   "action": "web_dir_scan",
+   "bytes": 48944,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Scanner indicator 34 (45.40.31.242) scanned the company's web server for common paths (reconnaissance rule)",
+   "first_ts": 1795186800.05,
+   "from": "scanner:0",
+   "from_host": {
+    "ip": "198.18.141.102",
+    "name": "45.40.31.242"
+   },
+   "ioc": [
+    33
+   ],
+   "last_ts": 1795186820.7,
+   "packets": 368,
+   "params": {
+    "connections": 4,
+    "count": 60,
+    "extensions": null,
+    "host": "",
+    "port": 80,
+    "rate_rps": 25.0,
+    "tls": false,
+    "user_agent": "Mozilla/5.0 (compatible; webprobe/1.0)"
+   },
+   "protocols": [
+    "TCP",
+    "HTTP",
+    "TLS"
+   ],
+   "stage": "s1",
+   "stage_name": "Reconnaissance",
+   "status": "ok",
+   "techniques": [
+    "T1595.003"
+   ],
+   "to": "web",
+   "to_host": {
+    "ip": "10.10.20.40",
+    "name": "EXL-WEB1"
+   },
+   "ts": 1795186800.0
+  },
+  {
+   "action": "subdomain_enum",
+   "bytes": 601232,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Scanner indicator 34 (45.40.31.242) looked up common sub-names of the company domain (reconnaissance rule)",
+   "first_ts": 1795186808.05,
+   "from": "scanner:0",
+   "from_host": {
+    "ip": "198.18.141.102",
+    "name": "45.40.31.242"
+   },
+   "ioc": [
+    33
+   ],
+   "last_ts": 1795186828.7,
+   "packets": 848,
+   "params": {
+    "axfr": true,
+    "count": 60,
+    "domain": "",
+    "found": 6,
+    "rate_qps": 15.0
+   },
+   "protocols": [
+    "DNS"
+   ],
+   "stage": "s1",
+   "stage_name": "Reconnaissance",
+   "status": "ok",
+   "techniques": [
+    "T1596.001",
+    "T1590.002"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795186808.0
+  },
+  {
+   "action": "new_domain_contact",
+   "bytes": 4710,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 1 (cdn-0.c2host-0.net) is a recently registered domain the workstation contacted (resource-development rule)",
+   "first_ts": 1795186833.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795186851.0,
+   "packets": 30,
+   "params": {
+    "domain": "",
+    "interval_s": 20.0,
+    "issued_minutes_ago": 12.0,
+    "valid_days": 90,
+    "visits": 2
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s2",
+   "stage_name": "Resource Development",
+   "status": "ok",
+   "techniques": [
+    "T1583.001",
+    "T1608.003"
+   ],
+   "to": "c2:0",
+   "to_host": {
+    "ip": "198.18.228.207",
+    "name": "cdn-0.c2host-0.net"
+   },
+   "ts": 1795186833.0
+  },
+  {
+   "action": "selfsigned_tls_contact",
+   "bytes": 35344,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 18 (185.76.105.234) answered with a self-signed certificate on a non-standard port (resource-development rule)",
+   "first_ts": 1795186838.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    17
+   ],
+   "last_ts": 1795186856.0,
+   "packets": 47,
+   "params": {
+    "host": "",
+    "interval_s": 45.0,
+    "jitter": 0.3,
+    "port": 8443,
+    "sessions": 3,
+    "size_max": 1200,
+    "size_min": 200
+   },
+   "protocols": [
+    "DNS",
+    "TLS"
+   ],
+   "stage": "s2",
+   "stage_name": "Resource Development",
+   "status": "ok",
+   "techniques": [
+    "T1587.003"
+   ],
+   "to": "c2:17",
+   "to_host": {
+    "ip": "198.18.38.37",
+    "name": "185.76.105.234"
+   },
+   "ts": 1795186838.0
+  },
+  {
+   "action": "phishing_visit",
+   "bytes": 15351,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Phishing indicator 40 (login-portal0.secure-0.net): a user visited this phishing page and submitted dummy credentials",
+   "first_ts": 1795186863.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    39
+   ],
+   "last_ts": 1795186883.0,
+   "packets": 21,
+   "params": {
+    "path": "/login",
+    "scheme": "https",
+    "think_s": 12.0
+   },
+   "protocols": [
+    "DNS",
+    "HTTP",
+    "HTTPS"
+   ],
+   "stage": "s3",
+   "stage_name": "Initial Access",
+   "status": "ok",
+   "techniques": [
+    "T1566.002",
+    "T1056.003"
+   ],
+   "to": "phish:0",
+   "to_host": {
+    "ip": "198.18.35.222",
+    "name": "login-portal0.secure-0.net"
+   },
+   "ts": 1795186863.0
+  },
+  {
+   "action": "phishing_visit",
+   "bytes": 2828,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Phishing indicator 41 (login-portal1.secure-1.org): a user visited this phishing page and submitted dummy credentials",
+   "first_ts": 1795186885.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    40
+   ],
+   "last_ts": 1795186905.0,
+   "packets": 14,
+   "params": {
+    "path": "/login",
+    "scheme": "https",
+    "think_s": 12.0
+   },
+   "protocols": [
+    "DNS",
+    "HTTP",
+    "HTTPS"
+   ],
+   "stage": "s3",
+   "stage_name": "Initial Access",
+   "status": "ok",
+   "techniques": [
+    "T1566.002",
+    "T1056.003"
+   ],
+   "to": "phish:1",
+   "to_host": {
+    "ip": "198.18.144.119",
+    "name": "login-portal1.secure-1.org"
+   },
+   "ts": 1795186885.0
+  },
+  {
+   "action": "phishing_visit",
+   "bytes": 4460,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Phishing indicator 42 (login-portal2.secure-2.info): a user visited this phishing page and submitted dummy credentials",
+   "first_ts": 1795186907.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    41
+   ],
+   "last_ts": 1795186927.0,
+   "packets": 20,
+   "params": {
+    "path": "/login",
+    "scheme": "https",
+    "think_s": 12.0
+   },
+   "protocols": [
+    "DNS",
+    "HTTP",
+    "HTTPS"
+   ],
+   "stage": "s3",
+   "stage_name": "Initial Access",
+   "status": "ok",
+   "techniques": [
+    "T1566.002",
+    "T1056.003"
+   ],
+   "to": "phish:2",
+   "to_host": {
+    "ip": "198.18.241.35",
+    "name": "login-portal2.secure-2.info"
+   },
+   "ts": 1795186907.0
+  },
+  {
+   "action": "web_login_spray",
+   "bytes": 129712,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Scanner indicator 34 (45.40.31.242) sprayed dummy credentials at the company's web login (initial-access rule)",
+   "first_ts": 1795186929.05,
+   "from": "scanner:0",
+   "from_host": {
+    "ip": "198.18.141.102",
+    "name": "45.40.31.242"
+   },
+   "ioc": [
+    33
+   ],
+   "last_ts": 1795187035.2,
+   "packets": 176,
+   "params": {
+    "attempts": 24,
+    "connections": 2,
+    "gap_s": 0.7,
+    "host": "",
+    "passwords": null,
+    "path": "/login",
+    "port": 443,
+    "successes": 1,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s3",
+   "stage_name": "Initial Access",
+   "status": "ok",
+   "techniques": [
+    "T1110.004",
+    "T1078"
+   ],
+   "to": "web",
+   "to_host": {
+    "ip": "10.10.20.40",
+    "name": "EXL-WEB1"
+   },
+   "ts": 1795186929.0
+  },
+  {
+   "action": "exposed_service_login",
+   "bytes": 65286,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Scanner indicator 34 (45.40.31.242) tried to sign in to an exposed remote-access service (initial-access rule)",
+   "first_ts": 1795186941.05,
+   "from": "scanner:0",
+   "from_host": {
+    "ip": "198.18.141.102",
+    "name": "45.40.31.242"
+   },
+   "ioc": [
+    33
+   ],
+   "last_ts": 1795187047.2,
+   "packets": 162,
+   "params": {
+    "attempts": 14,
+    "gap_s": 2.5,
+    "service": "rdp",
+    "session_s": 20.0,
+    "successes": 2,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "RDP",
+    "SSH",
+    "TLS"
+   ],
+   "stage": "s3",
+   "stage_name": "Initial Access",
+   "status": "ok",
+   "techniques": [
+    "T1133"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795186941.0
+  },
+  {
+   "action": "payload_download",
+   "bytes": 4815,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Payload indicator 19 (http://dl0.payload-0.net/cdn/file0.bin) was downloaded onto the compromised workstation",
+   "first_ts": 1795186991.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    18
+   ],
+   "last_ts": 1795186996.0,
+   "packets": 15,
+   "params": {
+    "filename": "file0.bin",
+    "filetype": "exe",
+    "path": "/cdn/file0.bin",
+    "scheme": "http",
+    "size": 150000
+   },
+   "protocols": [
+    "DNS",
+    "HTTP",
+    "HTTPS"
+   ],
+   "stage": "s4",
+   "stage_name": "Execution",
+   "status": "ok",
+   "techniques": [
+    "T1105"
+   ],
+   "to": "ioc:18",
+   "to_host": {
+    "ip": "198.18.241.17",
+    "name": "dl0.payload-0.net"
+   },
+   "ts": 1795186991.0
+  },
+  {
+   "action": "payload_download",
+   "bytes": 12831,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Payload indicator 20 (http://dl1.payload-1.org/sync/file1.bin) was downloaded onto the compromised workstation",
+   "first_ts": 1795186998.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    19
+   ],
+   "last_ts": 1795187003.0,
+   "packets": 21,
+   "params": {
+    "filename": "file1.bin",
+    "filetype": "exe",
+    "path": "/sync/file1.bin",
+    "scheme": "http",
+    "size": 150000
+   },
+   "protocols": [
+    "DNS",
+    "HTTP",
+    "HTTPS"
+   ],
+   "stage": "s4",
+   "stage_name": "Execution",
+   "status": "ok",
+   "techniques": [
+    "T1105"
+   ],
+   "to": "ioc:19",
+   "to_host": {
+    "ip": "198.18.183.133",
+    "name": "dl1.payload-1.org"
+   },
+   "ts": 1795186998.0
+  },
+  {
+   "action": "payload_download",
+   "bytes": 13471,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Payload indicator 21 (http://dl2.payload-2.info/update/file2.bin) was downloaded onto the compromised workstation",
+   "first_ts": 1795187005.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    20
+   ],
+   "last_ts": 1795187010.0,
+   "packets": 19,
+   "params": {
+    "filename": "file2.bin",
+    "filetype": "exe",
+    "path": "/update/file2.bin",
+    "scheme": "http",
+    "size": 150000
+   },
+   "protocols": [
+    "DNS",
+    "HTTP",
+    "HTTPS"
+   ],
+   "stage": "s4",
+   "stage_name": "Execution",
+   "status": "ok",
+   "techniques": [
+    "T1105"
+   ],
+   "to": "ioc:20",
+   "to_host": {
+    "ip": "198.18.129.4",
+    "name": "dl2.payload-2.info"
+   },
+   "ts": 1795187005.0
+  },
+  {
+   "action": "winrm_exec",
+   "bytes": 13600,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Remote shell run over WS-Management on the target (execution rule)",
+   "first_ts": 1795187012.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187014.0,
+   "packets": 17,
+   "params": {
+    "command": "hostname",
+    "mode": "plain",
+    "port": 5985,
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "HTTP",
+    "WSMAN"
+   ],
+   "stage": "s4",
+   "stage_name": "Execution",
+   "status": "ok",
+   "techniques": [
+    "T1021.006",
+    "T1059.001"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187012.0
+  },
+  {
+   "action": "ssh_remote_exec",
+   "bytes": 10817,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Remote command run over SSH on the target (execution rule)",
+   "first_ts": 1795187016.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187025.0,
+   "packets": 29,
+   "params": {
+    "commands": 1,
+    "gap_s": 6.0,
+    "sessions": 3
+   },
+   "protocols": [
+    "DNS",
+    "SSH"
+   ],
+   "stage": "s4",
+   "stage_name": "Execution",
+   "status": "ok",
+   "techniques": [
+    "T1021.004",
+    "T1059.004"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187016.0
+  },
+  {
+   "action": "remote_schtask",
+   "bytes": 6555,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Scheduled task registered remotely on the target (persistence rule)",
+   "first_ts": 1795187039.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187043.0,
+   "packets": 15,
+   "params": {
+    "delete_after_s": 20.0,
+    "run": true,
+    "task_name": "\\Updater",
+    "user": null,
+    "xml_bytes": 1800
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s5",
+   "stage_name": "Persistence",
+   "status": "ok",
+   "techniques": [
+    "T1053.005"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187039.0
+  },
+  {
+   "action": "svcctl_persist",
+   "bytes": 3465,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Auto-start service created on the target (persistence rule)",
+   "first_ts": 1795187045.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187048.0,
+   "packets": 21,
+   "params": {
+    "binary_path": "C:\\ProgramData\\helper\\svchelper.exe",
+    "service_name": "WinHelperSvc",
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s5",
+   "stage_name": "Persistence",
+   "status": "ok",
+   "techniques": [
+    "T1543.003"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187045.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 17458,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 1 (cdn-0.c2host-0.net) received HTTPS beacons from the compromised workstation",
+   "first_ts": 1795187068.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187428.0,
+   "packets": 86,
+   "params": {
+    "count": 6,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:0",
+   "to_host": {
+    "ip": "198.18.228.207",
+    "name": "cdn-0.c2host-0.net"
+   },
+   "ts": 1795187068.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 14260,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 2 (185.20.1.2) received HTTPS beacons from the compromised workstation",
+   "first_ts": 1795187075.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    1
+   ],
+   "last_ts": 1795187435.0,
+   "packets": 62,
+   "params": {
+    "count": 6,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:1",
+   "to_host": {
+    "ip": "198.18.76.238",
+    "name": "185.20.1.2"
+   },
+   "ts": 1795187075.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 44072,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 3 (sync-1.c2host-1.org) received HTTPS beacons from the compromised workstation",
+   "first_ts": 1795187082.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    2
+   ],
+   "last_ts": 1795187442.0,
+   "packets": 56,
+   "params": {
+    "count": 6,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:2",
+   "to_host": {
+    "ip": "198.19.248.9",
+    "name": "sync-1.c2host-1.org"
+   },
+   "ts": 1795187082.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 10132,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 4 (185.27.14.31) received HTTPS beacons from the compromised workstation",
+   "first_ts": 1795187089.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    3
+   ],
+   "last_ts": 1795187449.0,
+   "packets": 68,
+   "params": {
+    "count": 6,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:3",
+   "to_host": {
+    "ip": "198.19.196.24",
+    "name": "185.27.14.31"
+   },
+   "ts": 1795187089.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 61146,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 5 (update-2.c2host-2.info) received HTTPS beacons from the compromised workstation",
+   "first_ts": 1795187096.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    4
+   ],
+   "last_ts": 1795187456.0,
+   "packets": 86,
+   "params": {
+    "count": 6,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:4",
+   "to_host": {
+    "ip": "198.19.157.56",
+    "name": "update-2.c2host-2.info"
+   },
+   "ts": 1795187096.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 21070,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 6 (185.34.27.60) received HTTPS beacons from the compromised workstation",
+   "first_ts": 1795187103.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    5
+   ],
+   "last_ts": 1795187463.0,
+   "packets": 86,
+   "params": {
+    "count": 6,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:5",
+   "to_host": {
+    "ip": "198.19.61.89",
+    "name": "185.34.27.60"
+   },
+   "ts": 1795187103.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 10750,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 7 (static-3.c2host-3.io) received HTTPS beacons from the compromised workstation",
+   "first_ts": 1795187110.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    6
+   ],
+   "last_ts": 1795187470.0,
+   "packets": 50,
+   "params": {
+    "count": 6,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:6",
+   "to_host": {
+    "ip": "198.19.11.74",
+    "name": "static-3.c2host-3.io"
+   },
+   "ts": 1795187110.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 27760,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 8 (185.41.40.89) received HTTPS beacons from the compromised workstation",
+   "first_ts": 1795187117.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    7
+   ],
+   "last_ts": 1795187477.0,
+   "packets": 80,
+   "params": {
+    "count": 6,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:7",
+   "to_host": {
+    "ip": "198.18.107.103",
+    "name": "185.41.40.89"
+   },
+   "ts": 1795187117.0
+  },
+  {
+   "action": "tor_connect",
+   "bytes": 15752,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Tor indicator 43 (176.180.41.72) was connected to as a Tor relay",
+   "first_ts": 1795187124.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    42
+   ],
+   "last_ts": 1795187244.0,
+   "packets": 22,
+   "params": {
+    "duration_s": 120.0,
+    "port": 443,
+    "records": 24
+   },
+   "protocols": [
+    "TCP",
+    "TLS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1090.003"
+   ],
+   "to": "tor:0",
+   "to_host": {
+    "ip": "198.18.29.38",
+    "name": "176.180.41.72"
+   },
+   "ts": 1795187124.0
+  },
+  {
+   "action": "tor_connect",
+   "bytes": 10060,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Tor indicator 44 (176.187.54.101) was connected to as a Tor relay",
+   "first_ts": 1795187131.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    43
+   ],
+   "last_ts": 1795187251.0,
+   "packets": 20,
+   "params": {
+    "duration_s": 120.0,
+    "port": 443,
+    "records": 24
+   },
+   "protocols": [
+    "TCP",
+    "TLS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1090.003"
+   ],
+   "to": "tor:1",
+   "to_host": {
+    "ip": "198.18.137.220",
+    "name": "176.187.54.101"
+   },
+   "ts": 1795187131.0
+  },
+  {
+   "action": "tor_connect",
+   "bytes": 3439,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Tor indicator 45 (176.194.67.130) was connected to as a Tor relay",
+   "first_ts": 1795187138.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    44
+   ],
+   "last_ts": 1795187258.0,
+   "packets": 19,
+   "params": {
+    "duration_s": 120.0,
+    "port": 443,
+    "records": 24
+   },
+   "protocols": [
+    "TCP",
+    "TLS"
+   ],
+   "stage": "s6",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1090.003"
+   ],
+   "to": "tor:2",
+   "to_host": {
+    "ip": "198.18.232.134",
+    "name": "176.194.67.130"
+   },
+   "ts": 1795187138.0
+  },
+  {
+   "action": "gpo_modify",
+   "bytes": 2982,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Group policy object changed on the directory (privilege-escalation rule)",
+   "first_ts": 1795187497.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187500.0,
+   "packets": 21,
+   "params": {
+    "gpo_name": "Workstation baseline update",
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "LDAP",
+    "SMB2"
+   ],
+   "stage": "s7",
+   "stage_name": "Privilege Escalation",
+   "status": "ok",
+   "techniques": [
+    "T1484.001"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795187497.0
+  },
+  {
+   "action": "privileged_group_add",
+   "bytes": 14640,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Account added to a privileged group (privilege-escalation rule)",
+   "first_ts": 1795187502.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187505.0,
+   "packets": 20,
+   "params": {
+    "group": "Domain Admins",
+    "member": "",
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "LDAP"
+   ],
+   "stage": "s7",
+   "stage_name": "Privilege Escalation",
+   "status": "ok",
+   "techniques": [
+    "T1098",
+    "T1078.002"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795187502.0
+  },
+  {
+   "action": "security_service_stop",
+   "bytes": 9400,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Security services stopped on the target (defense-impairment rule)",
+   "first_ts": 1795187525.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187529.0,
+   "packets": 20,
+   "params": {
+    "services": [
+     "avagent",
+     "edrsensor",
+     "fwguard"
+    ],
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s8",
+   "stage_name": "Defense Impairment",
+   "status": "ok",
+   "techniques": [
+    "T1685"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187525.0
+  },
+  {
+   "action": "security_update_block",
+   "bytes": 27060,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 1 (cdn-0.c2host-0.net) stands in for the security vendor's update host that the workstation can no longer reach (defense-impairment rule)",
+   "first_ts": 1795187531.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187572.4,
+   "packets": 44,
+   "params": {
+    "count": 6,
+    "dns": "resolve",
+    "domain": "updates.securityvendor.example",
+    "interval_s": 300.0,
+    "jitter": 0.1,
+    "mode": "mixed"
+   },
+   "protocols": [
+    "DNS",
+    "TCP"
+   ],
+   "stage": "s8",
+   "stage_name": "Defense Impairment",
+   "status": "ok",
+   "techniques": [
+    "T1685"
+   ],
+   "to": "c2:0",
+   "to_host": {
+    "ip": "198.18.228.207",
+    "name": "cdn-0.c2host-0.net"
+   },
+   "ts": 1795187531.0
+  },
+  {
+   "action": "eventlog_clear",
+   "bytes": 4270,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Event log cleared on the target (stealth rule)",
+   "first_ts": 1795187581.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187584.0,
+   "packets": 14,
+   "params": {
+    "logs": [
+     "Security",
+     "System"
+    ],
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s9",
+   "stage_name": "Stealth",
+   "status": "ok",
+   "techniques": [
+    "T1070",
+    "T1685.005"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187581.0
+  },
+  {
+   "action": "lolbin_fetch",
+   "bytes": 3654,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "C2 indicator 1 (cdn-0.c2host-0.net) served a file to a signed system component (stealth rule)",
+   "first_ts": 1795187586.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187590.0,
+   "packets": 14,
+   "params": {
+    "component": "certutil",
+    "filetype": "exe",
+    "path": "",
+    "scheme": "http",
+    "size": 90000
+   },
+   "protocols": [
+    "DNS",
+    "HTTP",
+    "HTTPS"
+   ],
+   "stage": "s9",
+   "stage_name": "Stealth",
+   "status": "ok",
+   "techniques": [
+    "T1218",
+    "T1105"
+   ],
+   "to": "c2:0",
+   "to_host": {
+    "ip": "198.18.228.207",
+    "name": "cdn-0.c2host-0.net"
+   },
+   "ts": 1795187586.0
+  },
+  {
+   "action": "ldap_recon",
+   "bytes": 11326,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Directory enumeration from the compromised workstation (discovery rule)",
+   "first_ts": 1795187610.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187613.0,
+   "packets": 14,
+   "params": {
+    "max_entries": 40,
+    "page_size": 20
+   },
+   "protocols": [
+    "Kerberos",
+    "LDAP"
+   ],
+   "stage": "s10",
+   "stage_name": "Discovery",
+   "status": "ok",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795187610.0
+  },
+  {
+   "action": "smb_share_enum",
+   "bytes": 7335,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Share enumeration on the lateral-movement target (discovery rule)",
+   "first_ts": 1795187615.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187617.0,
+   "packets": 15,
+   "params": {
+    "share": "Dept",
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s10",
+   "stage_name": "Discovery",
+   "status": "ok",
+   "techniques": [
+    "T1135"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187615.0
+  },
+  {
+   "action": "port_probe",
+   "bytes": 11764,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Service port probe of the lateral-movement target (discovery rule)",
+   "first_ts": 1795187619.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187624.0,
+   "packets": 17,
+   "params": {
+    "gap_s": 0.8,
+    "ports": [
+     22,
+     80,
+     135,
+     139,
+     443,
+     445,
+     3389
+    ]
+   },
+   "protocols": [
+    "TCP"
+   ],
+   "stage": "s10",
+   "stage_name": "Discovery",
+   "status": "ok",
+   "techniques": [
+    "T1046"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187619.0
+  },
+  {
+   "action": "syn_scan",
+   "bytes": 7005,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Scanner indicator 34 (45.40.31.242) scanned the target",
+   "first_ts": 1795187626.05,
+   "from": "scanner:0",
+   "from_host": {
+    "ip": "198.18.141.102",
+    "name": "45.40.31.242"
+   },
+   "ioc": [
+    33
+   ],
+   "last_ts": 1795187631.0,
+   "packets": 15,
+   "params": {
+    "complete_open": false,
+    "max_hosts": 12,
+    "ports": [
+     22,
+     80,
+     135,
+     139,
+     443,
+     445,
+     3389
+    ],
+    "rate": 250.0,
+    "scope": "subnet",
+    "targets": null
+   },
+   "protocols": [
+    "TCP"
+   ],
+   "stage": "s10",
+   "stage_name": "Discovery",
+   "status": "ok",
+   "techniques": [
+    "T1046"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187626.0
+  },
+  {
+   "action": "kerberoast",
+   "bytes": 45288,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Service tickets requested for offline cracking (credential-access rule)",
+   "first_ts": 1795187651.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187721.0,
+   "packets": 68,
+   "params": {
+    "count": 10,
+    "gap_s": 0.7
+   },
+   "protocols": [
+    "Kerberos"
+   ],
+   "stage": "s11",
+   "stage_name": "Credential Access",
+   "status": "ok",
+   "techniques": [
+    "T1558.003"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795187651.0
+  },
+  {
+   "action": "kerberos_spray",
+   "bytes": 3075,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Passwords sprayed against the directory over Kerberos (credential-access rule)",
+   "first_ts": 1795187660.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187675.0,
+   "packets": 15,
+   "params": {
+    "accounts": 25,
+    "gap_s": 0.8,
+    "unknown_ratio": 0.15
+   },
+   "protocols": [
+    "Kerberos"
+   ],
+   "stage": "s11",
+   "stage_name": "Credential Access",
+   "status": "ok",
+   "techniques": [
+    "T1110.003"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795187660.0
+  },
+  {
+   "action": "ssh_brute",
+   "bytes": 79768,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Brute-force indicator 37 (193.110.161.32) attempted SSH logons against the target",
+   "first_ts": 1795187677.05,
+   "from": "brute:0",
+   "from_host": {
+    "ip": "198.19.176.64",
+    "name": "193.110.161.32"
+   },
+   "ioc": [
+    36
+   ],
+   "last_ts": 1795187767.0,
+   "packets": 118,
+   "params": {
+    "connections": 10,
+    "gap_s": 2.0,
+    "tries": 3,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "SSH"
+   ],
+   "stage": "s11",
+   "stage_name": "Credential Access",
+   "status": "ok",
+   "techniques": [
+    "T1110.001"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187677.0
+  },
+  {
+   "action": "ssh_brute",
+   "bytes": 37406,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Brute-force indicator 38 (193.117.174.61) attempted SSH logons against the target",
+   "first_ts": 1795187699.05,
+   "from": "brute:1",
+   "from_host": {
+    "ip": "198.19.67.3",
+    "name": "193.117.174.61"
+   },
+   "ioc": [
+    37
+   ],
+   "last_ts": 1795187789.0,
+   "packets": 118,
+   "params": {
+    "connections": 10,
+    "gap_s": 2.0,
+    "tries": 3,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "SSH"
+   ],
+   "stage": "s11",
+   "stage_name": "Credential Access",
+   "status": "ok",
+   "techniques": [
+    "T1110.001"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187699.0
+  },
+  {
+   "action": "ssh_brute",
+   "bytes": 37000,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Brute-force indicator 39 (193.124.187.90) attempted SSH logons against the target",
+   "first_ts": 1795187721.05,
+   "from": "brute:2",
+   "from_host": {
+    "ip": "198.18.178.229",
+    "name": "193.124.187.90"
+   },
+   "ioc": [
+    38
+   ],
+   "last_ts": 1795187811.0,
+   "packets": 148,
+   "params": {
+    "connections": 10,
+    "gap_s": 2.0,
+    "tries": 3,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "SSH"
+   ],
+   "stage": "s11",
+   "stage_name": "Credential Access",
+   "status": "ok",
+   "techniques": [
+    "T1110.001"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187721.0
+  },
+  {
+   "action": "smb_admin_exec",
+   "bytes": 12720,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Remote service created over the admin share of the target (lateral-movement rule)",
+   "first_ts": 1795187761.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187764.0,
+   "packets": 16,
+   "params": {
+    "binary_name": "svcupdate.exe",
+    "size": 40000,
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s12",
+   "stage_name": "Lateral Movement",
+   "status": "ok",
+   "techniques": [
+    "T1021.002",
+    "T1569.002"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187761.0
+  },
+  {
+   "action": "rdp_session",
+   "bytes": 2520,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Interactive session opened on the target (lateral-movement rule)",
+   "first_ts": 1795187766.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187811.0,
+   "packets": 21,
+   "params": {
+    "duration_s": 45.0,
+    "user": null
+   },
+   "protocols": [
+    "DNS",
+    "Kerberos",
+    "RDP",
+    "TLS"
+   ],
+   "stage": "s12",
+   "stage_name": "Lateral Movement",
+   "status": "ok",
+   "techniques": [
+    "T1021.001"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187766.0
+  },
+  {
+   "action": "sql_collect",
+   "bytes": 6356,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Large result sets read from the database server (collection rule)",
+   "first_ts": 1795187831.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187851.0,
+   "packets": 14,
+   "params": {
+    "db": "Logistics",
+    "gap_s": 4.0,
+    "rows_per_table": 4000,
+    "tables": 3,
+    "user": "svc_report"
+   },
+   "protocols": [
+    "TCP",
+    "TDS"
+   ],
+   "stage": "s13",
+   "stage_name": "Collection",
+   "status": "ok",
+   "techniques": [
+    "T1213"
+   ],
+   "to": "sql",
+   "to_host": {
+    "ip": "10.10.20.30",
+    "name": "EXL-SQL1"
+   },
+   "ts": 1795187831.0
+  },
+  {
+   "action": "archive_stage",
+   "bytes": 7087,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Archive written into a staging directory on the target (collection rule)",
+   "first_ts": 1795187853.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187868.0,
+   "packets": 19,
+   "params": {
+    "archive_mb": 40.0,
+    "chunk": 1048576,
+    "directory": "Temp\\stage",
+    "format": "zip",
+    "parts": 1,
+    "share": "Dept"
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2"
+   ],
+   "stage": "s13",
+   "stage_name": "Collection",
+   "status": "ok",
+   "techniques": [
+    "T1560.001",
+    "T1074.001"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187853.0
+  },
+  {
+   "action": "https_upload",
+   "bytes": 7163,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Exfiltration indicator 26 (drop0.exfil-0.net) received an HTTPS upload of staged data",
+   "first_ts": 1795187888.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    25
+   ],
+   "last_ts": 1795187898.0,
+   "packets": 19,
+   "params": {
+    "chunk_bytes": 262144,
+    "chunked": false,
+    "method": "PUT",
+    "path": "/upload",
+    "total_bytes": 2000000
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s14",
+   "stage_name": "Exfiltration",
+   "status": "ok",
+   "techniques": [
+    "T1567",
+    "T1048.002"
+   ],
+   "to": "exfil:0",
+   "to_host": {
+    "ip": "198.19.152.108",
+    "name": "drop0.exfil-0.net"
+   },
+   "ts": 1795187888.0
+  },
+  {
+   "action": "ransomware_smb",
+   "bytes": 54912,
+   "campaign": "feed-built-campaign",
+   "error": null,
+   "explain": "Mass file rename on a share, the on-wire pattern of ransomware (impact rule)",
+   "first_ts": 1795187918.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187931.5,
+   "packets": 128,
+   "params": {
+    "ext": ".encrypted",
+    "files": 10,
+    "max_file_kb": 48,
+    "note_name": "README_RESTORE.txt",
+    "share": "Dept",
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2"
+   ],
+   "stage": "s15",
+   "stage_name": "Impact",
+   "status": "ok",
+   "techniques": [
+    "T1486"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187918.0
+  }
+ ],
+ "errors": [],
+ "estimate": {
+  "actions": 48,
+  "flows": 88,
+  "minutes_fast": 7.3,
+  "minutes_realistic": 19.1,
+  "scale": 1.0,
+  "stages": 15
+ },
+ "id": "feed-built-campaign",
+ "iocs": [
+  {
+   "address": "198.18.228.207",
+   "index": 0,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "cdn-0.c2host-0.net"
+  },
+  {
+   "address": "198.18.76.238",
+   "index": 1,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.20.1.2"
+  },
+  {
+   "address": "198.19.248.9",
+   "index": 2,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "sync-1.c2host-1.org"
+  },
+  {
+   "address": "198.19.196.24",
+   "index": 3,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.27.14.31"
+  },
+  {
+   "address": "198.19.157.56",
+   "index": 4,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "update-2.c2host-2.info"
+  },
+  {
+   "address": "198.19.61.89",
+   "index": 5,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.34.27.60"
+  },
+  {
+   "address": "198.19.11.74",
+   "index": 6,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "static-3.c2host-3.io"
+  },
+  {
+   "address": "198.18.107.103",
+   "index": 7,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.41.40.89"
+  },
+  {
+   "address": "198.19.47.208",
+   "index": 8,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "mail-4.c2host-4.xyz"
+  },
+  {
+   "address": "198.18.89.44",
+   "index": 9,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.48.53.118"
+  },
+  {
+   "address": "198.19.126.112",
+   "index": 10,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "api-5.c2host-0.net"
+  },
+  {
+   "address": "198.19.171.218",
+   "index": 11,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.55.66.147"
+  },
+  {
+   "address": "198.18.158.235",
+   "index": 12,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "docs-6.c2host-1.org"
+  },
+  {
+   "address": "198.18.105.26",
+   "index": 13,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.62.79.176"
+  },
+  {
+   "address": "198.18.214.250",
+   "index": 14,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "login-7.c2host-2.info"
+  },
+  {
+   "address": "198.19.155.76",
+   "index": 15,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.69.92.205"
+  },
+  {
+   "address": "198.19.244.237",
+   "index": 16,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "files-8.c2host-3.io"
+  },
+  {
+   "address": "198.18.38.37",
+   "index": 17,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.76.105.234"
+  },
+  {
+   "address": "198.18.241.17",
+   "index": 18,
+   "note": "",
+   "role": "payload",
+   "type": "url",
+   "value": "http://dl0.payload-0.net/cdn/file0.bin"
+  },
+  {
+   "address": "198.18.183.133",
+   "index": 19,
+   "note": "",
+   "role": "payload",
+   "type": "url",
+   "value": "http://dl1.payload-1.org/sync/file1.bin"
+  },
+  {
+   "address": "198.18.129.4",
+   "index": 20,
+   "note": "",
+   "role": "payload",
+   "type": "url",
+   "value": "http://dl2.payload-2.info/update/file2.bin"
+  },
+  {
+   "address": "198.18.211.91",
+   "index": 21,
+   "note": "",
+   "role": "payload",
+   "type": "url",
+   "value": "http://dl3.payload-3.io/static/file3.bin"
+  },
+  {
+   "address": "198.19.177.253",
+   "index": 22,
+   "note": "",
+   "role": "payload",
+   "type": "url",
+   "value": "http://dl4.payload-0.xyz/mail/file4.bin"
+  },
+  {
+   "address": "198.18.21.250",
+   "index": 23,
+   "note": "",
+   "role": "payload",
+   "type": "url",
+   "value": "http://dl5.payload-1.net/api/file5.bin"
+  },
+  {
+   "address": "198.19.115.214",
+   "index": 24,
+   "note": "",
+   "role": "payload",
+   "type": "url",
+   "value": "http://dl6.payload-2.org/docs/file6.bin"
+  },
+  {
+   "address": "198.19.152.108",
+   "index": 25,
+   "note": "",
+   "role": "exfil",
+   "type": "domain",
+   "value": "drop0.exfil-0.net"
+  },
+  {
+   "address": "198.19.197.35",
+   "index": 26,
+   "note": "",
+   "role": "exfil",
+   "type": "ipv4",
+   "value": "91.100.21.162"
+  },
+  {
+   "address": "198.19.31.128",
+   "index": 27,
+   "note": "",
+   "role": "exfil",
+   "type": "domain",
+   "value": "drop1.exfil-1.org"
+  },
+  {
+   "address": "198.18.237.184",
+   "index": 28,
+   "note": "",
+   "role": "exfil",
+   "type": "ipv4",
+   "value": "91.107.34.191"
+  },
+  {
+   "address": "198.19.236.228",
+   "index": 29,
+   "note": "",
+   "role": "exfil",
+   "type": "domain",
+   "value": "drop2.exfil-2.info"
+  },
+  {
+   "address": "198.19.144.226",
+   "index": 30,
+   "note": "",
+   "role": "exfil",
+   "type": "ipv4",
+   "value": "91.114.47.220"
+  },
+  {
+   "address": "198.18.144.145",
+   "index": 31,
+   "note": "",
+   "role": "exfil",
+   "type": "domain",
+   "value": "drop3.exfil-3.io"
+  },
+  {
+   "address": "198.19.133.240",
+   "index": 32,
+   "note": "",
+   "role": "exfil",
+   "type": "ipv4",
+   "value": "91.121.60.249"
+  },
+  {
+   "address": "198.18.141.102",
+   "index": 33,
+   "note": "",
+   "role": "scanner",
+   "type": "ipv4",
+   "value": "45.40.31.242"
+  },
+  {
+   "address": "198.18.12.133",
+   "index": 34,
+   "note": "",
+   "role": "scanner",
+   "type": "ipv4",
+   "value": "45.47.44.21"
+  },
+  {
+   "address": "198.19.100.10",
+   "index": 35,
+   "note": "",
+   "role": "scanner",
+   "type": "ipv4",
+   "value": "45.54.57.50"
+  },
+  {
+   "address": "198.19.176.64",
+   "index": 36,
+   "note": "",
+   "role": "brute",
+   "type": "ipv4",
+   "value": "193.110.161.32"
+  },
+  {
+   "address": "198.19.67.3",
+   "index": 37,
+   "note": "",
+   "role": "brute",
+   "type": "ipv4",
+   "value": "193.117.174.61"
+  },
+  {
+   "address": "198.18.178.229",
+   "index": 38,
+   "note": "",
+   "role": "brute",
+   "type": "ipv4",
+   "value": "193.124.187.90"
+  },
+  {
+   "address": "198.18.35.222",
+   "index": 39,
+   "note": "",
+   "role": "phishing",
+   "type": "domain",
+   "value": "login-portal0.secure-0.net"
+  },
+  {
+   "address": "198.18.144.119",
+   "index": 40,
+   "note": "",
+   "role": "phishing",
+   "type": "domain",
+   "value": "login-portal1.secure-1.org"
+  },
+  {
+   "address": "198.18.241.35",
+   "index": 41,
+   "note": "",
+   "role": "phishing",
+   "type": "domain",
+   "value": "login-portal2.secure-2.info"
+  },
+  {
+   "address": "198.18.29.38",
+   "index": 42,
+   "note": "",
+   "role": "tor",
+   "type": "ipv4",
+   "value": "176.180.41.72"
+  },
+  {
+   "address": "198.18.137.220",
+   "index": 43,
+   "note": "",
+   "role": "tor",
+   "type": "ipv4",
+   "value": "176.187.54.101"
+  },
+  {
+   "address": "198.18.232.134",
+   "index": 44,
+   "note": "",
+   "role": "tor",
+   "type": "ipv4",
+   "value": "176.194.67.130"
+  },
+  {
+   "address": null,
+   "index": 45,
+   "note": "",
+   "role": "vulnerability",
+   "type": "cve",
+   "value": "CVE-2024-21000"
+  },
+  {
+   "address": null,
+   "index": 46,
+   "note": "",
+   "role": "vulnerability",
+   "type": "cve",
+   "value": "CVE-2024-21017"
+  },
+  {
+   "address": null,
+   "index": 47,
+   "note": "",
+   "role": "vulnerability",
+   "type": "cve",
+   "value": "CVE-2024-21034"
+  },
+  {
+   "address": null,
+   "index": 48,
+   "note": "",
+   "role": "vulnerability",
+   "type": "cve",
+   "value": "CVE-2024-21051"
+  },
+  {
+   "address": null,
+   "index": 49,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000a8ea2900c287"
+  },
+  {
+   "address": null,
+   "index": 50,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000146fd3e3e446"
+  },
+  {
+   "address": null,
+   "index": 51,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "000000000000000000000000000000000000000000000000000048831d311868"
+  },
+  {
+   "address": null,
+   "index": 52,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "00000000000000000000000000000000000000000000000000001b4e1689cf51"
+  },
+  {
+   "address": null,
+   "index": 53,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "00000000000000000000000000000000000000000000000000005fe1acd1227f"
+  },
+  {
+   "address": null,
+   "index": 54,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000b79278325d4b"
+  },
+  {
+   "address": null,
+   "index": 55,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000a830e894f7d1"
+  },
+  {
+   "address": null,
+   "index": 56,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000554d545ab048"
+  },
+  {
+   "address": null,
+   "index": 57,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "00000000000000000000000000000000000000000000000000009c3798acf830"
+  },
+  {
+   "address": null,
+   "index": 58,
+   "note": "",
+   "role": "unknown",
+   "type": "sha256",
+   "value": "000000000000000000000000000000000000000000000000000039fb032fd61f"
+  },
+  {
+   "address": null,
+   "index": 59,
+   "note": "",
+   "role": "phishing",
+   "type": "email",
+   "value": "billing@invoice-help.example"
+  },
+  {
+   "address": null,
+   "index": 60,
+   "note": "",
+   "role": "unknown",
+   "type": "filename",
+   "value": "invoice_2024.iso"
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "",
+  "description": "Compiled from 61 indicators (3 brute, 18 c2, 8 exfil, 7 payload, 4 phishing, 3 scanner, 3 tor, 11 unknown, 4 vulnerability); 23 used by actions.",
+  "id": "feed-built-campaign",
+  "name": "Feed-built campaign",
+  "origin_country": "",
+  "seed": 1651724617,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 61,
+   "kind": "iocs"
+  }
+ },
+ "name": "Feed-built campaign",
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 6,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [
+   "discovery",
+   "credential_access",
+   "lateral_movement",
+   "exfiltration",
+   "impact",
+   "execution",
+   "persistence",
+   "privilege_escalation",
+   "stealth",
+   "defense_impairment",
+   "collection",
+   "reconnaissance",
+   "resource_development",
+   "initial_access"
+  ],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "stages": [
+  {
+   "id": "s1",
+   "length_s": 23.0,
+   "name": "Reconnaissance",
+   "narrative": "an outside host probes the company's web server and domain names",
+   "start": 1795186800.0,
+   "tactic": "reconnaissance",
+   "techniques": [
+    "T1595.003",
+    "T1596.001",
+    "T1590.002"
+   ]
+  },
+  {
+   "id": "s2",
+   "length_s": 20.0,
+   "name": "Resource Development",
+   "narrative": "the workstation contacts attacker-prepared infrastructure: a fresh domain and a self-signed server",
+   "start": 1795186833.0,
+   "tactic": "resource-development",
+   "techniques": [
+    "T1583.001",
+    "T1608.003",
+    "T1587.003"
+   ]
+  },
+  {
+   "id": "s3",
+   "length_s": 118.0,
+   "name": "Initial Access",
+   "narrative": "a user on the compromised workstation is lured to a credential-harvesting page",
+   "start": 1795186863.0,
+   "tactic": "initial-access",
+   "techniques": [
+    "T1566.002",
+    "T1056.003",
+    "T1110.004",
+    "T1078",
+    "T1133"
+   ]
+  },
+  {
+   "id": "s4",
+   "length_s": 38.0,
+   "name": "Execution",
+   "narrative": "the payload is fetched and runs on the workstation",
+   "start": 1795186991.0,
+   "tactic": "execution",
+   "techniques": [
+    "T1105",
+    "T1021.006",
+    "T1059.001",
+    "T1021.004",
+    "T1059.004"
+   ]
+  },
+  {
+   "id": "s5",
+   "length_s": 19.0,
+   "name": "Persistence",
+   "narrative": "the operator sets up a scheduled task and a service so the access survives a reboot",
+   "start": 1795187039.0,
+   "tactic": "persistence",
+   "techniques": [
+    "T1053.005",
+    "T1543.003"
+   ]
+  },
+  {
+   "id": "s6",
+   "length_s": 419.0,
+   "name": "Command And Control",
+   "narrative": "the implant checks in with its command-and-control infrastructure",
+   "start": 1795187068.0,
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1090.003"
+   ]
+  },
+  {
+   "id": "s7",
+   "length_s": 18.0,
+   "name": "Privilege Escalation",
+   "narrative": "the operator edits a group policy and adds an account to a privileged group",
+   "start": 1795187497.0,
+   "tactic": "privilege-escalation",
+   "techniques": [
+    "T1484.001",
+    "T1098",
+    "T1078.002"
+   ]
+  },
+  {
+   "id": "s8",
+   "length_s": 46.0,
+   "name": "Defense Impairment",
+   "narrative": "security services are stopped and the vendor update host is blocked",
+   "start": 1795187525.0,
+   "tactic": "defense-impairment",
+   "techniques": [
+    "T1685"
+   ]
+  },
+  {
+   "id": "s9",
+   "length_s": 19.0,
+   "name": "Stealth",
+   "narrative": "the operator clears the event log and fetches a file with a signed system component",
+   "start": 1795187581.0,
+   "tactic": "stealth",
+   "techniques": [
+    "T1070",
+    "T1685.005",
+    "T1218",
+    "T1105"
+   ]
+  },
+  {
+   "id": "s10",
+   "length_s": 31.0,
+   "name": "Discovery",
+   "narrative": "the operator maps the directory, shares and services around the workstation",
+   "start": 1795187610.0,
+   "tactic": "discovery",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018",
+    "T1135",
+    "T1046"
+   ]
+  },
+  {
+   "id": "s11",
+   "length_s": 100.0,
+   "name": "Credential Access",
+   "narrative": "the operator requests service tickets and tries passwords against exposed services",
+   "start": 1795187651.0,
+   "tactic": "credential-access",
+   "techniques": [
+    "T1558.003",
+    "T1110.003",
+    "T1110.001"
+   ]
+  },
+  {
+   "id": "s12",
+   "length_s": 60.0,
+   "name": "Lateral Movement",
+   "narrative": "the operator moves from the workstation to a server",
+   "start": 1795187761.0,
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.002",
+    "T1569.002",
+    "T1021.001"
+   ]
+  },
+  {
+   "id": "s13",
+   "length_s": 47.0,
+   "name": "Collection",
+   "narrative": "the operator reads large result sets from a database and stages an archive on a server",
+   "start": 1795187831.0,
+   "tactic": "collection",
+   "techniques": [
+    "T1213",
+    "T1560.001",
+    "T1074.001"
+   ]
+  },
+  {
+   "id": "s14",
+   "length_s": 20.0,
+   "name": "Exfiltration",
+   "narrative": "collected data leaves the network to an attacker-controlled host",
+   "start": 1795187888.0,
+   "tactic": "exfiltration",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1041"
+   ]
+  },
+  {
+   "id": "s15",
+   "length_s": 15.0,
+   "name": "Impact",
+   "narrative": "files on a share are mass-renamed, the pattern ransomware leaves on the wire",
+   "start": 1795187918.0,
+   "tactic": "impact",
+   "techniques": [
+    "T1486"
+   ]
+  }
+ ]
+}

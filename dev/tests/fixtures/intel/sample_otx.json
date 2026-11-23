@@ -1,0 +1,17 @@
+{"count": 1, "results": [{"id": "demo1", "name": "Synthetic OTX pulse", "description": "demo", "created": "2026-03-01T10:00:00",
+ "tags": ["demo-pulse"], "malware_families": [{"id": "DemoLoader", "display_name": "DemoLoader"}],
+ "attack_ids": [{"id": "T1566.001", "name": "Spearphishing Attachment"}, {"id": "T1059", "name": "x"}],
+ "indicators": [
+  {"type": "IPv4", "indicator": "203.0.113.30", "title": "", "description": "Command and control server", "created": "2026-03-01T10:00:00"},
+  {"type": "IPv6", "indicator": "2001:db8::30", "role": "command_and_control"},
+  {"type": "domain", "indicator": "evil.demo-otx.example", "role": "exfiltration"},
+  {"type": "hostname", "indicator": "www.demo-otx.example"},
+  {"type": "URL", "indicator": "https://demo-otx.example/gate.php", "title": "payload download"},
+  {"type": "FileHash-SHA256", "indicator": "1111111111111111111111111111111111111111111111111111111111111111"},
+  {"type": "FileHash-MD5", "indicator": "22222222222222222222222222222222"},
+  {"type": "FileHash-SHA1", "indicator": "3333333333333333333333333333333333333333"},
+  {"type": "email", "indicator": "bad@demo-otx.example", "description": "phishing sender"},
+  {"type": "CVE", "indicator": "CVE-2021-44228"},
+  {"type": "Mutex", "indicator": "Global\\demo"},
+  {"type": "FilePath", "indicator": "C:\\x\\y.exe"}
+ ]}]}

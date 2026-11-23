@@ -1,0 +1,1833 @@
+{
+ "expect": [
+  {
+   "stage": "s1",
+   "technique": "T1595.003"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1596.001"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1590.002"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1583.001"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1608.003"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1587.003"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1566.002"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1056.003"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1133"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1021.006"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1059.001"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1021.004"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1059.004"
+  },
+  {
+   "stage": "s5",
+   "technique": "T1053.005"
+  },
+  {
+   "stage": "s5",
+   "technique": "T1543.003"
+  },
+  {
+   "stage": "s6",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s6",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s6",
+   "technique": "T1090.003"
+  },
+  {
+   "stage": "s7",
+   "technique": "T1484.001"
+  },
+  {
+   "stage": "s7",
+   "technique": "T1098"
+  },
+  {
+   "stage": "s7",
+   "technique": "T1078.002"
+  },
+  {
+   "stage": "s8",
+   "technique": "T1685"
+  },
+  {
+   "stage": "s9",
+   "technique": "T1070"
+  },
+  {
+   "stage": "s9",
+   "technique": "T1685.005"
+  },
+  {
+   "stage": "s9",
+   "technique": "T1218"
+  },
+  {
+   "stage": "s9",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s10",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s10",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s10",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s10",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s10",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s11",
+   "technique": "T1558.003"
+  },
+  {
+   "stage": "s11",
+   "technique": "T1110.003"
+  },
+  {
+   "stage": "s11",
+   "technique": "T1110.001"
+  },
+  {
+   "stage": "s12",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s12",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s12",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s13",
+   "technique": "T1213"
+  },
+  {
+   "stage": "s13",
+   "technique": "T1560.001"
+  },
+  {
+   "stage": "s13",
+   "technique": "T1074.001"
+  },
+  {
+   "stage": "s14",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s14",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s14",
+   "technique": "T1041"
+  },
+  {
+   "stage": "s15",
+   "technique": "T1486"
+  },
+  {
+   "cve": "CVE-2024-21000",
+   "technique": "T1190"
+  },
+  {
+   "cve": "CVE-2024-21017",
+   "technique": "T1190"
+  },
+  {
+   "cve": "CVE-2024-21034",
+   "technique": "T1190"
+  },
+  {
+   "cve": "CVE-2024-21051",
+   "technique": "T1190"
+  }
+ ],
+ "explain": [
+  "18 C2 indicators found; the first 8 are beaconed to",
+  "4 vulnerability indicator(s) carried as detection expectations (4 technique pairs); no traffic exploits a CVE"
+ ],
+ "iocs": [
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "cdn-0.c2host-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.20.1.2",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "sync-1.c2host-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.27.14.31",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "update-2.c2host-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.34.27.60",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "static-3.c2host-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.41.40.89",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "mail-4.c2host-4.xyz",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.48.53.118",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "api-5.c2host-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.55.66.147",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "docs-6.c2host-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.62.79.176",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "login-7.c2host-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.69.92.205",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "files-8.c2host-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.76.105.234",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl0.payload-0.net/cdn/file0.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl1.payload-1.org/sync/file1.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl2.payload-2.info/update/file2.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl3.payload-3.io/static/file3.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl4.payload-0.xyz/mail/file4.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl5.payload-1.net/api/file5.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl6.payload-2.org/docs/file6.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop0.exfil-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.100.21.162",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop1.exfil-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.107.34.191",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop2.exfil-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.114.47.220",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop3.exfil-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.121.60.249",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.40.31.242",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.47.44.21",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.54.57.50",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.110.161.32",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.117.174.61",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.124.187.90",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal0.secure-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal1.secure-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal2.secure-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "tor",
+   "source": "fixture-feed",
+   "tags": [
+    "tor"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "176.180.41.72",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "tor",
+   "source": "fixture-feed",
+   "tags": [
+    "tor"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "176.187.54.101",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "tor",
+   "source": "fixture-feed",
+   "tags": [
+    "tor"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "176.194.67.130",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "vulnerability",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1190"
+   ],
+   "type": "cve",
+   "value": "CVE-2024-21000",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "vulnerability",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1190"
+   ],
+   "type": "cve",
+   "value": "CVE-2024-21017",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "vulnerability",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1190"
+   ],
+   "type": "cve",
+   "value": "CVE-2024-21034",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "vulnerability",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1190"
+   ],
+   "type": "cve",
+   "value": "CVE-2024-21051",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000a8ea2900c287",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000146fd3e3e446",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "000000000000000000000000000000000000000000000000000048831d311868",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "00000000000000000000000000000000000000000000000000001b4e1689cf51",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "00000000000000000000000000000000000000000000000000005fe1acd1227f",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000b79278325d4b",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000a830e894f7d1",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "0000000000000000000000000000000000000000000000000000554d545ab048",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "00000000000000000000000000000000000000000000000000009c3798acf830",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "sha256",
+   "value": "000000000000000000000000000000000000000000000000000039fb032fd61f",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "email",
+   "value": "billing@invoice-help.example",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "filename",
+   "value": "invoice_2024.iso",
+   "why": ""
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "",
+  "description": "Compiled from 61 indicators (3 brute, 18 c2, 8 exfil, 7 payload, 4 phishing, 3 scanner, 3 tor, 11 unknown, 4 vulnerability); 23 used by actions.",
+  "id": "feed-built-campaign",
+  "name": "Feed-built campaign",
+  "origin_country": "",
+  "seed": 1651724617,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 61,
+   "kind": "iocs"
+  }
+ },
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 6,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [
+   "discovery",
+   "credential_access",
+   "lateral_movement",
+   "exfiltration",
+   "impact",
+   "execution",
+   "persistence",
+   "privilege_escalation",
+   "stealth",
+   "defense_impairment",
+   "collection",
+   "reconnaissance",
+   "resource_development",
+   "initial_access"
+  ],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": [
+  {
+   "actions": [
+    {
+     "action": "web_dir_scan",
+     "at": 0.0,
+     "explain": "Scanner indicator 34 (45.40.31.242) scanned the company's web server for common paths (reconnaissance rule)",
+     "from": "scanner:0",
+     "ioc": [
+      33
+     ],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "subdomain_enum",
+     "at": 8.0,
+     "explain": "Scanner indicator 34 (45.40.31.242) looked up common sub-names of the company domain (reconnaissance rule)",
+     "from": "scanner:0",
+     "ioc": [
+      33
+     ],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 23,
+   "fast_s": 10,
+   "id": "s1",
+   "name": "Reconnaissance",
+   "narrative": "an outside host probes the company's web server and domain names",
+   "tactic": "reconnaissance",
+   "techniques": [
+    "T1595.003",
+    "T1596.001",
+    "T1590.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "new_domain_contact",
+     "at": 0.0,
+     "explain": "C2 indicator 1 (cdn-0.c2host-0.net) is a recently registered domain the workstation contacted (resource-development rule)",
+     "from": "ws",
+     "ioc": [
+      0
+     ],
+     "params": {},
+     "to": "c2:0"
+    },
+    {
+     "action": "selfsigned_tls_contact",
+     "at": 5.0,
+     "explain": "C2 indicator 18 (185.76.105.234) answered with a self-signed certificate on a non-standard port (resource-development rule)",
+     "from": "ws",
+     "ioc": [
+      17
+     ],
+     "params": {},
+     "to": "c2:17"
+    }
+   ],
+   "duration_s": 20,
+   "fast_s": 10,
+   "id": "s2",
+   "name": "Resource Development",
+   "narrative": "the workstation contacts attacker-prepared infrastructure: a fresh domain and a self-signed server",
+   "tactic": "resource-development",
+   "techniques": [
+    "T1583.001",
+    "T1608.003",
+    "T1587.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "phishing_visit",
+     "at": 0.0,
+     "explain": "Phishing indicator 40 (login-portal0.secure-0.net): a user visited this phishing page and submitted dummy credentials",
+     "from": "ws",
+     "ioc": [
+      39
+     ],
+     "params": {},
+     "to": "phish:0"
+    },
+    {
+     "action": "phishing_visit",
+     "at": 22.0,
+     "explain": "Phishing indicator 41 (login-portal1.secure-1.org): a user visited this phishing page and submitted dummy credentials",
+     "from": "ws",
+     "ioc": [
+      40
+     ],
+     "params": {},
+     "to": "phish:1"
+    },
+    {
+     "action": "phishing_visit",
+     "at": 44.0,
+     "explain": "Phishing indicator 42 (login-portal2.secure-2.info): a user visited this phishing page and submitted dummy credentials",
+     "from": "ws",
+     "ioc": [
+      41
+     ],
+     "params": {},
+     "to": "phish:2"
+    },
+    {
+     "action": "web_login_spray",
+     "at": 66.0,
+     "explain": "Scanner indicator 34 (45.40.31.242) sprayed dummy credentials at the company's web login (initial-access rule)",
+     "from": "scanner:0",
+     "ioc": [
+      33
+     ],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "exposed_service_login",
+     "at": 78.0,
+     "explain": "Scanner indicator 34 (45.40.31.242) tried to sign in to an exposed remote-access service (initial-access rule)",
+     "from": "scanner:0",
+     "ioc": [
+      33
+     ],
+     "params": {},
+     "to": "server"
+    }
+   ],
+   "duration_s": 118,
+   "fast_s": 30,
+   "id": "s3",
+   "name": "Initial Access",
+   "narrative": "a user on the compromised workstation is lured to a credential-harvesting page",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1566.002",
+    "T1056.003",
+    "T1110.004",
+    "T1078",
+    "T1133"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "payload_download",
+     "at": 0.0,
+     "explain": "Payload indicator 19 (http://dl0.payload-0.net/cdn/file0.bin) was downloaded onto the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      18
+     ],
+     "params": {
+      "filename": "file0.bin",
+      "path": "/cdn/file0.bin",
+      "scheme": "http"
+     },
+     "to": "ioc:18"
+    },
+    {
+     "action": "payload_download",
+     "at": 7.0,
+     "explain": "Payload indicator 20 (http://dl1.payload-1.org/sync/file1.bin) was downloaded onto the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      19
+     ],
+     "params": {
+      "filename": "file1.bin",
+      "path": "/sync/file1.bin",
+      "scheme": "http"
+     },
+     "to": "ioc:19"
+    },
+    {
+     "action": "payload_download",
+     "at": 14.0,
+     "explain": "Payload indicator 21 (http://dl2.payload-2.info/update/file2.bin) was downloaded onto the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      20
+     ],
+     "params": {
+      "filename": "file2.bin",
+      "path": "/update/file2.bin",
+      "scheme": "http"
+     },
+     "to": "ioc:20"
+    },
+    {
+     "action": "winrm_exec",
+     "at": 21.0,
+     "explain": "Remote shell run over WS-Management on the target (execution rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "ssh_remote_exec",
+     "at": 25.0,
+     "explain": "Remote command run over SSH on the target (execution rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    }
+   ],
+   "duration_s": 38,
+   "fast_s": 10,
+   "id": "s4",
+   "name": "Execution",
+   "narrative": "the payload is fetched and runs on the workstation",
+   "tactic": "execution",
+   "techniques": [
+    "T1105",
+    "T1021.006",
+    "T1059.001",
+    "T1021.004",
+    "T1059.004"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "remote_schtask",
+     "at": 0.0,
+     "explain": "Scheduled task registered remotely on the target (persistence rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "svcctl_persist",
+     "at": 6.0,
+     "explain": "Auto-start service created on the target (persistence rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    }
+   ],
+   "duration_s": 19,
+   "fast_s": 10,
+   "id": "s5",
+   "name": "Persistence",
+   "narrative": "the operator sets up a scheduled task and a service so the access survives a reboot",
+   "tactic": "persistence",
+   "techniques": [
+    "T1053.005",
+    "T1543.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_beacon",
+     "at": 0.0,
+     "explain": "C2 indicator 1 (cdn-0.c2host-0.net) received HTTPS beacons from the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      0
+     ],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:0"
+    },
+    {
+     "action": "https_beacon",
+     "at": 7.0,
+     "explain": "C2 indicator 2 (185.20.1.2) received HTTPS beacons from the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      1
+     ],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:1"
+    },
+    {
+     "action": "https_beacon",
+     "at": 14.0,
+     "explain": "C2 indicator 3 (sync-1.c2host-1.org) received HTTPS beacons from the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      2
+     ],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:2"
+    },
+    {
+     "action": "https_beacon",
+     "at": 21.0,
+     "explain": "C2 indicator 4 (185.27.14.31) received HTTPS beacons from the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      3
+     ],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:3"
+    },
+    {
+     "action": "https_beacon",
+     "at": 28.0,
+     "explain": "C2 indicator 5 (update-2.c2host-2.info) received HTTPS beacons from the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      4
+     ],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:4"
+    },
+    {
+     "action": "https_beacon",
+     "at": 35.0,
+     "explain": "C2 indicator 6 (185.34.27.60) received HTTPS beacons from the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      5
+     ],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:5"
+    },
+    {
+     "action": "https_beacon",
+     "at": 42.0,
+     "explain": "C2 indicator 7 (static-3.c2host-3.io) received HTTPS beacons from the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      6
+     ],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:6"
+    },
+    {
+     "action": "https_beacon",
+     "at": 49.0,
+     "explain": "C2 indicator 8 (185.41.40.89) received HTTPS beacons from the compromised workstation",
+     "from": "ws",
+     "ioc": [
+      7
+     ],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:7"
+    },
+    {
+     "action": "tor_connect",
+     "at": 56.0,
+     "explain": "Tor indicator 43 (176.180.41.72) was connected to as a Tor relay",
+     "from": "ws",
+     "ioc": [
+      42
+     ],
+     "params": {},
+     "to": "tor:0"
+    },
+    {
+     "action": "tor_connect",
+     "at": 63.0,
+     "explain": "Tor indicator 44 (176.187.54.101) was connected to as a Tor relay",
+     "from": "ws",
+     "ioc": [
+      43
+     ],
+     "params": {},
+     "to": "tor:1"
+    },
+    {
+     "action": "tor_connect",
+     "at": 70.0,
+     "explain": "Tor indicator 45 (176.194.67.130) was connected to as a Tor relay",
+     "from": "ws",
+     "ioc": [
+      44
+     ],
+     "params": {},
+     "to": "tor:2"
+    }
+   ],
+   "duration_s": 419,
+   "fast_s": 105,
+   "id": "s6",
+   "name": "Command And Control",
+   "narrative": "the implant checks in with its command-and-control infrastructure",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1090.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "gpo_modify",
+     "at": 0.0,
+     "explain": "Group policy object changed on the directory (privilege-escalation rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "privileged_group_add",
+     "at": 5.0,
+     "explain": "Account added to a privileged group (privilege-escalation rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 18,
+   "fast_s": 10,
+   "id": "s7",
+   "name": "Privilege Escalation",
+   "narrative": "the operator edits a group policy and adds an account to a privileged group",
+   "tactic": "privilege-escalation",
+   "techniques": [
+    "T1484.001",
+    "T1098",
+    "T1078.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "security_service_stop",
+     "at": 0.0,
+     "explain": "Security services stopped on the target (defense-impairment rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "security_update_block",
+     "at": 6.0,
+     "explain": "C2 indicator 1 (cdn-0.c2host-0.net) stands in for the security vendor's update host that the workstation can no longer reach (defense-impairment rule)",
+     "from": "ws",
+     "ioc": [
+      0
+     ],
+     "params": {},
+     "to": "c2:0"
+    }
+   ],
+   "duration_s": 46,
+   "fast_s": 12,
+   "id": "s8",
+   "name": "Defense Impairment",
+   "narrative": "security services are stopped and the vendor update host is blocked",
+   "tactic": "defense-impairment",
+   "techniques": [
+    "T1685"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "eventlog_clear",
+     "at": 0.0,
+     "explain": "Event log cleared on the target (stealth rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "lolbin_fetch",
+     "at": 5.0,
+     "explain": "C2 indicator 1 (cdn-0.c2host-0.net) served a file to a signed system component (stealth rule)",
+     "from": "ws",
+     "ioc": [
+      0
+     ],
+     "params": {},
+     "to": "c2:0"
+    }
+   ],
+   "duration_s": 19,
+   "fast_s": 10,
+   "id": "s9",
+   "name": "Stealth",
+   "narrative": "the operator clears the event log and fetches a file with a signed system component",
+   "tactic": "stealth",
+   "techniques": [
+    "T1070",
+    "T1685.005",
+    "T1218",
+    "T1105"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "ldap_recon",
+     "at": 0.0,
+     "explain": "Directory enumeration from the compromised workstation (discovery rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "smb_share_enum",
+     "at": 5.0,
+     "explain": "Share enumeration on the lateral-movement target (discovery rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "port_probe",
+     "at": 9.0,
+     "explain": "Service port probe of the lateral-movement target (discovery rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "syn_scan",
+     "at": 16.0,
+     "explain": "Scanner indicator 34 (45.40.31.242) scanned the target",
+     "from": "scanner:0",
+     "ioc": [
+      33
+     ],
+     "params": {},
+     "to": "server"
+    }
+   ],
+   "duration_s": 31,
+   "fast_s": 10,
+   "id": "s10",
+   "name": "Discovery",
+   "narrative": "the operator maps the directory, shares and services around the workstation",
+   "tactic": "discovery",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018",
+    "T1135",
+    "T1046"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "kerberoast",
+     "at": 0.0,
+     "explain": "Service tickets requested for offline cracking (credential-access rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "kerberos_spray",
+     "at": 9.0,
+     "explain": "Passwords sprayed against the directory over Kerberos (credential-access rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "ssh_brute",
+     "at": 26.0,
+     "explain": "Brute-force indicator 37 (193.110.161.32) attempted SSH logons against the target",
+     "from": "brute:0",
+     "ioc": [
+      36
+     ],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "ssh_brute",
+     "at": 48.0,
+     "explain": "Brute-force indicator 38 (193.117.174.61) attempted SSH logons against the target",
+     "from": "brute:1",
+     "ioc": [
+      37
+     ],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "ssh_brute",
+     "at": 70.0,
+     "explain": "Brute-force indicator 39 (193.124.187.90) attempted SSH logons against the target",
+     "from": "brute:2",
+     "ioc": [
+      38
+     ],
+     "params": {},
+     "to": "server"
+    }
+   ],
+   "duration_s": 100,
+   "fast_s": 25,
+   "id": "s11",
+   "name": "Credential Access",
+   "narrative": "the operator requests service tickets and tries passwords against exposed services",
+   "tactic": "credential-access",
+   "techniques": [
+    "T1558.003",
+    "T1110.003",
+    "T1110.001"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "smb_admin_exec",
+     "at": 0.0,
+     "explain": "Remote service created over the admin share of the target (lateral-movement rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "rdp_session",
+     "at": 5.0,
+     "explain": "Interactive session opened on the target (lateral-movement rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s12",
+   "name": "Lateral Movement",
+   "narrative": "the operator moves from the workstation to a server",
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.002",
+    "T1569.002",
+    "T1021.001"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "sql_collect",
+     "at": 0.0,
+     "explain": "Large result sets read from the database server (collection rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    },
+    {
+     "action": "archive_stage",
+     "at": 22.0,
+     "explain": "Archive written into a staging directory on the target (collection rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    }
+   ],
+   "duration_s": 47,
+   "fast_s": 12,
+   "id": "s13",
+   "name": "Collection",
+   "narrative": "the operator reads large result sets from a database and stages an archive on a server",
+   "tactic": "collection",
+   "techniques": [
+    "T1213",
+    "T1560.001",
+    "T1074.001"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "at": 0.0,
+     "explain": "Exfiltration indicator 26 (drop0.exfil-0.net) received an HTTPS upload of staged data",
+     "from": "ws",
+     "ioc": [
+      25
+     ],
+     "params": {},
+     "to": "exfil:0"
+    }
+   ],
+   "duration_s": 20,
+   "fast_s": 10,
+   "id": "s14",
+   "name": "Exfiltration",
+   "narrative": "collected data leaves the network to an attacker-controlled host",
+   "tactic": "exfiltration",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1041"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "ransomware_smb",
+     "at": 0.0,
+     "explain": "Mass file rename on a share, the on-wire pattern of ransomware (impact rule)",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "server"
+    }
+   ],
+   "duration_s": 15,
+   "fast_s": 10,
+   "id": "s15",
+   "name": "Impact",
+   "narrative": "files on a share are mass-renamed, the pattern ransomware leaves on the wire",
+   "tactic": "impact",
+   "techniques": [
+    "T1486"
+   ]
+  }
+ ]
+}

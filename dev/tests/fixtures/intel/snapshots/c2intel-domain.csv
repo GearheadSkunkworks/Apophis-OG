@@ -1,0 +1,3 @@
+#domain,ioc
+c2.ci-demo.example,Possible demo-beacon C2 domain
+front.ci-demo.example,Possible domain-fronted C2 domain

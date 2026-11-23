@@ -1,0 +1,2376 @@
+{
+ "scale": 0.004,
+ "results": {
+  "ndr-recon": {
+   "id": "ndr-recon",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "DCE/RPC"
+   ],
+   "packets": 869,
+   "verified": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "DCE/RPC"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "HTTP",
+    "HTTPS",
+    "Kerberos",
+    "RDP",
+    "SSH",
+    "TDS",
+    "WinRM"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 8,
+    "ICMP": 35,
+    "RDP": 15,
+    "HTTP": 16,
+    "Kerberos": 120,
+    "WinRM": 15,
+    "SSH": 15,
+    "DCE/RPC": 20,
+    "SMB2": 392,
+    "HTTPS": 16,
+    "TDS": 15,
+    "LDAP": 202
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "ndr-lateral-movement": {
+   "id": "ndr-lateral-movement",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "RDP",
+    "SMB",
+    "DCE/RPC (svcctl)",
+    "WMI/DCOM"
+   ],
+   "packets": 17982,
+   "verified": [
+    "RDP",
+    "SMB",
+    "DCE/RPC (svcctl)"
+   ],
+   "carrier_only": [
+    "WMI/DCOM"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS",
+    "Kerberos",
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 16,
+    "DNS": 10,
+    "Kerberos": 78,
+    "RDP": 16942,
+    "SMB2": 834,
+    "DCE/RPC": 32,
+    "TCP-other": 70
+   },
+   "seconds": 1.0,
+   "error": null
+  },
+  "ndr-credential-access": {
+   "id": "ndr-credential-access",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "Kerberos",
+    "DCE/RPC (DRSUAPI)"
+   ],
+   "packets": 747,
+   "verified": [
+    "Kerberos",
+    "DCE/RPC (DRSUAPI)"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 8,
+    "Kerberos": 632,
+    "DCE/RPC": 15,
+    "TCP-other": 92
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "ndr-c2-beaconing": {
+   "id": "ndr-c2-beaconing",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "packets": 5720,
+   "verified": [
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 248,
+    "DNS": 124,
+    "HTTPS": 5348
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "ndr-dns-tunneling": {
+   "id": "ndr-dns-tunneling",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "DNS"
+   ],
+   "packets": 16196,
+   "verified": [
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 144,
+    "DNS": 16052
+   },
+   "seconds": 1.0,
+   "error": null
+  },
+  "ndr-data-exfil": {
+   "id": "ndr-data-exfil",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SMB",
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "packets": 943,
+   "verified": [
+    "SMB",
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "Kerberos"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 10,
+    "Kerberos": 26,
+    "SMB2": 511,
+    "DNS": 4,
+    "HTTPS": 392
+   },
+   "seconds": 0.8,
+   "error": null
+  },
+  "ndr-scattered-spider": {
+   "id": "ndr-scattered-spider",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "packets": 31266,
+   "verified": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DCE/RPC",
+    "HTTP",
+    "SSH",
+    "TCP-other",
+    "TDS",
+    "WinRM"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 216,
+    "DNS": 11958,
+    "HTTPS": 3310,
+    "ICMP": 35,
+    "WinRM": 15,
+    "SMB2": 1738,
+    "SSH": 15,
+    "HTTP": 16,
+    "DCE/RPC": 67,
+    "TDS": 15,
+    "Kerberos": 830,
+    "LDAP": 202,
+    "RDP": 12705,
+    "TCP-other": 144
+   },
+   "seconds": 1.8,
+   "error": null
+  },
+  "ndr-ransomware-encryption": {
+   "id": "ndr-ransomware-encryption",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SMB"
+   ],
+   "packets": 3112,
+   "verified": [
+    "SMB"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "Kerberos"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 6,
+    "Kerberos": 26,
+    "SMB2": 3080
+   },
+   "seconds": 0.5,
+   "error": null
+  },
+  "ndr-cobalt-strike": {
+   "id": "ndr-cobalt-strike",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "TLS/HTTPS",
+    "DNS",
+    "SMB (named pipe)"
+   ],
+   "packets": 6339,
+   "verified": [
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "carrier_only": [
+    "SMB (named pipe)"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "Kerberos"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 180,
+    "DNS": 64,
+    "HTTPS": 3344,
+    "Kerberos": 39,
+    "SMB2": 2712
+   },
+   "seconds": 0.7,
+   "error": null
+  },
+  "ndr-akira": {
+   "id": "ndr-akira",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "packets": 25015,
+   "verified": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DCE/RPC",
+    "HTTP",
+    "SSH",
+    "TCP-other",
+    "TDS",
+    "WinRM"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 166,
+    "DNS": 90,
+    "HTTPS": 3552,
+    "ICMP": 35,
+    "Kerberos": 830,
+    "WinRM": 15,
+    "HTTP": 16,
+    "SSH": 15,
+    "DCE/RPC": 67,
+    "LDAP": 202,
+    "SMB2": 6501,
+    "TDS": 15,
+    "RDP": 13367,
+    "TCP-other": 144
+   },
+   "seconds": 1.7,
+   "error": null
+  },
+  "ndr-medusa": {
+   "id": "ndr-medusa",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "packets": 25518,
+   "verified": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DCE/RPC",
+    "HTTP",
+    "SSH",
+    "TCP-other",
+    "TDS",
+    "WinRM"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 138,
+    "DNS": 80,
+    "HTTPS": 2789,
+    "ICMP": 35,
+    "Kerberos": 830,
+    "LDAP": 202,
+    "SSH": 15,
+    "SMB2": 6496,
+    "TDS": 15,
+    "WinRM": 15,
+    "RDP": 14636,
+    "DCE/RPC": 67,
+    "HTTP": 16,
+    "TCP-other": 184
+   },
+   "seconds": 1.5,
+   "error": null
+  },
+  "ndr-black-basta": {
+   "id": "ndr-black-basta",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "packets": 27830,
+   "verified": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DCE/RPC",
+    "HTTP",
+    "SSH",
+    "TCP-other",
+    "TDS",
+    "WinRM"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 162,
+    "DNS": 76,
+    "HTTPS": 3290,
+    "Kerberos": 830,
+    "SMB2": 8375,
+    "ICMP": 35,
+    "LDAP": 202,
+    "WinRM": 15,
+    "TDS": 15,
+    "HTTP": 16,
+    "SSH": 15,
+    "DCE/RPC": 67,
+    "RDP": 14558,
+    "TCP-other": 174
+   },
+   "seconds": 1.5,
+   "error": null
+  },
+  "ndr-play": {
+   "id": "ndr-play",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "packets": 25582,
+   "verified": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DCE/RPC",
+    "HTTP",
+    "SSH",
+    "TCP-other",
+    "TDS",
+    "WinRM"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 170,
+    "DNS": 80,
+    "HTTPS": 3334,
+    "Kerberos": 830,
+    "SMB2": 8290,
+    "ICMP": 35,
+    "RDP": 12381,
+    "LDAP": 202,
+    "TDS": 15,
+    "WinRM": 15,
+    "HTTP": 16,
+    "DCE/RPC": 67,
+    "SSH": 15,
+    "TCP-other": 132
+   },
+   "seconds": 1.6,
+   "error": null
+  },
+  "ndr-handala": {
+   "id": "ndr-handala",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "packets": 18486,
+   "verified": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DCE/RPC",
+    "HTTP",
+    "SSH",
+    "TCP-other",
+    "TDS",
+    "WinRM"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 84,
+    "DNS": 66,
+    "HTTPS": 862,
+    "ICMP": 35,
+    "TDS": 15,
+    "DCE/RPC": 67,
+    "WinRM": 15,
+    "SMB2": 2160,
+    "SSH": 15,
+    "Kerberos": 830,
+    "RDP": 13950,
+    "HTTP": 16,
+    "LDAP": 202,
+    "TCP-other": 169
+   },
+   "seconds": 1.1,
+   "error": null
+  },
+  "ndr-needymantis": {
+   "id": "ndr-needymantis",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "TLS/HTTPS",
+    "WebSocket upgrade",
+    "SMB"
+   ],
+   "packets": 3288,
+   "verified": [
+    "TLS/HTTPS",
+    "SMB"
+   ],
+   "carrier_only": [
+    "WebSocket upgrade"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS",
+    "Kerberos"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 266,
+    "DNS": 254,
+    "HTTPS": 1654,
+    "Kerberos": 39,
+    "SMB2": 1075
+   },
+   "seconds": 0.8,
+   "error": null
+  },
+  "ndr-fastflux": {
+   "id": "ndr-fastflux",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "packets": 4960,
+   "verified": [
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 520,
+    "DNS": 2658,
+    "HTTPS": 1782
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "ndr-infostealer": {
+   "id": "ndr-infostealer",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "packets": 197,
+   "verified": [
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 16,
+    "DNS": 8,
+    "HTTPS": 173
+   },
+   "seconds": 0.7,
+   "error": null
+  },
+  "ndr-rdp-brute": {
+   "id": "ndr-rdp-brute",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "RDP (TCP 3389)"
+   ],
+   "packets": 1141,
+   "verified": [
+    "RDP (TCP 3389)"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 4,
+    "RDP": 1137
+   },
+   "seconds": 0.7,
+   "error": null
+  },
+  "ndr-salt-typhoon": {
+   "id": "ndr-salt-typhoon",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SNMP"
+   ],
+   "packets": 306,
+   "verified": [
+    "SNMP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 114,
+    "SNMP": 192
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "ndr-webshell": {
+   "id": "ndr-webshell",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS"
+   ],
+   "packets": 4455,
+   "verified": [
+    "HTTPS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 156,
+    "DNS": 448,
+    "HTTPS": 3851
+   },
+   "seconds": 0.7,
+   "error": null
+  },
+  "ndr-volt-typhoon": {
+   "id": "ndr-volt-typhoon",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "LDAP",
+    "SMB",
+    "RDP"
+   ],
+   "packets": 17095,
+   "verified": [
+    "LDAP",
+    "SMB",
+    "RDP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS",
+    "Kerberos"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 94,
+    "Kerberos": 260,
+    "LDAP": 1368,
+    "SMB2": 1572,
+    "DNS": 10,
+    "RDP": 13791
+   },
+   "seconds": 1.1,
+   "error": null
+  },
+  "ndr-coercion-adcs": {
+   "id": "ndr-coercion-adcs",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SMB/MS-EFSR",
+    "NTLM",
+    "HTTP(S) to AD CS",
+    "Kerberos PKINIT"
+   ],
+   "packets": 259,
+   "verified": [],
+   "carrier_only": [
+    "SMB/MS-EFSR",
+    "NTLM",
+    "HTTP(S) to AD CS",
+    "Kerberos PKINIT"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 12,
+    "Kerberos": 37,
+    "SMB2": 142,
+    "HTTPS": 68
+   },
+   "seconds": 0.5,
+   "error": null
+  },
+  "ndr-edge-exploit": {
+   "id": "ndr-edge-exploit",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "SMB",
+    "DNS"
+   ],
+   "packets": 8925,
+   "verified": [
+    "HTTPS",
+    "SMB",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 38,
+    "HTTPS": 96,
+    "SMB2": 8787,
+    "DNS": 4
+   },
+   "seconds": 1.0,
+   "error": null
+  },
+  "campaign": {
+   "id": "campaign",
+   "family": "CAMPAIGN",
+   "verdict": "inconclusive",
+   "reason": "recipe-driven: traffic depends on user input, nothing to build standalone",
+   "declared": [
+    "Depends on the campaign"
+   ],
+   "packets": 0,
+   "verified": [],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [
+    "Depends on the campaign"
+   ],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {},
+   "seconds": 0.4,
+   "error": null
+  },
+  "custom-import": {
+   "id": "custom-import",
+   "family": "CUSTOM",
+   "verdict": "inconclusive",
+   "reason": "recipe-driven: traffic depends on user input, nothing to build standalone",
+   "declared": [
+    "Depends on the recipe"
+   ],
+   "packets": 0,
+   "verified": [],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [
+    "Depends on the recipe"
+   ],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {},
+   "seconds": 0.4,
+   "error": null
+  },
+  "npm-fw-update": {
+   "id": "npm-fw-update",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "IPsec/IKE",
+    "NAT keepalive",
+    "DNS"
+   ],
+   "packets": 264090,
+   "verified": [
+    "HTTPS",
+    "DNS"
+   ],
+   "carrier_only": [
+    "IPsec/IKE",
+    "NAT keepalive"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "Kerberos",
+    "RTP",
+    "TDS",
+    "UDP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1274,
+    "UDP-other": 80188,
+    "Kerberos": 30072,
+    "TDS": 47614,
+    "HTTPS": 97611,
+    "RTP": 7323,
+    "DNS": 8
+   },
+   "seconds": 7.8,
+   "error": null
+  },
+  "npm-pqc-posture": {
+   "id": "npm-pqc-posture",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "TLS 1.3"
+   ],
+   "packets": 2468,
+   "verified": [],
+   "carrier_only": [
+    "TLS 1.3"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 202,
+    "HTTPS": 2266
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "npm-sql1-service-failure": {
+   "id": "npm-sql1-service-failure",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "TDS (SQL Server)",
+    "HTTP",
+    "ICMP",
+    "RDP"
+   ],
+   "packets": 41278,
+   "verified": [
+    "TDS (SQL Server)",
+    "HTTP",
+    "ICMP",
+    "RDP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS",
+    "Kerberos",
+    "Syslog"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1246,
+    "TDS": 23748,
+    "Syslog": 645,
+    "Kerberos": 1144,
+    "HTTP": 5934,
+    "ICMP": 8,
+    "DNS": 6,
+    "RDP": 8547
+   },
+   "seconds": 1.0,
+   "error": null
+  },
+  "npm-dns-degradation": {
+   "id": "npm-dns-degradation",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "DNS"
+   ],
+   "packets": 5379,
+   "verified": [
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1768,
+    "DNS": 3611
+   },
+   "seconds": 0.5,
+   "error": null
+  },
+  "npm-smb-slowdown": {
+   "id": "npm-smb-slowdown",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SMB"
+   ],
+   "packets": 5570,
+   "verified": [
+    "SMB"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "Kerberos"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 192,
+    "Kerberos": 559,
+    "SMB2": 4819
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "npm-wan-congestion": {
+   "id": "npm-wan-congestion",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "TLS/HTTPS"
+   ],
+   "packets": 34021,
+   "verified": [
+    "TLS/HTTPS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1232,
+    "HTTPS": 32789
+   },
+   "seconds": 1.1,
+   "error": null
+  },
+  "npm-auth-latency": {
+   "id": "npm-auth-latency",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "Kerberos"
+   ],
+   "packets": 36308,
+   "verified": [
+    "Kerberos"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1764,
+    "Kerberos": 34544
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "npm-web-degradation": {
+   "id": "npm-web-degradation",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTP",
+    "TDS (SQL Server)",
+    "Kerberos"
+   ],
+   "packets": 23396,
+   "verified": [
+    "HTTP",
+    "TDS (SQL Server)",
+    "Kerberos"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1088,
+    "TDS": 8285,
+    "Kerberos": 1235,
+    "HTTP": 12788
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "npm-wireless-degradation": {
+   "id": "npm-wireless-degradation",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "CAPWAP",
+    "DTLS",
+    "DHCP",
+    "DNS",
+    "Syslog"
+   ],
+   "packets": 16892,
+   "verified": [
+    "CAPWAP",
+    "DHCP",
+    "DNS",
+    "Syslog"
+   ],
+   "carrier_only": [
+    "DTLS"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "ICMP",
+    "RTP",
+    "UDP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 2890,
+    "Syslog": 54,
+    "CAPWAP": 7600,
+    "ICMP": 88,
+    "UDP-other": 45,
+    "RTP": 6,
+    "DHCP": 1564,
+    "DNS": 4645
+   },
+   "seconds": 2.2,
+   "error": null
+  },
+  "npm-web-dns-degradation": {
+   "id": "npm-web-dns-degradation",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "DNS",
+    "HTTP"
+   ],
+   "packets": 18526,
+   "verified": [
+    "DNS",
+    "HTTP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "HTTPS"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 568,
+    "DNS": 2468,
+    "HTTPS": 13125,
+    "HTTP": 2365
+   },
+   "seconds": 1.3,
+   "error": null
+  },
+  "npm-voip-quality": {
+   "id": "npm-voip-quality",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SIP",
+    "RTP",
+    "RTCP"
+   ],
+   "packets": 132862,
+   "verified": [
+    "SIP",
+    "RTP",
+    "RTCP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 124,
+    "SIP": 168,
+    "RTP": 132039,
+    "RTCP": 531
+   },
+   "seconds": 1.8,
+   "error": null
+  },
+  "npm-tcp-loss-storm": {
+   "id": "npm-tcp-loss-storm",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SSH",
+    "SMB",
+    "TCP"
+   ],
+   "packets": 17008,
+   "verified": [
+    "SSH",
+    "SMB",
+    "TCP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS",
+    "Kerberos",
+    "SNMP"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 544,
+    "SNMP": 200,
+    "Kerberos": 897,
+    "SMB2": 14372,
+    "DNS": 4,
+    "SSH": 991
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "npm-ntp-failure": {
+   "id": "npm-ntp-failure",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "NTP",
+    "Kerberos"
+   ],
+   "packets": 10697,
+   "verified": [
+    "NTP",
+    "Kerberos"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 2254,
+    "NTP": 3482,
+    "Kerberos": 4961
+   },
+   "seconds": 0.5,
+   "error": null
+  },
+  "npm-http-errors": {
+   "id": "npm-http-errors",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTP",
+    "TDS (SQL Server)"
+   ],
+   "packets": 22154,
+   "verified": [
+    "HTTP",
+    "TDS (SQL Server)"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1356,
+    "HTTP": 15875,
+    "TDS": 4923
+   },
+   "seconds": 0.7,
+   "error": null
+  },
+  "npm-dhcp-exhaustion": {
+   "id": "npm-dhcp-exhaustion",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "DHCP",
+    "RDP"
+   ],
+   "packets": 28213,
+   "verified": [
+    "DHCP",
+    "RDP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS",
+    "Kerberos",
+    "LDAP",
+    "SMB2"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "DHCP": 7698,
+    "ARP": 98,
+    "DNS": 18,
+    "Kerberos": 260,
+    "RDP": 16731,
+    "LDAP": 1368,
+    "SMB2": 2040
+   },
+   "seconds": 1.2,
+   "error": null
+  },
+  "npm-db-pool-exhaustion": {
+   "id": "npm-db-pool-exhaustion",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTP",
+    "TDS (SQL Server)"
+   ],
+   "packets": 22279,
+   "verified": [
+    "HTTP",
+    "TDS (SQL Server)"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 426,
+    "TDS": 21475,
+    "HTTP": 378
+   },
+   "seconds": 0.8,
+   "error": null
+  },
+  "npm-radius-storm": {
+   "id": "npm-radius-storm",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "RADIUS",
+    "EAP/PEAP"
+   ],
+   "packets": 11704,
+   "verified": [
+    "RADIUS"
+   ],
+   "carrier_only": [
+    "EAP/PEAP"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 162,
+    "RADIUS": 11542
+   },
+   "seconds": 0.8,
+   "error": null
+  },
+  "npm-nfs-latency": {
+   "id": "npm-nfs-latency",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "NFS v3",
+    "SSH",
+    "RPC (portmap, mountd)"
+   ],
+   "packets": 46000,
+   "verified": [
+    "NFS v3",
+    "SSH"
+   ],
+   "carrier_only": [
+    "RPC (portmap, mountd)"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS",
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1560,
+    "TCP-other": 2090,
+    "NFS": 40218,
+    "DNS": 4,
+    "SSH": 2128
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "npm-smtp-backup": {
+   "id": "npm-smtp-backup",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SMTP",
+    "SSH"
+   ],
+   "packets": 18624,
+   "verified": [
+    "SMTP",
+    "SSH"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1180,
+    "SMTP": 15675,
+    "DNS": 4,
+    "SSH": 1765
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "npm-mtu-blackhole": {
+   "id": "npm-mtu-blackhole",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTP",
+    "TCP",
+    "ICMP",
+    "SSH"
+   ],
+   "packets": 30900,
+   "verified": [
+    "HTTP",
+    "TCP",
+    "ICMP",
+    "SSH"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 994,
+    "HTTP": 27356,
+    "DNS": 4,
+    "SSH": 1316,
+    "ICMP": 1230
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "ndr-ot-modbus-write": {
+   "id": "ndr-ot-modbus-write",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "Modbus/TCP"
+   ],
+   "packets": 679,
+   "verified": [
+    "Modbus/TCP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 156,
+    "Modbus": 523
+   },
+   "seconds": 0.5,
+   "error": null
+  },
+  "ndr-ot-sis-tamper": {
+   "id": "ndr-ot-sis-tamper",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "Modbus/TCP"
+   ],
+   "packets": 381,
+   "verified": [
+    "Modbus/TCP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 72,
+    "Modbus": 309
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "ndr-ot-zone-violation": {
+   "id": "ndr-ot-zone-violation",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "Modbus/TCP"
+   ],
+   "packets": 262,
+   "verified": [
+    "Modbus/TCP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 52,
+    "Modbus": 210
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "ndr-ot-recon": {
+   "id": "ndr-ot-recon",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "Modbus/TCP",
+    "BACnet",
+    "DNP3"
+   ],
+   "packets": 427,
+   "verified": [
+    "Modbus/TCP",
+    "BACnet",
+    "DNP3"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 8,
+    "Modbus": 268,
+    "BACnet": 49,
+    "DNP3": 102
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "ndr-ot-rogue-asset": {
+   "id": "ndr-ot-rogue-asset",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ARP",
+    "Modbus/TCP"
+   ],
+   "packets": 878,
+   "verified": [
+    "ARP",
+    "Modbus/TCP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 186,
+    "Modbus": 692
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "ndr-ot-camera-beacon": {
+   "id": "ndr-ot-camera-beacon",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "DNS",
+    "HTTP(S)",
+    "TLS"
+   ],
+   "packets": 2324,
+   "verified": [
+    "DNS",
+    "HTTP(S)"
+   ],
+   "carrier_only": [
+    "TLS"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 420,
+    "DNS": 188,
+    "HTTPS": 1716
+   },
+   "seconds": 0.8,
+   "error": null
+  },
+  "npm-ot-plc-unresponsive": {
+   "id": "npm-ot-plc-unresponsive",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "Modbus/TCP"
+   ],
+   "packets": 17459,
+   "verified": [
+    "Modbus/TCP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 4,
+    "Modbus": 17455
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "ndr-php2shell": {
+   "id": "ndr-php2shell",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS (multipart POST)",
+    "TLS"
+   ],
+   "packets": 4851,
+   "verified": [],
+   "carrier_only": [
+    "HTTPS (multipart POST)",
+    "TLS"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 54,
+    "HTTPS": 4793,
+    "DNS": 4
+   },
+   "seconds": 1.1,
+   "error": null
+  },
+  "ndr-ot-sanctioned-writes": {
+   "id": "ndr-ot-sanctioned-writes",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "Modbus/TCP",
+    "NTLM",
+    "Kerberos"
+   ],
+   "packets": 435,
+   "verified": [
+    "Modbus/TCP",
+    "Kerberos"
+   ],
+   "carrier_only": [
+    "NTLM"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 84,
+    "Kerberos": 113,
+    "Modbus": 176,
+    "SMB2": 62
+   },
+   "seconds": 0.5,
+   "error": null
+  },
+  "ndr-ot-new-pair": {
+   "id": "ndr-ot-new-pair",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ARP",
+    "LLMNR/NBNS",
+    "Modbus/TCP"
+   ],
+   "packets": 576,
+   "verified": [
+    "ARP",
+    "LLMNR/NBNS",
+    "Modbus/TCP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 8,
+    "NBNS": 9,
+    "LLMNR": 2,
+    "Modbus": 557
+   },
+   "seconds": 0.5,
+   "error": null
+  },
+  "ndr-ot-field-egress": {
+   "id": "ndr-ot-field-egress",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "DNS",
+    "HTTP"
+   ],
+   "packets": 583,
+   "verified": [
+    "DNS",
+    "HTTP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 128,
+    "DNS": 70,
+    "HTTP": 385
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "ndr-ot-protocol-sweep": {
+   "id": "ndr-ot-protocol-sweep",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "Modbus/TCP",
+    "DNP3"
+   ],
+   "packets": 1624,
+   "verified": [
+    "Modbus/TCP",
+    "DNP3"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 4,
+    "Modbus": 1584,
+    "DNP3": 36
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "npm-nightly-backup": {
+   "id": "npm-nightly-backup",
+   "family": "PERF",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SMB"
+   ],
+   "packets": 39477,
+   "verified": [
+    "SMB"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "Kerberos"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 74,
+    "Kerberos": 65,
+    "SMB2": 39338
+   },
+   "seconds": 1.1,
+   "error": null
+  },
+  "crp-weak-tls": {
+   "id": "crp-weak-tls",
+   "family": "CRYP",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "TLS 1.0",
+    "DNS"
+   ],
+   "packets": 13313,
+   "verified": [
+    "DNS"
+   ],
+   "carrier_only": [
+    "TLS 1.0"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1662,
+    "DNS": 1254,
+    "HTTPS": 10397
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "crp-expired-cert": {
+   "id": "crp-expired-cert",
+   "family": "CRYP",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "TLS",
+    "DNS"
+   ],
+   "packets": 9155,
+   "verified": [
+    "DNS"
+   ],
+   "carrier_only": [
+    "TLS"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 1084,
+    "DNS": 824,
+    "HTTPS": 7247
+   },
+   "seconds": 0.8,
+   "error": null
+  },
+  "crp-plaintext-creds": {
+   "id": "crp-plaintext-creds",
+   "family": "CRYP",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTP Basic",
+    "FTP",
+    "LDAP simple bind",
+    "DNS"
+   ],
+   "packets": 31215,
+   "verified": [
+    "FTP",
+    "DNS"
+   ],
+   "carrier_only": [
+    "HTTP Basic",
+    "LDAP simple bind"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 2310,
+    "DNS": 1750,
+    "FTP": 9954,
+    "TCP-other": 9916,
+    "HTTP": 3120,
+    "LDAP": 4165
+   },
+   "seconds": 1.1,
+   "error": null
+  },
+  "crp-anonymous-ftp": {
+   "id": "crp-anonymous-ftp",
+   "family": "CRYP",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "FTP"
+   ],
+   "packets": 3675,
+   "verified": [
+    "FTP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 36,
+    "FTP": 861,
+    "TCP-other": 2778
+   },
+   "seconds": 0.8,
+   "error": null
+  },
+  "ir-netscaler-compromise": {
+   "id": "ir-netscaler-compromise",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "DTLS",
+    "DNS",
+    "HTTP PUT",
+    "LDAP",
+    "SMB",
+    "SSH"
+   ],
+   "packets": 2217,
+   "verified": [
+    "HTTPS",
+    "DNS",
+    "LDAP",
+    "SMB",
+    "SSH"
+   ],
+   "carrier_only": [
+    "DTLS",
+    "HTTP PUT"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 110,
+    "HTTPS": 1446,
+    "LDAPS": 18,
+    "DNS": 8,
+    "LDAP": 69,
+    "SMB2": 30,
+    "SSH": 536
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "ir-netscaler-cve88771": {
+   "id": "ir-netscaler-cve88771",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "DNS",
+    "LDAP",
+    "SMB",
+    "TDS (SQL Server)"
+   ],
+   "packets": 2146,
+   "verified": [
+    "HTTPS",
+    "DNS",
+    "LDAP",
+    "SMB",
+    "TDS (SQL Server)"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 114,
+    "HTTPS": 1912,
+    "DNS": 8,
+    "LDAPS": 18,
+    "LDAP": 37,
+    "SMB2": 30,
+    "TDS": 27
+   },
+   "seconds": 0.8,
+   "error": null
+  },
+  "ir-beyondtrust-cve102764": {
+   "id": "ir-beyondtrust-cve102764",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "DNS",
+    "LDAP",
+    "SMB",
+    "RDP",
+    "SSH"
+   ],
+   "packets": 6021,
+   "verified": [
+    "HTTPS",
+    "DNS",
+    "LDAP",
+    "SMB",
+    "RDP",
+    "SSH"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "Kerberos"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 126,
+    "HTTPS": 1732,
+    "DNS": 10,
+    "LDAPS": 18,
+    "LDAP": 33,
+    "SMB2": 30,
+    "Kerberos": 36,
+    "RDP": 3948,
+    "SSH": 88
+   },
+   "seconds": 1.0,
+   "error": null
+  },
+  "ir-metabase-cve72898": {
+   "id": "ir-metabase-cve72898",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "DNS",
+    "TDS (SQL Server)"
+   ],
+   "packets": 920,
+   "verified": [
+    "HTTPS",
+    "DNS",
+    "TDS (SQL Server)"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 28,
+    "HTTPS": 435,
+    "TDS": 455,
+    "DNS": 2
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "ir-sharepoint-cve58644": {
+   "id": "ir-sharepoint-cve58644",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "DNS",
+    "TDS (SQL Server)",
+    "LDAP",
+    "SMB"
+   ],
+   "packets": 1804,
+   "verified": [
+    "HTTPS",
+    "DNS",
+    "TDS (SQL Server)",
+    "LDAP",
+    "SMB"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 82,
+    "HTTPS": 1401,
+    "DNS": 8,
+    "TDS": 232,
+    "LDAPS": 18,
+    "LDAP": 33,
+    "SMB2": 30
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "ir-panos-globalprotect-cve0257": {
+   "id": "ir-panos-globalprotect-cve0257",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "LDAP",
+    "SMB",
+    "RDP",
+    "Kerberos"
+   ],
+   "packets": 6958,
+   "verified": [
+    "HTTPS",
+    "LDAP",
+    "SMB",
+    "RDP",
+    "Kerberos"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DNS",
+    "LLMNR",
+    "NBNS"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 38,
+    "HTTPS": 244,
+    "LLMNR": 2,
+    "NBNS": 3,
+    "DNS": 8,
+    "LDAP": 33,
+    "SMB2": 60,
+    "Kerberos": 59,
+    "RDP": 6511
+   },
+   "seconds": 1.0,
+   "error": null
+  },
+  "ir-vcenter-cve59310": {
+   "id": "ir-vcenter-cve59310",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "SSH",
+    "DNS",
+    "vSphere API",
+    "ESXi agent (902)"
+   ],
+   "packets": 8980,
+   "verified": [
+    "HTTPS",
+    "SSH",
+    "DNS"
+   ],
+   "carrier_only": [
+    "vSphere API",
+    "ESXi agent (902)"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "NTP",
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 516,
+    "HTTPS": 4484,
+    "TCP-other": 2141,
+    "NTP": 72,
+    "HTTP": 979,
+    "SSH": 780,
+    "DNS": 8
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "ir-wordpress-upgrade-race": {
+   "id": "ir-wordpress-upgrade-race",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTP",
+    "MySQL",
+    "DNS"
+   ],
+   "packets": 12320,
+   "verified": [
+    "HTTP",
+    "DNS"
+   ],
+   "carrier_only": [
+    "MySQL"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "HTTPS",
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 292,
+    "HTTP": 11066,
+    "TCP-other": 629,
+    "DNS": 4,
+    "HTTPS": 329
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "ir-ipopt-tcp-uaf": {
+   "id": "ir-ipopt-tcp-uaf",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "TCP",
+    "IPv4 options",
+    "MPTCP"
+   ],
+   "packets": 3460,
+   "verified": [
+    "TCP"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [
+    "IPv4 options",
+    "MPTCP"
+   ],
+   "extra": [
+    "HTTPS",
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 130,
+    "TCP-other": 1710,
+    "HTTPS": 1620
+   },
+   "seconds": 0.4,
+   "error": null
+  }
+ },
+ "baseline_protocols": {
+  "ARP": 50916,
+  "CAPWAP": 92160,
+  "Syslog": 2269,
+  "DNS": 21528,
+  "SIP": 1406,
+  "NTP": 6136,
+  "mDNS": 721,
+  "SNMP": 8118,
+  "Kerberos": 25416,
+  "DCE/RPC": 960,
+  "TCP-other": 2935,
+  "HTTPS": 76768,
+  "TDS": 2870,
+  "ICMP": 280,
+  "HTTP": 48771,
+  "DHCP": 438,
+  "NBNS": 564,
+  "LDAP": 5464,
+  "SMB2": 47108,
+  "LLMNR": 150,
+  "SSDP": 17,
+  "JetDirect": 676,
+  "RTP": 46482,
+  "RTCP": 154,
+  "NetBIOS-SSN": 6,
+  "MCP": 1497,
+  "RDP": 19442,
+  "SSH": 3091
+ }
+}

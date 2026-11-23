@@ -1,0 +1,6 @@
+indicator,type,malware,first_seen,confidence,description
+203.0.113.50,ipv4,Demo RAT,2026-05-01,80,C2 beacon server
+c2.demo-csv.example,domain,Demo RAT,2026-05-02,70,
+http://dl.demo-csv.example/p.exe,url,Demo Loader,2026-05-03,60,payload download
+5555555555555555555555555555555555555555555555555555555555555555,sha256,Demo Loader,2026-05-04,90,
+not an indicator,,,,,

@@ -1,0 +1,7 @@
+{
+  "name": "baseline_pin",
+  "version": "1.0",
+  "kind": "validation",
+  "description": "Regression self-test: builds the no-module baseline and checks it still pins at its recorded packet count.",
+  "requires": []
+}

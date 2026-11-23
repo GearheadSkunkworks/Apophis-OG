@@ -1,0 +1,333 @@
+{
+ "emitted": 6,
+ "entries": [
+  {
+   "action": "port_probe",
+   "bytes": 6720,
+   "campaign": "touches-the-ot-zone",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186800.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186805.0,
+   "packets": 21,
+   "params": {
+    "gap_s": 0.8,
+    "ports": [
+     22,
+     80,
+     135,
+     139,
+     443,
+     445,
+     3389
+    ]
+   },
+   "protocols": [
+    "TCP"
+   ],
+   "stage": "s1",
+   "stage_name": "Reach the plant",
+   "status": "ok",
+   "techniques": [
+    "T1046"
+   ],
+   "to": "host:OTJUMP1",
+   "to_host": {
+    "ip": "10.10.20.61",
+    "name": "EXL-OTJUMP1"
+   },
+   "ts": 1795186800.0
+  },
+  {
+   "action": "rdp_session",
+   "bytes": 11552,
+   "campaign": "touches-the-ot-zone",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186872.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186917.0,
+   "packets": 19,
+   "params": {
+    "duration_s": 120,
+    "user": null
+   },
+   "protocols": [
+    "DNS",
+    "Kerberos",
+    "RDP",
+    "TLS"
+   ],
+   "stage": "s1",
+   "stage_name": "Reach the plant",
+   "status": "ok",
+   "techniques": [
+    "T1021.001"
+   ],
+   "to": "host:OTJUMP1",
+   "to_host": {
+    "ip": "10.10.20.61",
+    "name": "EXL-OTJUMP1"
+   },
+   "ts": 1795186872.0
+  },
+  {
+   "action": "smb_share_enum",
+   "bytes": 7633,
+   "campaign": "touches-the-ot-zone",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186944.05,
+   "from": "host:OTJUMP1",
+   "from_host": {
+    "ip": "10.10.20.61",
+    "name": "EXL-OTJUMP1"
+   },
+   "ioc": [],
+   "last_ts": 1795186946.0,
+   "packets": 17,
+   "params": {
+    "share": "Dept",
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s1",
+   "stage_name": "Reach the plant",
+   "status": "ok",
+   "techniques": [
+    "T1135"
+   ],
+   "to": "host:OTFS1",
+   "to_host": {
+    "ip": "10.10.40.19",
+    "name": "EXL-OTFS1"
+   },
+   "ts": 1795186944.0
+  },
+  {
+   "action": "syn_scan",
+   "bytes": 4977,
+   "campaign": "touches-the-ot-zone",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187016.05,
+   "from": "host:OTJUMP1",
+   "from_host": {
+    "ip": "10.10.20.61",
+    "name": "EXL-OTJUMP1"
+   },
+   "ioc": [],
+   "last_ts": 1795187021.0,
+   "packets": 21,
+   "params": {
+    "complete_open": false,
+    "max_hosts": 12,
+    "ports": [
+     22,
+     80,
+     135,
+     139,
+     443,
+     445,
+     3389
+    ],
+    "rate": 250.0,
+    "scope": "targets",
+    "targets": [
+     "10.30.0.20"
+    ]
+   },
+   "protocols": [
+    "TCP"
+   ],
+   "stage": "s1",
+   "stage_name": "Reach the plant",
+   "status": "ok",
+   "techniques": [
+    "T1046"
+   ],
+   "to": "host:SCADA1",
+   "to_host": {
+    "ip": "10.10.30.10",
+    "name": "EXL-SCADA1"
+   },
+   "ts": 1795187016.0
+  },
+  {
+   "action": "winrm_exec",
+   "bytes": 11284,
+   "campaign": "touches-the-ot-zone",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187088.05,
+   "from": "host:OTJUMP1",
+   "from_host": {
+    "ip": "10.10.20.61",
+    "name": "EXL-OTJUMP1"
+   },
+   "ioc": [],
+   "last_ts": 1795187090.0,
+   "packets": 14,
+   "params": {
+    "command": "hostname",
+    "mode": "plain",
+    "port": 5985,
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "HTTP",
+    "WSMAN"
+   ],
+   "stage": "s1",
+   "stage_name": "Reach the plant",
+   "status": "ok",
+   "techniques": [
+    "T1021.006",
+    "T1059.001"
+   ],
+   "to": "host:OTENG1",
+   "to_host": {
+    "ip": "10.10.30.16",
+    "name": "EXL-OTENG1"
+   },
+   "ts": 1795187088.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 45764,
+   "campaign": "touches-the-ot-zone",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187210.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187480.0,
+   "packets": 68,
+   "params": {
+    "count": 5,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s2",
+   "stage_name": "Beacon out",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:0",
+   "to_host": {
+    "ip": "198.19.159.142",
+    "name": "updates.sync-cdn.net"
+   },
+   "ts": 1795187210.0
+  }
+ ],
+ "errors": [],
+ "estimate": {
+  "actions": 6,
+  "flows": 10,
+  "minutes_fast": 3.2,
+  "minutes_realistic": 12.0,
+  "scale": 1.0,
+  "stages": 2
+ },
+ "id": "touches-the-ot-zone",
+ "iocs": [
+  {
+   "address": "198.19.159.142",
+   "index": 0,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "updates.sync-cdn.net"
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Hops through the jump host.",
+  "id": "touches-the-ot-zone",
+  "name": "Touches the OT zone",
+  "origin_country": "",
+  "seed": 8,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 1,
+   "kind": "iocs"
+  }
+ },
+ "name": "Touches the OT zone",
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "stages": [
+  {
+   "id": "s1",
+   "length_s": 400.0,
+   "name": "Reach the plant",
+   "narrative": "A foothold reaches the plant network.",
+   "start": 1795186800.0,
+   "tactic": "discovery",
+   "techniques": [
+    "T1046",
+    "T1021.001",
+    "T1135",
+    "T1021.006",
+    "T1059.001"
+   ]
+  },
+  {
+   "id": "s2",
+   "length_s": 300.0,
+   "name": "Beacon out",
+   "narrative": "The foothold calls out.",
+   "start": 1795187210.0,
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ]
+  }
+ ]
+}

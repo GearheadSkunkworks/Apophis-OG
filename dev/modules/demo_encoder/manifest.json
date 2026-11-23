@@ -1,0 +1,8 @@
+{
+  "name": "demo_encoder",
+  "version": "1.0",
+  "kind": "encoder",
+  "description": "Reference encoder module: overrides the ftp_line encoder at run time (tags FTP banners), restored on unload.",
+  "requires": [],
+  "example": true
+}

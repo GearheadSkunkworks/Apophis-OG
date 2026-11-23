@@ -1,0 +1,609 @@
+{
+ "emitted": 14,
+ "entries": [
+  {
+   "action": "smb_admin_exec",
+   "bytes": 14418,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186800.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186803.0,
+   "packets": 18,
+   "params": {
+    "binary_name": "svcupdate.exe",
+    "size": 40000,
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s1",
+   "stage_name": "Spread",
+   "status": "ok",
+   "techniques": [
+    "T1021.002",
+    "T1569.002"
+   ],
+   "to": "file",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795186800.0
+  },
+  {
+   "action": "rdp_session",
+   "bytes": 4695,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186860.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186905.0,
+   "packets": 15,
+   "params": {
+    "duration_s": 90,
+    "user": null
+   },
+   "protocols": [
+    "DNS",
+    "Kerberos",
+    "RDP",
+    "TLS"
+   ],
+   "stage": "s1",
+   "stage_name": "Spread",
+   "status": "ok",
+   "techniques": [
+    "T1021.001"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795186860.0
+  },
+  {
+   "action": "wmi_exec",
+   "bytes": 5580,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186920.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186922.0,
+   "packets": 18,
+   "params": {},
+   "protocols": [
+    "DCERPC",
+    "DCOM"
+   ],
+   "stage": "s1",
+   "stage_name": "Spread",
+   "status": "ok",
+   "techniques": [
+    "T1047"
+   ],
+   "to": "sql",
+   "to_host": {
+    "ip": "10.10.20.30",
+    "name": "EXL-SQL1"
+   },
+   "ts": 1795186920.0
+  },
+  {
+   "action": "winrm_exec",
+   "bytes": 6750,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186980.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186982.0,
+   "packets": 15,
+   "params": {
+    "command": "hostname",
+    "mode": "plain",
+    "port": 5985,
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "HTTP",
+    "WSMAN"
+   ],
+   "stage": "s1",
+   "stage_name": "Spread",
+   "status": "ok",
+   "techniques": [
+    "T1021.006",
+    "T1059.001"
+   ],
+   "to": "host:WEB2",
+   "to_host": {
+    "ip": "10.10.20.41",
+    "name": "EXL-WEB2"
+   },
+   "ts": 1795186980.0
+  },
+  {
+   "action": "ssh_remote_exec",
+   "bytes": 21771,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187040.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187049.0,
+   "packets": 41,
+   "params": {
+    "commands": 1,
+    "gap_s": 6.0,
+    "sessions": 3
+   },
+   "protocols": [
+    "DNS",
+    "SSH"
+   ],
+   "stage": "s1",
+   "stage_name": "Spread",
+   "status": "ok",
+   "techniques": [
+    "T1021.004",
+    "T1059.004"
+   ],
+   "to": "host:BATCH1",
+   "to_host": {
+    "ip": "10.10.40.16",
+    "name": "EXL-BATCH1"
+   },
+   "ts": 1795187040.0
+  },
+  {
+   "action": "smb_admin_exec",
+   "bytes": 2912,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187100.05,
+   "from": "file",
+   "from_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ioc": [],
+   "last_ts": 1795187103.0,
+   "packets": 16,
+   "params": {
+    "binary_name": "svcupdate.exe",
+    "size": 40000,
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s1",
+   "stage_name": "Spread",
+   "status": "ok",
+   "techniques": [
+    "T1021.002",
+    "T1569.002"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795187100.0
+  },
+  {
+   "action": "rdp_session",
+   "bytes": 2758,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187160.05,
+   "from": "server",
+   "from_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ioc": [],
+   "last_ts": 1795187205.0,
+   "packets": 14,
+   "params": {
+    "duration_s": 60,
+    "user": null
+   },
+   "protocols": [
+    "DNS",
+    "Kerberos",
+    "RDP",
+    "TLS"
+   ],
+   "stage": "s1",
+   "stage_name": "Spread",
+   "status": "ok",
+   "techniques": [
+    "T1021.001"
+   ],
+   "to": "host:MES1",
+   "to_host": {
+    "ip": "10.10.40.10",
+    "name": "EXL-MES1"
+   },
+   "ts": 1795187160.0
+  },
+  {
+   "action": "wmi_exec",
+   "bytes": 15660,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187220.05,
+   "from": "sql",
+   "from_host": {
+    "ip": "10.10.20.30",
+    "name": "EXL-SQL1"
+   },
+   "ioc": [],
+   "last_ts": 1795187222.0,
+   "packets": 20,
+   "params": {},
+   "protocols": [
+    "DCERPC",
+    "DCOM"
+   ],
+   "stage": "s1",
+   "stage_name": "Spread",
+   "status": "ok",
+   "techniques": [
+    "T1047"
+   ],
+   "to": "host:MESDB1",
+   "to_host": {
+    "ip": "10.10.40.12",
+    "name": "EXL-MESDB1"
+   },
+   "ts": 1795187220.0
+  },
+  {
+   "action": "winrm_exec",
+   "bytes": 6372,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187280.05,
+   "from": "ws2",
+   "from_host": {
+    "ip": "10.10.10.112",
+    "name": "EXL-WS-012"
+   },
+   "ioc": [],
+   "last_ts": 1795187282.0,
+   "packets": 18,
+   "params": {
+    "command": "hostname",
+    "mode": "plain",
+    "port": 5985,
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "HTTP",
+    "WSMAN"
+   ],
+   "stage": "s1",
+   "stage_name": "Spread",
+   "status": "ok",
+   "techniques": [
+    "T1021.006",
+    "T1059.001"
+   ],
+   "to": "host:LOG1",
+   "to_host": {
+    "ip": "10.10.20.90",
+    "name": "EXL-LOG1"
+   },
+   "ts": 1795187280.0
+  },
+  {
+   "action": "remote_schtask",
+   "bytes": 10290,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187410.05,
+   "from": "file",
+   "from_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ioc": [],
+   "last_ts": 1795187414.0,
+   "packets": 14,
+   "params": {
+    "delete_after_s": 20.0,
+    "run": true,
+    "task_name": "\\Updater",
+    "user": null,
+    "xml_bytes": 1800
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s2",
+   "stage_name": "Dig in",
+   "status": "ok",
+   "techniques": [
+    "T1053.005"
+   ],
+   "to": "host:BACKUP1",
+   "to_host": {
+    "ip": "10.10.20.100",
+    "name": "EXL-BACKUP1"
+   },
+   "ts": 1795187410.0
+  },
+  {
+   "action": "svcctl_persist",
+   "bytes": 10220,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187470.05,
+   "from": "dc",
+   "from_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ioc": [],
+   "last_ts": 1795187473.0,
+   "packets": 20,
+   "params": {
+    "binary_path": "C:\\ProgramData\\helper\\svchelper.exe",
+    "service_name": "WinHelperSvc",
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s2",
+   "stage_name": "Dig in",
+   "status": "ok",
+   "techniques": [
+    "T1543.003"
+   ],
+   "to": "host:LIMS1",
+   "to_host": {
+    "ip": "10.10.40.17",
+    "name": "EXL-LIMS1"
+   },
+   "ts": 1795187470.0
+  },
+  {
+   "action": "smb_admin_exec",
+   "bytes": 7014,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187530.05,
+   "from": "dc",
+   "from_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ioc": [],
+   "last_ts": 1795187533.0,
+   "packets": 14,
+   "params": {
+    "binary_name": "svcupdate.exe",
+    "size": 40000,
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s2",
+   "stage_name": "Dig in",
+   "status": "ok",
+   "techniques": [
+    "T1021.002",
+    "T1569.002"
+   ],
+   "to": "host:WEB3",
+   "to_host": {
+    "ip": "10.10.20.42",
+    "name": "EXL-WEB3"
+   },
+   "ts": 1795187530.0
+  },
+  {
+   "action": "dcsync",
+   "bytes": 9702,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187620.05,
+   "from": "dc",
+   "from_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ioc": [],
+   "last_ts": 1795187623.0,
+   "packets": 21,
+   "params": {},
+   "protocols": [
+    "Kerberos",
+    "DCERPC",
+    "DRSUAPI"
+   ],
+   "stage": "s3",
+   "stage_name": "Collect keys",
+   "status": "ok",
+   "techniques": [
+    "T1003.006"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795187620.0
+  },
+  {
+   "action": "kerberoast",
+   "bytes": 97088,
+   "campaign": "lateral-heavy",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187660.55,
+   "from": "ws2",
+   "from_host": {
+    "ip": "10.10.10.112",
+    "name": "EXL-WS-012"
+   },
+   "ioc": [],
+   "last_ts": 1795187730.5,
+   "packets": 148,
+   "params": {
+    "count": 10,
+    "gap_s": 0.7
+   },
+   "protocols": [
+    "Kerberos"
+   ],
+   "stage": "s3",
+   "stage_name": "Collect keys",
+   "status": "ok",
+   "techniques": [
+    "T1558.003"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795187660.5
+  }
+ ],
+ "errors": [],
+ "estimate": {
+  "actions": 14,
+  "flows": 14,
+  "minutes_fast": 4.2,
+  "minutes_realistic": 15.3,
+  "scale": 1.0,
+  "stages": 3
+ },
+ "id": "lateral-heavy",
+ "iocs": [],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Many internal hops.",
+  "id": "lateral-heavy",
+  "name": "Lateral-heavy",
+  "origin_country": "",
+  "seed": 7,
+  "source": {
+   "kind": "hand"
+  }
+ },
+ "name": "Lateral-heavy",
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "stages": [
+  {
+   "id": "s1",
+   "length_s": 600.0,
+   "name": "Spread",
+   "narrative": "The operator hops host to host.",
+   "start": 1795186800.0,
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.002",
+    "T1569.002",
+    "T1021.001",
+    "T1047",
+    "T1021.006",
+    "T1059.001",
+    "T1021.004",
+    "T1059.004"
+   ]
+  },
+  {
+   "id": "s2",
+   "length_s": 200.0,
+   "name": "Dig in",
+   "narrative": "Persistence on the new hosts.",
+   "start": 1795187410.0,
+   "tactic": "persistence",
+   "techniques": [
+    "T1053.005",
+    "T1543.003",
+    "T1021.002",
+    "T1569.002"
+   ]
+  },
+  {
+   "id": "s3",
+   "length_s": 90.0,
+   "name": "Collect keys",
+   "narrative": "Keys from the directory.",
+   "start": 1795187620.0,
+   "tactic": "credential-access",
+   "techniques": [
+    "T1003.006",
+    "T1558.003"
+   ]
+  }
+ ]
+}

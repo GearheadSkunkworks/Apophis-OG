@@ -1,0 +1,175 @@
+{
+ "expect": [
+  {
+   "stage": "s1",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1558.003"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1110.003"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1021.001"
+  }
+ ],
+ "explain": [],
+ "iocs": [],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "No indicators: every actor is a role.",
+  "id": "hand-built-roles-only",
+  "name": "Hand-built, roles only",
+  "origin_country": "",
+  "seed": 2,
+  "source": {
+   "kind": "hand"
+  }
+ },
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": [
+  {
+   "actions": [
+    {
+     "action": "ldap_recon",
+     "explain": "Directory lookups from the workstation",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "Share listing",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "port_probe",
+     "explain": "Probe the database port",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    }
+   ],
+   "duration_s": 90,
+   "fast_s": 22,
+   "id": "s1",
+   "name": "Look around",
+   "narrative": "The operator maps the network.",
+   "tactic": "discovery",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018",
+    "T1135",
+    "T1046"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "kerberos_spray",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 80,
+   "fast_s": 20,
+   "id": "s2",
+   "name": "Get tickets",
+   "narrative": "Tickets are requested and guessed.",
+   "tactic": "credential-access",
+   "techniques": [
+    "T1558.003",
+    "T1110.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {
+      "duration_s": 120
+     },
+     "to": "server"
+    }
+   ],
+   "duration_s": 120,
+   "fast_s": 30,
+   "id": "s3",
+   "name": "Move",
+   "narrative": "The operator hops to the file server.",
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.002",
+    "T1569.002",
+    "T1021.001"
+   ]
+  }
+ ]
+}

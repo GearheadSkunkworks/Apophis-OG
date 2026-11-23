@@ -1,0 +1,98 @@
+{
+ "expect": [
+  {
+   "cve": "CVE-2024-21001",
+   "technique": "T1190"
+  },
+  {
+   "cve": "CVE-2023-44487",
+   "technique": "T1499.002"
+  },
+  {
+   "cve": "CVE-2024-3400",
+   "technique": "T1190"
+  },
+  {
+   "cve": "CVE-2024-3400",
+   "technique": "T1059"
+  }
+ ],
+ "explain": [
+  "no Execution stage: nothing to build it from",
+  "no Command And Control stage: nothing to build it from",
+  "3 vulnerability indicator(s) carried as detection expectations (4 technique pairs); no traffic exploits a CVE"
+ ],
+ "iocs": [
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "vulnerability",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1190"
+   ],
+   "type": "cve",
+   "value": "CVE-2024-21001",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "vulnerability",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1499.002"
+   ],
+   "type": "cve",
+   "value": "CVE-2023-44487",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "vulnerability",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1190",
+    "T1059"
+   ],
+   "type": "cve",
+   "value": "CVE-2024-3400",
+   "why": ""
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "",
+  "description": "Compiled from 3 indicators (3 vulnerability); 0 used by actions.",
+  "id": "vulnerability-only",
+  "name": "Vulnerability only",
+  "origin_country": "",
+  "seed": 608547805,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 3,
+   "kind": "iocs"
+  }
+ },
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": []
+}

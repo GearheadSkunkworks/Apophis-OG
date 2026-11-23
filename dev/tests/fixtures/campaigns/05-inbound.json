@@ -1,0 +1,217 @@
+{
+ "expect": [
+  {
+   "stage": "s1",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1595.003"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1133"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1110.001"
+  }
+ ],
+ "explain": [],
+ "iocs": [
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.32.7.15",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.88.4.21",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.201.14.3",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "domain",
+   "value": "probe.scan-net.org",
+   "why": ""
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Everything comes from outside.",
+  "id": "inbound-only",
+  "name": "Inbound only",
+  "origin_country": "",
+  "seed": 5,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 4,
+   "kind": "iocs"
+  }
+ },
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": [
+  {
+   "actions": [
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:0",
+     "ioc": [
+      1
+     ],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "syn_scan",
+     "explain": "",
+     "from": "scanner:1",
+     "ioc": [
+      2
+     ],
+     "params": {},
+     "to": "server"
+    },
+    {
+     "action": "web_dir_scan",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [
+      3
+     ],
+     "params": {
+      "count": 60
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 200,
+   "fast_s": 50,
+   "id": "s1",
+   "name": "Outside scan",
+   "narrative": "Scanners look at the exposed hosts.",
+   "tactic": "reconnaissance",
+   "techniques": [
+    "T1046",
+    "T1595.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:0",
+     "ioc": [
+      0
+     ],
+     "params": {
+      "attempts": 40
+     },
+     "to": "web"
+    },
+    {
+     "action": "exposed_service_login",
+     "explain": "",
+     "from": "brute:0",
+     "ioc": [
+      0
+     ],
+     "params": {
+      "attempts": 8,
+      "service": "rdp"
+     },
+     "to": "server"
+    },
+    {
+     "action": "rdp_brute",
+     "explain": "",
+     "from": "brute:0",
+     "ioc": [
+      0
+     ],
+     "params": {
+      "attempts": 30
+     },
+     "to": "server"
+    },
+    {
+     "action": "ssh_brute",
+     "explain": "",
+     "from": "brute:0",
+     "ioc": [
+      0
+     ],
+     "params": {},
+     "to": "file"
+    }
+   ],
+   "duration_s": 300,
+   "fast_s": 75,
+   "id": "s2",
+   "name": "Try the doors",
+   "narrative": "Passwords are sprayed against exposed services.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1133",
+    "T1110.001"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,828 @@
+[
+ {
+  "emitted": 4,
+  "entries": [
+   {
+    "action": "web_dir_scan",
+    "bytes": 32984,
+    "campaign": "first-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795186800.05,
+    "from": "scanner:0",
+    "from_host": {
+     "ip": "198.18.57.222",
+     "name": "45.88.4.21"
+    },
+    "ioc": [
+     1
+    ],
+    "last_ts": 1795186962.0,
+    "packets": 248,
+    "params": {
+     "connections": 4,
+     "count": 40,
+     "extensions": null,
+     "host": "",
+     "port": 80,
+     "rate_rps": 25.0,
+     "tls": false,
+     "user_agent": "Mozilla/5.0 (compatible; webprobe/1.0)"
+    },
+    "protocols": [
+     "TCP",
+     "HTTP",
+     "TLS"
+    ],
+    "stage": "s1",
+    "stage_name": "Probe and spray",
+    "status": "ok",
+    "techniques": [
+     "T1595.003"
+    ],
+    "to": "web",
+    "to_host": {
+     "ip": "10.10.20.40",
+     "name": "EXL-WEB1"
+    },
+    "ts": 1795186800.0
+   },
+   {
+    "action": "web_login_spray",
+    "bytes": 255866,
+    "campaign": "first-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795186881.05,
+    "from": "brute:0",
+    "from_host": {
+     "ip": "198.19.15.211",
+     "name": "193.32.7.15"
+    },
+    "ioc": [
+     0
+    ],
+    "last_ts": 1795187043.0,
+    "packets": 338,
+    "params": {
+     "attempts": 30,
+     "connections": 2,
+     "gap_s": 0.7,
+     "host": "",
+     "passwords": null,
+     "path": "/login",
+     "port": 443,
+     "successes": 1,
+     "users": null
+    },
+    "protocols": [
+     "TCP",
+     "TLS",
+     "HTTPS"
+    ],
+    "stage": "s1",
+    "stage_name": "Probe and spray",
+    "status": "ok",
+    "techniques": [
+     "T1110.004",
+     "T1078"
+    ],
+    "to": "web",
+    "to_host": {
+     "ip": "10.10.20.40",
+     "name": "EXL-WEB1"
+    },
+    "ts": 1795186881.0
+   },
+   {
+    "action": "https_beacon",
+    "bytes": 27664,
+    "campaign": "first-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795186990.05,
+    "from": "ws",
+    "from_host": {
+     "ip": "10.10.10.147",
+     "name": "EXL-WS-047"
+    },
+    "ioc": [
+     2
+    ],
+    "last_ts": 1795187350.0,
+    "packets": 56,
+    "params": {
+     "count": 8,
+     "interval_s": 45,
+     "jitter": 0.2,
+     "keepalive": false,
+     "profile": "generic",
+     "size_max": 900,
+     "size_min": 180
+    },
+    "protocols": [
+     "DNS",
+     "TLS",
+     "HTTPS"
+    ],
+    "stage": "s2",
+    "stage_name": "Foothold calls home",
+    "status": "ok",
+    "techniques": [
+     "T1071.001",
+     "T1573.002"
+    ],
+    "to": "c2:0",
+    "to_host": {
+     "ip": "198.18.198.242",
+     "name": "updates.sync-cdn.net"
+    },
+    "ts": 1795186990.0
+   },
+   {
+    "action": "dns_beacon",
+    "bytes": 51212,
+    "campaign": "first-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795187170.05,
+    "from": "ws",
+    "from_host": {
+     "ip": "10.10.10.147",
+     "name": "EXL-WS-047"
+    },
+    "ioc": [
+     3
+    ],
+    "last_ts": 1795187530.0,
+    "packets": 118,
+    "params": {
+     "count": 10,
+     "domain": "",
+     "interval_s": 60.0,
+     "jitter": 0.1,
+     "label_len": 32,
+     "qtype": "TXT"
+    },
+    "protocols": [
+     "DNS"
+    ],
+    "stage": "s2",
+    "stage_name": "Foothold calls home",
+    "status": "ok",
+    "techniques": [
+     "T1071.004"
+    ],
+    "to": "c2:1",
+    "to_host": {
+     "ip": "198.18.47.14",
+     "name": "cdn.edge-relay.org"
+    },
+    "ts": 1795187170.0
+   }
+  ],
+  "errors": [],
+  "estimate": {
+   "actions": 4,
+   "flows": 88,
+   "minutes_fast": 2.8,
+   "minutes_realistic": 10.0,
+   "scale": 1.0,
+   "stages": 2
+  },
+  "id": "first-of-two",
+  "iocs": [
+   {
+    "address": "198.19.15.211",
+    "index": 0,
+    "note": "",
+    "role": "brute",
+    "type": "ipv4",
+    "value": "193.32.7.15"
+   },
+   {
+    "address": "198.18.57.222",
+    "index": 1,
+    "note": "",
+    "role": "scanner",
+    "type": "ipv4",
+    "value": "45.88.4.21"
+   },
+   {
+    "address": "198.18.198.242",
+    "index": 2,
+    "note": "",
+    "role": "c2",
+    "type": "domain",
+    "value": "updates.sync-cdn.net"
+   },
+   {
+    "address": "198.18.47.14",
+    "index": 3,
+    "note": "",
+    "role": "c2",
+    "type": "domain",
+    "value": "cdn.edge-relay.org"
+   },
+   {
+    "address": "198.19.181.22",
+    "index": 4,
+    "note": "",
+    "role": "exfil",
+    "type": "domain",
+    "value": "drop0.exfil-0.net"
+   },
+   {
+    "address": "198.19.172.208",
+    "index": 5,
+    "note": "",
+    "role": "exfil",
+    "type": "domain",
+    "value": "drop1.exfil-1.org"
+   }
+  ],
+  "meta": {
+   "actor": "Unattributed",
+   "created": "2026-11-20",
+   "description": "Campaign A of two in one capture.",
+   "id": "first-of-two",
+   "name": "First of two",
+   "origin_country": "",
+   "seed": 10,
+   "source": {
+    "feeds": [
+     "fixture-feed"
+    ],
+    "ioc_count": 6,
+    "kind": "iocs"
+   }
+  },
+  "name": "First of two",
+  "options": {
+   "address_mode": "mapped",
+   "beacons_per_c2": 4,
+   "compromised": "ws",
+   "family": "auto",
+   "include": [],
+   "lateral_target": "server",
+   "speed": "realistic",
+   "start": "10:00"
+  },
+  "stages": [
+   {
+    "id": "s1",
+    "length_s": 180.0,
+    "name": "Probe and spray",
+    "narrative": "The web server is probed and sprayed.",
+    "start": 1795186800.0,
+    "tactic": "initial-access",
+    "techniques": [
+     "T1595.003",
+     "T1110.004",
+     "T1078"
+    ]
+   },
+   {
+    "id": "s2",
+    "length_s": 400.0,
+    "name": "Foothold calls home",
+    "narrative": "The foothold beacons out.",
+    "start": 1795186990.0,
+    "tactic": "command-and-control",
+    "techniques": [
+     "T1071.001",
+     "T1573.002",
+     "T1071.004"
+    ]
+   }
+  ]
+ },
+ {
+  "emitted": 12,
+  "entries": [
+   {
+    "action": "smb_admin_exec",
+    "bytes": 14418,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203000.05,
+    "from": "ws",
+    "from_host": {
+     "ip": "10.10.10.147",
+     "name": "EXL-WS-047"
+    },
+    "ioc": [],
+    "last_ts": 1795203003.0,
+    "packets": 18,
+    "params": {
+     "binary_name": "svcupdate.exe",
+     "size": 40000,
+     "user": null
+    },
+    "protocols": [
+     "Kerberos",
+     "SMB2",
+     "DCERPC"
+    ],
+    "stage": "s1",
+    "stage_name": "Spread",
+    "status": "ok",
+    "techniques": [
+     "T1021.002",
+     "T1569.002"
+    ],
+    "to": "file",
+    "to_host": {
+     "ip": "10.10.20.20",
+     "name": "EXL-FILE1"
+    },
+    "ts": 1795203000.0
+   },
+   {
+    "action": "rdp_session",
+    "bytes": 4695,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203060.05,
+    "from": "ws",
+    "from_host": {
+     "ip": "10.10.10.147",
+     "name": "EXL-WS-047"
+    },
+    "ioc": [],
+    "last_ts": 1795203105.0,
+    "packets": 15,
+    "params": {
+     "duration_s": 90,
+     "user": null
+    },
+    "protocols": [
+     "DNS",
+     "Kerberos",
+     "RDP",
+     "TLS"
+    ],
+    "stage": "s1",
+    "stage_name": "Spread",
+    "status": "ok",
+    "techniques": [
+     "T1021.001"
+    ],
+    "to": "server",
+    "to_host": {
+     "ip": "10.10.20.20",
+     "name": "EXL-FILE1"
+    },
+    "ts": 1795203060.0
+   },
+   {
+    "action": "wmi_exec",
+    "bytes": 5580,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203120.05,
+    "from": "ws",
+    "from_host": {
+     "ip": "10.10.10.147",
+     "name": "EXL-WS-047"
+    },
+    "ioc": [],
+    "last_ts": 1795203122.0,
+    "packets": 18,
+    "params": {},
+    "protocols": [
+     "DCERPC",
+     "DCOM"
+    ],
+    "stage": "s1",
+    "stage_name": "Spread",
+    "status": "ok",
+    "techniques": [
+     "T1047"
+    ],
+    "to": "sql",
+    "to_host": {
+     "ip": "10.10.20.30",
+     "name": "EXL-SQL1"
+    },
+    "ts": 1795203120.0
+   },
+   {
+    "action": "winrm_exec",
+    "bytes": 6750,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203180.05,
+    "from": "ws",
+    "from_host": {
+     "ip": "10.10.10.147",
+     "name": "EXL-WS-047"
+    },
+    "ioc": [],
+    "last_ts": 1795203182.0,
+    "packets": 15,
+    "params": {
+     "command": "hostname",
+     "mode": "plain",
+     "port": 5985,
+     "user": null
+    },
+    "protocols": [
+     "Kerberos",
+     "HTTP",
+     "WSMAN"
+    ],
+    "stage": "s1",
+    "stage_name": "Spread",
+    "status": "ok",
+    "techniques": [
+     "T1021.006",
+     "T1059.001"
+    ],
+    "to": "host:WEB2",
+    "to_host": {
+     "ip": "10.10.20.41",
+     "name": "EXL-WEB2"
+    },
+    "ts": 1795203180.0
+   },
+   {
+    "action": "ssh_remote_exec",
+    "bytes": 21771,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203240.05,
+    "from": "ws",
+    "from_host": {
+     "ip": "10.10.10.147",
+     "name": "EXL-WS-047"
+    },
+    "ioc": [],
+    "last_ts": 1795203249.0,
+    "packets": 41,
+    "params": {
+     "commands": 1,
+     "gap_s": 6.0,
+     "sessions": 3
+    },
+    "protocols": [
+     "DNS",
+     "SSH"
+    ],
+    "stage": "s1",
+    "stage_name": "Spread",
+    "status": "ok",
+    "techniques": [
+     "T1021.004",
+     "T1059.004"
+    ],
+    "to": "host:BATCH1",
+    "to_host": {
+     "ip": "10.10.40.16",
+     "name": "EXL-BATCH1"
+    },
+    "ts": 1795203240.0
+   },
+   {
+    "action": "smb_admin_exec",
+    "bytes": 2912,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203300.05,
+    "from": "file",
+    "from_host": {
+     "ip": "10.10.20.20",
+     "name": "EXL-FILE1"
+    },
+    "ioc": [],
+    "last_ts": 1795203303.0,
+    "packets": 16,
+    "params": {
+     "binary_name": "svcupdate.exe",
+     "size": 40000,
+     "user": null
+    },
+    "protocols": [
+     "Kerberos",
+     "SMB2",
+     "DCERPC"
+    ],
+    "stage": "s1",
+    "stage_name": "Spread",
+    "status": "ok",
+    "techniques": [
+     "T1021.002",
+     "T1569.002"
+    ],
+    "to": "dc",
+    "to_host": {
+     "ip": "10.10.20.10",
+     "name": "EXL-DC1"
+    },
+    "ts": 1795203300.0
+   },
+   {
+    "action": "rdp_session",
+    "bytes": 2758,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203360.05,
+    "from": "server",
+    "from_host": {
+     "ip": "10.10.20.20",
+     "name": "EXL-FILE1"
+    },
+    "ioc": [],
+    "last_ts": 1795203405.0,
+    "packets": 14,
+    "params": {
+     "duration_s": 60,
+     "user": null
+    },
+    "protocols": [
+     "DNS",
+     "Kerberos",
+     "RDP",
+     "TLS"
+    ],
+    "stage": "s1",
+    "stage_name": "Spread",
+    "status": "ok",
+    "techniques": [
+     "T1021.001"
+    ],
+    "to": "host:MES1",
+    "to_host": {
+     "ip": "10.10.40.10",
+     "name": "EXL-MES1"
+    },
+    "ts": 1795203360.0
+   },
+   {
+    "action": "wmi_exec",
+    "bytes": 15660,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203420.05,
+    "from": "sql",
+    "from_host": {
+     "ip": "10.10.20.30",
+     "name": "EXL-SQL1"
+    },
+    "ioc": [],
+    "last_ts": 1795203422.0,
+    "packets": 20,
+    "params": {},
+    "protocols": [
+     "DCERPC",
+     "DCOM"
+    ],
+    "stage": "s1",
+    "stage_name": "Spread",
+    "status": "ok",
+    "techniques": [
+     "T1047"
+    ],
+    "to": "host:MESDB1",
+    "to_host": {
+     "ip": "10.10.40.12",
+     "name": "EXL-MESDB1"
+    },
+    "ts": 1795203420.0
+   },
+   {
+    "action": "winrm_exec",
+    "bytes": 6372,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203480.05,
+    "from": "ws2",
+    "from_host": {
+     "ip": "10.10.10.112",
+     "name": "EXL-WS-012"
+    },
+    "ioc": [],
+    "last_ts": 1795203482.0,
+    "packets": 18,
+    "params": {
+     "command": "hostname",
+     "mode": "plain",
+     "port": 5985,
+     "user": null
+    },
+    "protocols": [
+     "Kerberos",
+     "HTTP",
+     "WSMAN"
+    ],
+    "stage": "s1",
+    "stage_name": "Spread",
+    "status": "ok",
+    "techniques": [
+     "T1021.006",
+     "T1059.001"
+    ],
+    "to": "host:LOG1",
+    "to_host": {
+     "ip": "10.10.20.90",
+     "name": "EXL-LOG1"
+    },
+    "ts": 1795203480.0
+   },
+   {
+    "action": "remote_schtask",
+    "bytes": 10290,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203610.05,
+    "from": "file",
+    "from_host": {
+     "ip": "10.10.20.20",
+     "name": "EXL-FILE1"
+    },
+    "ioc": [],
+    "last_ts": 1795203614.0,
+    "packets": 14,
+    "params": {
+     "delete_after_s": 20.0,
+     "run": true,
+     "task_name": "\\Updater",
+     "user": null,
+     "xml_bytes": 1800
+    },
+    "protocols": [
+     "Kerberos",
+     "SMB2",
+     "DCERPC"
+    ],
+    "stage": "s2",
+    "stage_name": "Dig in",
+    "status": "ok",
+    "techniques": [
+     "T1053.005"
+    ],
+    "to": "host:BACKUP1",
+    "to_host": {
+     "ip": "10.10.20.100",
+     "name": "EXL-BACKUP1"
+    },
+    "ts": 1795203610.0
+   },
+   {
+    "action": "svcctl_persist",
+    "bytes": 10220,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203670.05,
+    "from": "dc",
+    "from_host": {
+     "ip": "10.10.20.10",
+     "name": "EXL-DC1"
+    },
+    "ioc": [],
+    "last_ts": 1795203673.0,
+    "packets": 20,
+    "params": {
+     "binary_path": "C:\\ProgramData\\helper\\svchelper.exe",
+     "service_name": "WinHelperSvc",
+     "user": null
+    },
+    "protocols": [
+     "Kerberos",
+     "SMB2",
+     "DCERPC"
+    ],
+    "stage": "s2",
+    "stage_name": "Dig in",
+    "status": "ok",
+    "techniques": [
+     "T1543.003"
+    ],
+    "to": "host:LIMS1",
+    "to_host": {
+     "ip": "10.10.40.17",
+     "name": "EXL-LIMS1"
+    },
+    "ts": 1795203670.0
+   },
+   {
+    "action": "smb_admin_exec",
+    "bytes": 7014,
+    "campaign": "second-of-two",
+    "error": null,
+    "explain": "",
+    "first_ts": 1795203730.05,
+    "from": "dc",
+    "from_host": {
+     "ip": "10.10.20.10",
+     "name": "EXL-DC1"
+    },
+    "ioc": [],
+    "last_ts": 1795203733.0,
+    "packets": 14,
+    "params": {
+     "binary_name": "svcupdate.exe",
+     "size": 40000,
+     "user": null
+    },
+    "protocols": [
+     "Kerberos",
+     "SMB2",
+     "DCERPC"
+    ],
+    "stage": "s2",
+    "stage_name": "Dig in",
+    "status": "ok",
+    "techniques": [
+     "T1021.002",
+     "T1569.002"
+    ],
+    "to": "host:WEB3",
+    "to_host": {
+     "ip": "10.10.20.42",
+     "name": "EXL-WEB3"
+    },
+    "ts": 1795203730.0
+   }
+  ],
+  "errors": [],
+  "estimate": {
+   "actions": 12,
+   "flows": 12,
+   "minutes_fast": 3.7,
+   "minutes_realistic": 13.7,
+   "scale": 1.0,
+   "stages": 2
+  },
+  "id": "second-of-two",
+  "iocs": [],
+  "meta": {
+   "actor": "Unattributed",
+   "created": "2026-11-20",
+   "description": "Campaign B of two in one capture.",
+   "id": "second-of-two",
+   "name": "Second of two",
+   "origin_country": "",
+   "seed": 11,
+   "source": {
+    "kind": "hand"
+   }
+  },
+  "name": "Second of two",
+  "options": {
+   "address_mode": "mapped",
+   "beacons_per_c2": 4,
+   "compromised": "ws",
+   "family": "auto",
+   "include": [],
+   "lateral_target": "server",
+   "speed": "realistic",
+   "start": "14:30"
+  },
+  "stages": [
+   {
+    "id": "s1",
+    "length_s": 600.0,
+    "name": "Spread",
+    "narrative": "The operator hops host to host.",
+    "start": 1795203000.0,
+    "tactic": "lateral-movement",
+    "techniques": [
+     "T1021.002",
+     "T1569.002",
+     "T1021.001",
+     "T1047",
+     "T1021.006",
+     "T1059.001",
+     "T1021.004",
+     "T1059.004"
+    ]
+   },
+   {
+    "id": "s2",
+    "length_s": 200.0,
+    "name": "Dig in",
+    "narrative": "Persistence on the new hosts.",
+    "start": 1795203610.0,
+    "tactic": "persistence",
+    "techniques": [
+     "T1053.005",
+     "T1543.003",
+     "T1021.002",
+     "T1569.002"
+    ]
+   }
+  ]
+ }
+]

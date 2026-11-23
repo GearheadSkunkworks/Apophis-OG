@@ -1,0 +1,7 @@
+################################################################
+# ThreatFox IOCs (synthetic fixture)
+################################################################
+#
+# "first_seen_utc","ioc_id","ioc_value","ioc_type","threat_type","fk_malware","malware_alias","malware_printable","last_seen_utc","confidence_level","reference","tags","anonymous","reporter"
+"2026-04-01 01:02:03","10","203.0.113.41:443","ip:port","botnet_cc","win.demo_rat","None","Demo RAT","","75","None","demo,rat","0","tester"
+"2026-04-01 01:02:04","11","dl2.demo-tf.example","domain","payload_delivery","win.demo_loader","None","Demo Loader","","60","None","None","0","tester"

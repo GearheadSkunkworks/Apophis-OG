@@ -1,0 +1,17 @@
+# php2shell-style demo indicator list (synthetic: documentation address ranges, generated hashes)
+203.0.113.77 Cobalt Strike C2
+198.51.100.24 C2 beacon server
+hxxps://files[.]demo-cdn[.]example/invoice.exe payload download
+demo-update[.]example C2 domain
+ed4547cc0a1db4894fbd9c8caa80a10de97726949f261f3522af03e073cdc1b4  payload
+1e0a36b2a1f6680648e9c35064dc0218545f348fb88ee2869ac0c3ede73b8c67  payload
+86d19df2fc4f9a27e5a483a7e7d3cabe9c078351dc6b537e5296d2f253f6174e  payload
+6450f44df2522de9c3286f4908a71c701b786137977f4ada4970103b87926185  payload
+638d147f794278c96c8289c577d74eadb319bb521fa634c24e8bad4ee7e97410  payload
+835d6b106c2d90f9f3a5c5d21978bb9d1abde908e34d433163cabee38fbc3b08  payload
+8bd23bb091a092a0754f3e9c206ca616f87537dd1431c954b8ac887d21bce845  payload
+dc6e9f02607093c372e8092739d2e0e0731c62daf758ff1760031dac3023972e  payload
+53d3025b5c9997c8e27ffdf0f8362445e522a6578f5fd9c300a98c2a91a1578e  payload
+6a3b446c5ea3a8373c0e333cf8121e7e2bf29c032c55df1dedeeaccd02cbf1cb  payload
+dd8e83b61b890939ff6e02118c4df045a2628e1d39327c2325080419d056faaf  payload
+8b0445e94d282de4637f44c7418414d69d71b346c8692febc2efeb8fe275085a  payload

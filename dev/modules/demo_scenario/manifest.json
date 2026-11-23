@@ -1,0 +1,8 @@
+{
+  "name": "demo_scenario",
+  "version": "1.0",
+  "kind": "scenario",
+  "description": "Reference scenario module: emits a little benign DNS traffic; appears in the scenario grid when loaded.",
+  "requires": [],
+  "example": true
+}

@@ -1,0 +1,147 @@
+{
+ "results": [
+  {
+   "id": "0123456789abcdef01234567",
+   "name": "Synthetic loader campaign",
+   "description": "demo",
+   "created": "2026-03-01T10:00:00.123000",
+   "tags": [
+    "demo-pulse",
+    "loader"
+   ],
+   "malware_families": [
+    {
+     "id": "DemoLoader",
+     "display_name": "DemoLoader"
+    }
+   ],
+   "attack_ids": [
+    {
+     "id": "T1566.001",
+     "name": "Spearphishing Attachment",
+     "display_name": "T1566.001 - Spearphishing Attachment"
+    },
+    {
+     "id": "T1059",
+     "name": "Command and Scripting Interpreter"
+    }
+   ],
+   "indicators": [
+    {
+     "id": 1,
+     "indicator": "203.0.113.30",
+     "type": "IPv4",
+     "created": "2026-03-01T10:00:00",
+     "title": "",
+     "description": "Command and control server",
+     "content": "",
+     "role": "command_and_control",
+     "is_active": 1
+    },
+    {
+     "id": 2,
+     "indicator": "2001:db8::30",
+     "type": "IPv6",
+     "created": "2026-03-01T10:00:00",
+     "title": "",
+     "description": "",
+     "role": null
+    },
+    {
+     "id": 3,
+     "indicator": "c2.otx-demo.example",
+     "type": "domain",
+     "created": "2026-03-01T10:00:00",
+     "title": "C2 domain",
+     "description": "",
+     "role": null
+    },
+    {
+     "id": 4,
+     "indicator": "host.otx-demo.example",
+     "type": "hostname",
+     "created": "2026-03-01T10:00:00",
+     "title": "",
+     "description": "",
+     "role": null
+    },
+    {
+     "id": 5,
+     "indicator": "http://dl.otx-demo.example/p.bin",
+     "type": "URL",
+     "created": "2026-03-01T10:00:00",
+     "title": "payload delivery",
+     "description": "",
+     "role": null
+    },
+    {
+     "id": 6,
+     "indicator": "3333333333333333333333333333333333333333333333333333333333333333",
+     "type": "FileHash-SHA256",
+     "created": "2026-03-01T10:00:00",
+     "title": "",
+     "description": "",
+     "role": null
+    },
+    {
+     "id": 7,
+     "indicator": "33333333333333333333333333333333",
+     "type": "FileHash-MD5",
+     "created": "2026-03-01T10:00:00",
+     "title": "",
+     "description": "",
+     "role": null
+    },
+    {
+     "id": 8,
+     "indicator": "CVE-2025-2222",
+     "type": "CVE",
+     "created": "2026-03-01T10:00:00",
+     "title": "",
+     "description": "",
+     "role": null
+    },
+    {
+     "id": 9,
+     "indicator": "C:\\Temp\\drop.exe",
+     "type": "FilePath",
+     "created": "2026-03-01T10:00:00",
+     "title": "",
+     "description": "",
+     "role": null
+    },
+    {
+     "id": 10,
+     "indicator": "phish@otx-demo.example",
+     "type": "email",
+     "created": "2026-03-01T10:00:00",
+     "title": "phishing sender",
+     "description": "",
+     "role": null
+    }
+   ]
+  },
+  {
+   "id": "89abcdef0123456789abcdef",
+   "name": "Synthetic scanning wave",
+   "description": "",
+   "created": "2026-03-02T08:00:00",
+   "tags": [
+    "scanner"
+   ],
+   "malware_families": [],
+   "attack_ids": [],
+   "indicators": [
+    {
+     "id": 11,
+     "indicator": "198.51.100.61",
+     "type": "IPv4",
+     "created": "2026-03-02T08:00:00",
+     "title": "scanner",
+     "description": "mass scanning",
+     "role": null
+    }
+   ]
+  }
+ ]
+}

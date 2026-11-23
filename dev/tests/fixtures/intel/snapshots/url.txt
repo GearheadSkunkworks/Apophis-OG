@@ -1,0 +1,5 @@
+# From a URL (plain list, defanged)
+hxxp://dl[.]url-demo[.]example/a.bin
+c2[.]url-demo[.]example
+203[.]0[.]113[.]151
+CVE-2025-4444

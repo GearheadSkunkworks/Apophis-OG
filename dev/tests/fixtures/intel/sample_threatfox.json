@@ -1,0 +1,7 @@
+{"query_status": "ok", "data": [
+ {"id": "1", "ioc": "203.0.113.40:8443", "threat_type": "botnet_cc", "ioc_type": "ip:port", "malware": "win.demo_rat", "malware_printable": "Demo RAT", "confidence_level": 75, "first_seen": "2026-04-01 01:02:03 UTC", "tags": ["demo", "rat"]},
+ {"id": "2", "ioc": "stage.demo-tf.example", "threat_type": "botnet_cc", "ioc_type": "domain", "malware_printable": "Demo RAT", "confidence_level": 100},
+ {"id": "3", "ioc": "https://dl.demo-tf.example/p.bin", "threat_type": "payload_delivery", "ioc_type": "url", "malware_printable": "Demo Loader", "confidence_level": 50},
+ {"id": "4", "ioc": "4444444444444444444444444444444444444444444444444444444444444444", "threat_type": "payload", "ioc_type": "sha256_hash", "malware_printable": "Demo Loader", "confidence_level": 90},
+ {"id": "5", "ioc": "x", "threat_type": "botnet_cc", "ioc_type": "weird"}
+]}

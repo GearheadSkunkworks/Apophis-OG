@@ -1,0 +1,78 @@
+{
+ "query_status": "ok",
+ "data": [
+  {
+   "id": "1001",
+   "ioc": "203.0.113.41:8443",
+   "threat_type": "botnet_cc",
+   "threat_type_desc": "Indicator that identifies a botnet command&control server (C&C)",
+   "ioc_type": "ip:port",
+   "ioc_type_desc": "ip:port combination that is used for botnet C&C",
+   "malware": "win.demo_beacon",
+   "malware_printable": "Demo Beacon",
+   "malware_alias": null,
+   "malware_malpedia": "https://example.com/win.demo_beacon",
+   "confidence_level": 75,
+   "first_seen": "2026-04-01 01:02:03 UTC",
+   "last_seen": null,
+   "reference": null,
+   "reporter": "demo",
+   "tags": [
+    "demo",
+    "beacon"
+   ]
+  },
+  {
+   "id": "1002",
+   "ioc": "stage.tf-demo.example",
+   "threat_type": "botnet_cc",
+   "ioc_type": "domain",
+   "malware": "win.demo_beacon",
+   "malware_printable": "Demo Beacon",
+   "confidence_level": 100,
+   "first_seen": "2026-04-01 02:00:00 UTC",
+   "tags": null
+  },
+  {
+   "id": "1003",
+   "ioc": "https://dl.tf-demo.example/p.bin",
+   "threat_type": "payload_delivery",
+   "ioc_type": "url",
+   "malware": "win.demo_loader",
+   "malware_printable": "Demo Loader",
+   "confidence_level": 50,
+   "first_seen": "2026-04-01 03:00:00 UTC",
+   "tags": [
+    "loader"
+   ]
+  },
+  {
+   "id": "1004",
+   "ioc": "4444444444444444444444444444444444444444444444444444444444444444",
+   "threat_type": "payload",
+   "ioc_type": "sha256_hash",
+   "malware": "win.demo_loader",
+   "malware_printable": "Demo Loader",
+   "confidence_level": 90,
+   "first_seen": "2026-04-01 04:00:00 UTC",
+   "tags": null
+  },
+  {
+   "id": "1005",
+   "ioc": "44444444444444444444444444444444",
+   "threat_type": "payload",
+   "ioc_type": "md5_hash",
+   "malware": "win.demo_loader",
+   "malware_printable": "Demo Loader",
+   "confidence_level": 90,
+   "first_seen": "2026-04-01 04:00:00 UTC",
+   "tags": null
+  },
+  {
+   "id": "1006",
+   "ioc": "x",
+   "threat_type": "botnet_cc",
+   "ioc_type": "weird"
+  }
+ ]
+}

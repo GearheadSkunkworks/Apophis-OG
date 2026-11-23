@@ -1,0 +1,29 @@
+/* "Check the sensor" panel (campaigns-sensor.js). Colours come from theme.css tokens. Minimum text 12px. */
+.ogcs{border:1px solid var(--ln);border-radius:4px;background:var(--p1);padding:14px 16px;margin-top:14px;font-family:var(--font-ui);color:var(--ink);}
+.ogcs h4{margin:0 0 6px;font-size:1rem;font-weight:600;color:var(--ink);}
+.ogcs h5{margin:12px 0 4px;font-size:0.875rem;font-weight:600;}
+.ogcs label{display:block;font-size:0.8125rem;font-weight:500;color:var(--mu);margin-bottom:3px;}
+.ogcs input{font:inherit;font-size:0.8125rem;padding:0 10px;height:34px;border:1px solid var(--field-ln);border-radius:3px;width:100%;box-sizing:border-box;min-width:0;background:var(--p2);color:var(--ink);transition:border-color .15s,box-shadow .15s;}
+.ogcs input:hover{border-color:var(--ac-tx);}
+.ogcs input:focus{border-color:var(--cy);box-shadow:0 0 0 3px color-mix(in srgb,var(--cy) 18%,transparent);}
+.ogcs :is(button,input,select):focus-visible,.ogcs-tbl-wrap:focus-visible{outline:2px solid var(--cy);outline-offset:2px;}
+.ogcs-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:8px 0;}
+.ogcs-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0;padding-bottom:6px;}
+.ogcs-note{font-size:0.75rem;margin:4px 0;color:var(--mu);}
+.ogcs-msg{font-size:0.8125rem;margin:6px 0;min-height:1em;}
+.ogcs-err{color:var(--er);font-weight:600;}
+.ogcs-good{color:var(--ok);font-weight:600;}
+.ogcs-score{font-size:1rem;font-weight:600;margin:8px 0;}
+.ogcs-tbl-wrap{overflow:auto;max-width:100%;max-height:340px;border:1px solid var(--ln);border-radius:3px;}
+.ogcs-table td,.ogcs-table th{vertical-align:top;}
+.ogcs-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+.ogcs-badge{display:inline-block;font-size:0.75rem;font-weight:500;border-radius:3px;padding:2px 9px;border:1px solid currentColor;white-space:nowrap;}
+.ogcs-detected{color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,var(--p1));}
+.ogcs-related{color:var(--wr);background:color-mix(in srgb,var(--wr) 10%,var(--p1));}
+.ogcs-missed{color:var(--er);background:color-mix(in srgb,var(--er) 10%,var(--p1));}
+.ogcs-not_run,.ogcs-unknown{color:var(--mu);background:var(--p3);}
+.ogcs-keyrow{font-size:0.75rem;margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.ogcs .ogcs-keyrow input[type=checkbox]{width:auto;height:auto;accent-color:var(--cy);}
+.ogcs .ogcs-keyrow label.ogcs-inline{display:inline;font-weight:400;margin:0;}
+.ogcs-link{background:none;border:0;padding:0;font:inherit;font-size:0.75rem;text-decoration:underline;cursor:pointer;color:var(--ac-tx);}
+@media (prefers-reduced-motion:reduce){.ogcs *{transition:none !important;}}

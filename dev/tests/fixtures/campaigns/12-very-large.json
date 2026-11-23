@@ -1,0 +1,7112 @@
+{
+ "expect": [
+  {
+   "stage": "s1",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1566.002"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1056.003"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s5",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s5",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s5",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s5",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s6",
+   "technique": "T1558.003"
+  },
+  {
+   "stage": "s6",
+   "technique": "T1071.004"
+  },
+  {
+   "stage": "s7",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s7",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s7",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s7",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s8",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s8",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s9",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s9",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s9",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s9",
+   "technique": "T1566.002"
+  },
+  {
+   "stage": "s9",
+   "technique": "T1056.003"
+  },
+  {
+   "stage": "s10",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s10",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s11",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s11",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s11",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s11",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s12",
+   "technique": "T1071.004"
+  },
+  {
+   "stage": "s12",
+   "technique": "T1558.003"
+  },
+  {
+   "stage": "s13",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s13",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s13",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s13",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s14",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s14",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s15",
+   "technique": "T1566.002"
+  },
+  {
+   "stage": "s15",
+   "technique": "T1056.003"
+  },
+  {
+   "stage": "s15",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s15",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s15",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s16",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s16",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s17",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s17",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s17",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s17",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s18",
+   "technique": "T1558.003"
+  },
+  {
+   "stage": "s18",
+   "technique": "T1071.004"
+  },
+  {
+   "stage": "s19",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s19",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s19",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s19",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s20",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s20",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s21",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s21",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s21",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s21",
+   "technique": "T1566.002"
+  },
+  {
+   "stage": "s21",
+   "technique": "T1056.003"
+  },
+  {
+   "stage": "s22",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s22",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s23",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s23",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s23",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s23",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s24",
+   "technique": "T1071.004"
+  },
+  {
+   "stage": "s24",
+   "technique": "T1558.003"
+  },
+  {
+   "stage": "s25",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s25",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s25",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s25",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s26",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s26",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s27",
+   "technique": "T1566.002"
+  },
+  {
+   "stage": "s27",
+   "technique": "T1056.003"
+  },
+  {
+   "stage": "s27",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s27",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s27",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s28",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s28",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s29",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s29",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s29",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s29",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s30",
+   "technique": "T1558.003"
+  },
+  {
+   "stage": "s30",
+   "technique": "T1071.004"
+  },
+  {
+   "stage": "s31",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s31",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s31",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s31",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s32",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s32",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s33",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s33",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s33",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s33",
+   "technique": "T1566.002"
+  },
+  {
+   "stage": "s33",
+   "technique": "T1056.003"
+  },
+  {
+   "stage": "s34",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s34",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s35",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s35",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s35",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s35",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s36",
+   "technique": "T1071.004"
+  },
+  {
+   "stage": "s36",
+   "technique": "T1558.003"
+  },
+  {
+   "stage": "s37",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s37",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s37",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s37",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s38",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s38",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s39",
+   "technique": "T1566.002"
+  },
+  {
+   "stage": "s39",
+   "technique": "T1056.003"
+  },
+  {
+   "stage": "s39",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s39",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s39",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s40",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s40",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s41",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s41",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s41",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s41",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s42",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s42",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s42",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s42",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s43",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s43",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s43",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s43",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s44",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s44",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s44",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s44",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s45",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s45",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s45",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s45",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s46",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s46",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s46",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s46",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s47",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s47",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s47",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s47",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s48",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s48",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s48",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s48",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s49",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s49",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s49",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s49",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s50",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s50",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s50",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s50",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s51",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s51",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s51",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s51",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s52",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s52",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s52",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s52",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s53",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s53",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s53",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s53",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s54",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s54",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s54",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s54",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s55",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s55",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s55",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s55",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s56",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s56",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s56",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s56",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s57",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s57",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s57",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s57",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s58",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s58",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s58",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s58",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s59",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s59",
+   "technique": "T1078"
+  },
+  {
+   "stage": "s59",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s59",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s60",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s60",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s60",
+   "technique": "T1110.004"
+  },
+  {
+   "stage": "s60",
+   "technique": "T1078"
+  }
+ ],
+ "explain": [],
+ "iocs": [
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "cdn-0.c2host-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.20.1.2",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "sync-1.c2host-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.27.14.31",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "update-2.c2host-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.34.27.60",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "static-3.c2host-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.41.40.89",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "mail-4.c2host-4.xyz",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.48.53.118",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "api-5.c2host-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.55.66.147",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "docs-6.c2host-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.62.79.176",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "login-7.c2host-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.69.92.205",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "files-8.c2host-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.76.105.234",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "metrics-9.c2host-4.xyz",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.83.118.13",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "edge-10.c2host-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.90.131.42",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "relay-11.c2host-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.97.144.71",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "cdn-12.c2host-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.104.157.100",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "sync-13.c2host-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.111.170.129",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "update-14.c2host-4.xyz",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.118.183.158",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "static-15.c2host-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.125.196.187",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "mail-16.c2host-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.132.209.216",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "api-17.c2host-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.139.222.245",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "docs-18.c2host-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.146.235.24",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "login-19.c2host-4.xyz",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.153.248.53",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "files-20.c2host-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.160.11.82",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "metrics-21.c2host-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.167.24.111",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "edge-22.c2host-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.174.37.140",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "relay-23.c2host-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.181.50.169",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [
+    "T1071.001"
+   ],
+   "type": "domain",
+   "value": "cdn-24.c2host-4.xyz",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.188.63.198",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl0.payload-0.net/cdn/file0.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl1.payload-1.org/sync/file1.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl2.payload-2.info/update/file2.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl3.payload-3.io/static/file3.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl4.payload-0.xyz/mail/file4.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl5.payload-1.net/api/file5.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl6.payload-2.org/docs/file6.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl7.payload-3.info/login/file7.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl8.payload-0.io/files/file8.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl9.payload-1.xyz/metrics/file9.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl10.payload-2.net/edge/file10.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl11.payload-3.org/relay/file11.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl12.payload-0.info/cdn/file12.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl13.payload-1.io/sync/file13.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1105"
+   ],
+   "type": "url",
+   "value": "http://dl14.payload-2.xyz/update/file14.bin",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop0.exfil-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.100.21.162",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop1.exfil-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.107.34.191",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop2.exfil-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.114.47.220",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop3.exfil-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.121.60.249",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop4.exfil-4.xyz",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.128.73.28",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop5.exfil-5.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.135.86.57",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop6.exfil-6.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.142.99.86",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop7.exfil-7.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.149.112.115",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop8.exfil-8.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.156.125.144",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1041"
+   ],
+   "type": "domain",
+   "value": "drop9.exfil-9.xyz",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.163.138.173",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.40.31.242",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.47.44.21",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.54.57.50",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.61.70.79",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.68.83.108",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.75.96.137",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.82.109.166",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.89.122.195",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.110.161.32",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.117.174.61",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.124.187.90",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.131.200.119",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.138.213.148",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.145.226.177",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.152.239.206",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.159.2.235",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal0.secure-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal1.secure-1.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal2.secure-2.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal3.secure-3.io",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal4.secure-4.xyz",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal5.secure-5.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal6.secure-6.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [
+    "T1566.002"
+   ],
+   "type": "domain",
+   "value": "login-portal7.secure-7.info",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "tor",
+   "source": "fixture-feed",
+   "tags": [
+    "tor"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "176.180.41.72",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "tor",
+   "source": "fixture-feed",
+   "tags": [
+    "tor"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "176.187.54.101",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "tor",
+   "source": "fixture-feed",
+   "tags": [
+    "tor"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "176.194.67.130",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "tor",
+   "source": "fixture-feed",
+   "tags": [
+    "tor"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "176.201.80.159",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "tor",
+   "source": "fixture-feed",
+   "tags": [
+    "tor"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "176.208.93.188",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "tor",
+   "source": "fixture-feed",
+   "tags": [
+    "tor"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "176.215.106.217",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "phishing",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "email",
+   "value": "billing@invoice-help.example",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "unknown",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "filename",
+   "value": "invoice_2024.iso",
+   "why": ""
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "60 stages, 400 actions.",
+  "id": "very-large",
+  "name": "Very large",
+  "origin_country": "",
+  "seed": 13,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 117,
+   "kind": "iocs"
+  }
+ },
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": [
+  {
+   "actions": [
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-004",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:1"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-008",
+     "ioc": [],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-012",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:5"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-016",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-020",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:9"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-024",
+     "ioc": [],
+     "params": {},
+     "to": "host:HIST1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-028",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:13"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s1",
+   "name": "Wave 1",
+   "narrative": "Wave 1 of a long campaign.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1021.002",
+    "T1569.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-025",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:58"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-029",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:NTP1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-033",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:62"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-037",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-041",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:51"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-045",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-049",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:55"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s2",
+   "name": "Wave 2",
+   "narrative": "Wave 2 of a long campaign.",
+   "tactic": "execution",
+   "techniques": [
+    "T1105",
+    "T1021.001"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-046",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-050",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-054",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-058",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-062",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-066",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-070",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s3",
+   "name": "Wave 3",
+   "narrative": "Wave 3 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1566.002",
+    "T1056.003",
+    "T1087.002",
+    "T1069.002",
+    "T1018"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-071",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-004",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-012",
+     "ioc": [],
+     "params": {},
+     "to": "host:BACKUP1"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s4",
+   "name": "Wave 4",
+   "narrative": "Wave 4 of a long campaign.",
+   "tactic": "reconnaissance",
+   "techniques": [
+    "T1046",
+    "T1135"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s5",
+   "name": "Wave 5",
+   "narrative": "Wave 5 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-034",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-038",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:38"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-042",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-046",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:42"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-050",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-054",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:46"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-058",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s6",
+   "name": "Wave 6",
+   "narrative": "Wave 6 of a long campaign.",
+   "tactic": "credential-access",
+   "techniques": [
+    "T1558.003",
+    "T1071.004"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-055",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-059",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:45"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-063",
+     "ioc": [],
+     "params": {},
+     "to": "host:HIST1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-067",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:49"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-071",
+     "ioc": [],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-075",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:3"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-004",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s7",
+   "name": "Wave 7",
+   "narrative": "Wave 7 of a long campaign.",
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.002",
+    "T1569.002",
+    "T1071.001",
+    "T1573.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-001",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-005",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:57"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-009",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-013",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:61"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-017",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:NTP1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-021",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:50"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-025",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s8",
+   "name": "Wave 8",
+   "narrative": "Wave 8 of a long campaign.",
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.001",
+    "T1105"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-022",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-026",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-030",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-034",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-038",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-042",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-046",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s9",
+   "name": "Wave 9",
+   "narrative": "Wave 9 of a long campaign.",
+   "tactic": "discovery",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018",
+    "T1566.002",
+    "T1056.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-043",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-051",
+     "ioc": [],
+     "params": {},
+     "to": "host:BACKUP1"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-059",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-067",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s10",
+   "name": "Wave 10",
+   "narrative": "Wave 10 of a long campaign.",
+   "tactic": "discovery",
+   "techniques": [
+    "T1135",
+    "T1046"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s11",
+   "name": "Wave 11",
+   "narrative": "Wave 11 of a long campaign.",
+   "tactic": "exfiltration",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-010",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:28"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-014",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-018",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:32"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-022",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-026",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:36"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-030",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-034",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:40"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s12",
+   "name": "Wave 12",
+   "narrative": "Wave 12 of a long campaign.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.004",
+    "T1558.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-031",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:35"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-035",
+     "ioc": [],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-039",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:39"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-043",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-047",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:43"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-051",
+     "ioc": [],
+     "params": {},
+     "to": "host:HIST1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-055",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:47"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s13",
+   "name": "Wave 13",
+   "narrative": "Wave 13 of a long campaign.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1021.002",
+    "T1569.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-052",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:52"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-056",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:NTP1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-060",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:56"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-064",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-068",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:60"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-072",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-001",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:64"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s14",
+   "name": "Wave 14",
+   "narrative": "Wave 14 of a long campaign.",
+   "tactic": "execution",
+   "techniques": [
+    "T1105",
+    "T1021.001"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-073",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-002",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-006",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-010",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-014",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-018",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-022",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s15",
+   "name": "Wave 15",
+   "narrative": "Wave 15 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1566.002",
+    "T1056.003",
+    "T1087.002",
+    "T1069.002",
+    "T1018"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-023",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-031",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-039",
+     "ioc": [],
+     "params": {},
+     "to": "host:BACKUP1"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s16",
+   "name": "Wave 16",
+   "narrative": "Wave 16 of a long campaign.",
+   "tactic": "reconnaissance",
+   "techniques": [
+    "T1046",
+    "T1135"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s17",
+   "name": "Wave 17",
+   "narrative": "Wave 17 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-061",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-065",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:22"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-069",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-073",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:26"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-002",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-006",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:30"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-010",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s18",
+   "name": "Wave 18",
+   "narrative": "Wave 18 of a long campaign.",
+   "tactic": "credential-access",
+   "techniques": [
+    "T1558.003",
+    "T1071.004"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-007",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-011",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:29"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-015",
+     "ioc": [],
+     "params": {},
+     "to": "host:HIST1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-019",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:33"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-023",
+     "ioc": [],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-027",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:37"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-031",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s19",
+   "name": "Wave 19",
+   "narrative": "Wave 19 of a long campaign.",
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.002",
+    "T1569.002",
+    "T1071.001",
+    "T1573.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-028",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-032",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:51"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-036",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-040",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:55"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-044",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:NTP1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-048",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:59"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-052",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s20",
+   "name": "Wave 20",
+   "narrative": "Wave 20 of a long campaign.",
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.001",
+    "T1105"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-049",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-053",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-057",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-061",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-065",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-069",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-073",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s21",
+   "name": "Wave 21",
+   "narrative": "Wave 21 of a long campaign.",
+   "tactic": "discovery",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018",
+    "T1566.002",
+    "T1056.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-070",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-003",
+     "ioc": [],
+     "params": {},
+     "to": "host:BACKUP1"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-011",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-019",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s22",
+   "name": "Wave 22",
+   "narrative": "Wave 22 of a long campaign.",
+   "tactic": "discovery",
+   "techniques": [
+    "T1135",
+    "T1046"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s23",
+   "name": "Wave 23",
+   "narrative": "Wave 23 of a long campaign.",
+   "tactic": "exfiltration",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-037",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:12"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-041",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-045",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:16"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-049",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-053",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:20"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-057",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-061",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:24"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s24",
+   "name": "Wave 24",
+   "narrative": "Wave 24 of a long campaign.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.004",
+    "T1558.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-058",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:19"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-062",
+     "ioc": [],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-066",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:23"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-070",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-074",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:27"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-003",
+     "ioc": [],
+     "params": {},
+     "to": "host:HIST1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-007",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:31"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s25",
+   "name": "Wave 25",
+   "narrative": "Wave 25 of a long campaign.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1021.002",
+    "T1569.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-004",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:61"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-008",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:NTP1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-012",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:50"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-016",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-020",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:54"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-024",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-028",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:58"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s26",
+   "name": "Wave 26",
+   "narrative": "Wave 26 of a long campaign.",
+   "tactic": "execution",
+   "techniques": [
+    "T1105",
+    "T1021.001"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-025",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-029",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-033",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-037",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-041",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-045",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-049",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s27",
+   "name": "Wave 27",
+   "narrative": "Wave 27 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1566.002",
+    "T1056.003",
+    "T1087.002",
+    "T1069.002",
+    "T1018"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-050",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-058",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-066",
+     "ioc": [],
+     "params": {},
+     "to": "host:BACKUP1"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s28",
+   "name": "Wave 28",
+   "narrative": "Wave 28 of a long campaign.",
+   "tactic": "reconnaissance",
+   "techniques": [
+    "T1046",
+    "T1135"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s29",
+   "name": "Wave 29",
+   "narrative": "Wave 29 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-013",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-017",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:6"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-021",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-025",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:10"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-029",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-033",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:14"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-037",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s30",
+   "name": "Wave 30",
+   "narrative": "Wave 30 of a long campaign.",
+   "tactic": "credential-access",
+   "techniques": [
+    "T1558.003",
+    "T1071.004"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-034",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-038",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:13"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-042",
+     "ioc": [],
+     "params": {},
+     "to": "host:HIST1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-046",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:17"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-050",
+     "ioc": [],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-054",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:21"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-058",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s31",
+   "name": "Wave 31",
+   "narrative": "Wave 31 of a long campaign.",
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.002",
+    "T1569.002",
+    "T1071.001",
+    "T1573.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-055",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-059",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:60"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-063",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-067",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:64"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-071",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:NTP1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-075",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:53"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-004",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s32",
+   "name": "Wave 32",
+   "narrative": "Wave 32 of a long campaign.",
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.001",
+    "T1105"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-001",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-005",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-009",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-013",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-017",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-021",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-025",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s33",
+   "name": "Wave 33",
+   "narrative": "Wave 33 of a long campaign.",
+   "tactic": "discovery",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018",
+    "T1566.002",
+    "T1056.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-022",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-030",
+     "ioc": [],
+     "params": {},
+     "to": "host:BACKUP1"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-038",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-046",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s34",
+   "name": "Wave 34",
+   "narrative": "Wave 34 of a long campaign.",
+   "tactic": "discovery",
+   "techniques": [
+    "T1135",
+    "T1046"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s35",
+   "name": "Wave 35",
+   "narrative": "Wave 35 of a long campaign.",
+   "tactic": "exfiltration",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-064",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:46"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-068",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-072",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:0"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-001",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-005",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:4"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "host:WS-009",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "host:WS-013",
+     "ioc": [],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:8"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s36",
+   "name": "Wave 36",
+   "narrative": "Wave 36 of a long campaign.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.004",
+    "T1558.003"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-010",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:3"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-014",
+     "ioc": [],
+     "params": {},
+     "to": "web"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-018",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:7"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-022",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-026",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:11"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "host:WS-030",
+     "ioc": [],
+     "params": {},
+     "to": "host:HIST1"
+    },
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "host:WS-034",
+     "ioc": [],
+     "params": {
+      "count": 3,
+      "interval_s": 30
+     },
+     "to": "c2:15"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s37",
+   "name": "Wave 37",
+   "narrative": "Wave 37 of a long campaign.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1021.002",
+    "T1569.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-031",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:55"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-035",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:NTP1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-039",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:59"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-043",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "sql"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-047",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:63"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "host:WS-051",
+     "ioc": [],
+     "params": {
+      "duration_s": 40
+     },
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "host:WS-055",
+     "ioc": [],
+     "params": {},
+     "to": "ioc:52"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s38",
+   "name": "Wave 38",
+   "narrative": "Wave 38 of a long campaign.",
+   "tactic": "execution",
+   "techniques": [
+    "T1105",
+    "T1021.001"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-052",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-056",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-060",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-064",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-068",
+     "ioc": [],
+     "params": {},
+     "to": "phish:3"
+    },
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "host:WS-072",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "phishing_visit",
+     "explain": "",
+     "from": "host:WS-001",
+     "ioc": [],
+     "params": {},
+     "to": "phish:7"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s39",
+   "name": "Wave 39",
+   "narrative": "Wave 39 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1566.002",
+    "T1056.003",
+    "T1087.002",
+    "T1069.002",
+    "T1018"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-002",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-010",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:2",
+     "ioc": [],
+     "params": {},
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:WS-018",
+     "ioc": [],
+     "params": {},
+     "to": "host:BACKUP1"
+    },
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "scanner:6",
+     "ioc": [],
+     "params": {},
+     "to": "host:NTP1"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s40",
+   "name": "Wave 40",
+   "narrative": "Wave 40 of a long campaign.",
+   "tactic": "reconnaissance",
+   "techniques": [
+    "T1046",
+    "T1135"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s41",
+   "name": "Wave 41",
+   "narrative": "Wave 41 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s42",
+   "name": "Wave 42",
+   "narrative": "Wave 42 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s43",
+   "name": "Wave 43",
+   "narrative": "Wave 43 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s44",
+   "name": "Wave 44",
+   "narrative": "Wave 44 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s45",
+   "name": "Wave 45",
+   "narrative": "Wave 45 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s46",
+   "name": "Wave 46",
+   "narrative": "Wave 46 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s47",
+   "name": "Wave 47",
+   "narrative": "Wave 47 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s48",
+   "name": "Wave 48",
+   "narrative": "Wave 48 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s49",
+   "name": "Wave 49",
+   "narrative": "Wave 49 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s50",
+   "name": "Wave 50",
+   "narrative": "Wave 50 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s51",
+   "name": "Wave 51",
+   "narrative": "Wave 51 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s52",
+   "name": "Wave 52",
+   "narrative": "Wave 52 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s53",
+   "name": "Wave 53",
+   "narrative": "Wave 53 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s54",
+   "name": "Wave 54",
+   "narrative": "Wave 54 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s55",
+   "name": "Wave 55",
+   "narrative": "Wave 55 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s56",
+   "name": "Wave 56",
+   "narrative": "Wave 56 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s57",
+   "name": "Wave 57",
+   "narrative": "Wave 57 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:7"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s58",
+   "name": "Wave 58",
+   "narrative": "Wave 58 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:11"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s59",
+   "name": "Wave 59",
+   "narrative": "Wave 59 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1567",
+    "T1048.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:HIST1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:15"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "web",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:19"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:1",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    },
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "host:LOG1",
+     "ioc": [],
+     "params": {
+      "total_bytes": 800000
+     },
+     "to": "exfil:3"
+    },
+    {
+     "action": "web_login_spray",
+     "explain": "",
+     "from": "brute:5",
+     "ioc": [],
+     "params": {
+      "attempts": 12
+     },
+     "to": "web"
+    }
+   ],
+   "duration_s": 60,
+   "fast_s": 15,
+   "id": "s60",
+   "name": "Wave 60",
+   "narrative": "Wave 60 of a long campaign.",
+   "tactic": "initial-access",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1110.004",
+    "T1078"
+   ]
+  }
+ ]
+}

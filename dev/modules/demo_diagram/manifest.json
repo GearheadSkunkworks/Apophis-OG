@@ -1,0 +1,8 @@
+{
+  "name": "demo_diagram",
+  "version": "1.0",
+  "kind": "diagram",
+  "description": "Reference capability module: a diagram you can load and unload at run time.",
+  "requires": [],
+  "example": true
+}

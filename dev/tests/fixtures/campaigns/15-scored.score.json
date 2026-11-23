@@ -1,0 +1,262 @@
+{
+ "actions": [
+  {
+   "action": "web_dir_scan",
+   "detections": [],
+   "stage": "s1",
+   "status": "detected",
+   "ts": 1795186800.0
+  },
+  {
+   "action": "web_login_spray",
+   "detections": [],
+   "stage": "s1",
+   "status": "related",
+   "ts": 1795186881.0
+  },
+  {
+   "action": "https_beacon",
+   "detections": [],
+   "stage": "s2",
+   "status": "missed",
+   "ts": 1795186990.0
+  },
+  {
+   "action": "dns_beacon",
+   "detections": [],
+   "stage": "s2",
+   "status": "detected",
+   "ts": 1795187170.0
+  },
+  {
+   "action": "ldap_recon",
+   "detections": [],
+   "stage": "s3",
+   "status": "detected",
+   "ts": 1795187400.0
+  },
+  {
+   "action": "smb_share_enum",
+   "detections": [],
+   "stage": "s3",
+   "status": "missed",
+   "ts": 1795187445.0
+  },
+  {
+   "action": "https_upload",
+   "detections": [],
+   "stage": "s4",
+   "status": "detected",
+   "ts": 1795187510.0
+  },
+  {
+   "action": "dns_exfil",
+   "detections": [],
+   "stage": "s4",
+   "status": "related",
+   "ts": 1795187618.0
+  }
+ ],
+ "below_min_risk": 0,
+ "count": 10,
+ "detections": [],
+ "score": {
+  "by_tactic": {},
+  "detected": 7,
+  "missed": 3,
+  "partial": 3,
+  "percent": 65.4,
+  "testable": 13
+ },
+ "sensor": "fixture-sensor",
+ "techniques": [
+  {
+   "actions": [
+    "web_dir_scan"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s1"
+   ],
+   "status": "detected",
+   "tactic": "",
+   "technique": "T1595.003"
+  },
+  {
+   "actions": [
+    "web_login_spray"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s1"
+   ],
+   "status": "related",
+   "tactic": "",
+   "technique": "T1110.004"
+  },
+  {
+   "actions": [
+    "web_login_spray"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s1"
+   ],
+   "status": "related",
+   "tactic": "",
+   "technique": "T1078"
+  },
+  {
+   "actions": [
+    "https_beacon"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s2"
+   ],
+   "status": "missed",
+   "tactic": "",
+   "technique": "T1071.001"
+  },
+  {
+   "actions": [
+    "https_beacon"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s2"
+   ],
+   "status": "missed",
+   "tactic": "",
+   "technique": "T1573.002"
+  },
+  {
+   "actions": [
+    "dns_beacon"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s2"
+   ],
+   "status": "detected",
+   "tactic": "",
+   "technique": "T1071.004"
+  },
+  {
+   "actions": [
+    "ldap_recon"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s3"
+   ],
+   "status": "detected",
+   "tactic": "",
+   "technique": "T1087.002"
+  },
+  {
+   "actions": [
+    "ldap_recon"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s3"
+   ],
+   "status": "detected",
+   "tactic": "",
+   "technique": "T1069.002"
+  },
+  {
+   "actions": [
+    "ldap_recon"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s3"
+   ],
+   "status": "detected",
+   "tactic": "",
+   "technique": "T1018"
+  },
+  {
+   "actions": [
+    "smb_share_enum"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s3"
+   ],
+   "status": "missed",
+   "tactic": "",
+   "technique": "T1135"
+  },
+  {
+   "actions": [
+    "https_upload"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s4"
+   ],
+   "status": "detected",
+   "tactic": "",
+   "technique": "T1567"
+  },
+  {
+   "actions": [
+    "https_upload"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s4"
+   ],
+   "status": "detected",
+   "tactic": "",
+   "technique": "T1048.002"
+  },
+  {
+   "actions": [
+    "dns_exfil"
+   ],
+   "detections": [],
+   "name": "",
+   "note": "fixture",
+   "stages": [
+    "s4"
+   ],
+   "status": "related",
+   "tactic": "",
+   "technique": "T1048.003"
+  }
+ ],
+ "time": "2026-11-20T10:00:00Z",
+ "unmatched": 0,
+ "vulnerabilities": {
+  "count": 0,
+  "note": "carried as expectations; no traffic exercises a CVE"
+ }
+}

@@ -1,0 +1,264 @@
+{
+ "expect": [
+  {
+   "stage": "s2",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1071.004"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1087.002"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1069.002"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1018"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1048.002"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1048.003"
+  },
+  {
+   "stage": "s4",
+   "technique": "T1071.004"
+  }
+ ],
+ "explain": [],
+ "iocs": [
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "brute",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "193.32.7.15",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "scanner",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "45.88.4.21",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "domain",
+   "value": "updates.sync-cdn.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "domain",
+   "value": "cdn.edge-relay.org",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "domain",
+   "value": "drop0.exfil-0.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "domain",
+   "value": "drop1.exfil-1.org",
+   "why": ""
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Never run; planned offsets only.",
+  "id": "plan-only",
+  "name": "Plan only",
+  "origin_country": "",
+  "seed": 15,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 6,
+   "kind": "iocs"
+  }
+ },
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": [
+  {
+   "actions": [
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "ws",
+     "ioc": [
+      2
+     ],
+     "params": {
+      "count": 8,
+      "interval_s": 45
+     },
+     "to": "c2:0"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "ws",
+     "ioc": [
+      3
+     ],
+     "params": {
+      "count": 10
+     },
+     "to": "c2:1"
+    }
+   ],
+   "duration_s": 400,
+   "fast_s": 100,
+   "id": "s2",
+   "name": "Foothold calls home",
+   "narrative": "The foothold beacons out.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1071.004"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "ldap_recon",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    }
+   ],
+   "duration_s": 100,
+   "fast_s": 25,
+   "id": "s3",
+   "name": "Look around",
+   "narrative": "Directory and shares.",
+   "tactic": "discovery",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018",
+    "T1135"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "file",
+     "ioc": [
+      4
+     ],
+     "params": {
+      "total_bytes": 4000000
+     },
+     "to": "exfil:0"
+    },
+    {
+     "action": "dns_exfil",
+     "explain": "",
+     "from": "ws",
+     "ioc": [
+      5
+     ],
+     "params": {
+      "queries": 60
+     },
+     "to": "exfil:1"
+    }
+   ],
+   "duration_s": 240,
+   "fast_s": 60,
+   "id": "s4",
+   "name": "Send data out",
+   "narrative": "Data leaves over web and DNS.",
+   "tactic": "exfiltration",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1048.003",
+    "T1071.004"
+   ]
+  }
+ ]
+}

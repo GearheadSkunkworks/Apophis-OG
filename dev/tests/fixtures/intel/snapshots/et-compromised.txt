@@ -1,0 +1,6 @@
+# Demo compromised hosts list (synthetic)
+# comment line
+203.0.113.91
+203.0.113.92
+198.51.100.93
+

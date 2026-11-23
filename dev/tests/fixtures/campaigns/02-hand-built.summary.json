@@ -1,0 +1,347 @@
+{
+ "emitted": 7,
+ "entries": [
+  {
+   "action": "ldap_recon",
+   "bytes": 4725,
+   "campaign": "hand-built-roles-only",
+   "error": null,
+   "explain": "Directory lookups from the workstation",
+   "first_ts": 1795186800.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186803.0,
+   "packets": 21,
+   "params": {
+    "max_entries": 40,
+    "page_size": 20
+   },
+   "protocols": [
+    "Kerberos",
+    "LDAP"
+   ],
+   "stage": "s1",
+   "stage_name": "Look around",
+   "status": "ok",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795186800.0
+  },
+  {
+   "action": "smb_share_enum",
+   "bytes": 4522,
+   "campaign": "hand-built-roles-only",
+   "error": null,
+   "explain": "Share listing",
+   "first_ts": 1795186827.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186829.0,
+   "packets": 19,
+   "params": {
+    "share": "Dept",
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s1",
+   "stage_name": "Look around",
+   "status": "ok",
+   "techniques": [
+    "T1135"
+   ],
+   "to": "file",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795186827.0
+  },
+  {
+   "action": "port_probe",
+   "bytes": 6840,
+   "campaign": "hand-built-roles-only",
+   "error": null,
+   "explain": "Probe the database port",
+   "first_ts": 1795186854.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186859.0,
+   "packets": 20,
+   "params": {
+    "gap_s": 0.8,
+    "ports": [
+     22,
+     80,
+     135,
+     139,
+     443,
+     445,
+     3389
+    ]
+   },
+   "protocols": [
+    "TCP"
+   ],
+   "stage": "s1",
+   "stage_name": "Look around",
+   "status": "ok",
+   "techniques": [
+    "T1046"
+   ],
+   "to": "sql",
+   "to_host": {
+    "ip": "10.10.20.30",
+    "name": "EXL-SQL1"
+   },
+   "ts": 1795186854.0
+  },
+  {
+   "action": "kerberoast",
+   "bytes": 35076,
+   "campaign": "hand-built-roles-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186900.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186970.0,
+   "packets": 148,
+   "params": {
+    "count": 10,
+    "gap_s": 0.7
+   },
+   "protocols": [
+    "Kerberos"
+   ],
+   "stage": "s2",
+   "stage_name": "Get tickets",
+   "status": "ok",
+   "techniques": [
+    "T1558.003"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795186900.0
+  },
+  {
+   "action": "kerberos_spray",
+   "bytes": 11760,
+   "campaign": "hand-built-roles-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186936.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186951.0,
+   "packets": 16,
+   "params": {
+    "accounts": 25,
+    "gap_s": 0.8,
+    "unknown_ratio": 0.15
+   },
+   "protocols": [
+    "Kerberos"
+   ],
+   "stage": "s2",
+   "stage_name": "Get tickets",
+   "status": "ok",
+   "techniques": [
+    "T1110.003"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795186936.0
+  },
+  {
+   "action": "smb_admin_exec",
+   "bytes": 11319,
+   "campaign": "hand-built-roles-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186990.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795186993.0,
+   "packets": 21,
+   "params": {
+    "binary_name": "svcupdate.exe",
+    "size": 40000,
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s3",
+   "stage_name": "Move",
+   "status": "ok",
+   "techniques": [
+    "T1021.002",
+    "T1569.002"
+   ],
+   "to": "file",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795186990.0
+  },
+  {
+   "action": "rdp_session",
+   "bytes": 10122,
+   "campaign": "hand-built-roles-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187044.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187089.0,
+   "packets": 14,
+   "params": {
+    "duration_s": 120,
+    "user": null
+   },
+   "protocols": [
+    "DNS",
+    "Kerberos",
+    "RDP",
+    "TLS"
+   ],
+   "stage": "s3",
+   "stage_name": "Move",
+   "status": "ok",
+   "techniques": [
+    "T1021.001"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187044.0
+  }
+ ],
+ "errors": [],
+ "estimate": {
+  "actions": 7,
+  "flows": 7,
+  "minutes_fast": 1.7,
+  "minutes_realistic": 5.3,
+  "scale": 1.0,
+  "stages": 3
+ },
+ "id": "hand-built-roles-only",
+ "iocs": [],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "No indicators: every actor is a role.",
+  "id": "hand-built-roles-only",
+  "name": "Hand-built, roles only",
+  "origin_country": "",
+  "seed": 2,
+  "source": {
+   "kind": "hand"
+  }
+ },
+ "name": "Hand-built, roles only",
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "stages": [
+  {
+   "id": "s1",
+   "length_s": 90.0,
+   "name": "Look around",
+   "narrative": "The operator maps the network.",
+   "start": 1795186800.0,
+   "tactic": "discovery",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018",
+    "T1135",
+    "T1046"
+   ]
+  },
+  {
+   "id": "s2",
+   "length_s": 80.0,
+   "name": "Get tickets",
+   "narrative": "Tickets are requested and guessed.",
+   "start": 1795186900.0,
+   "tactic": "credential-access",
+   "techniques": [
+    "T1558.003",
+    "T1110.003"
+   ]
+  },
+  {
+   "id": "s3",
+   "length_s": 120.0,
+   "name": "Move",
+   "narrative": "The operator hops to the file server.",
+   "start": 1795186990.0,
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.002",
+    "T1569.002",
+    "T1021.001"
+   ]
+  }
+ ]
+}

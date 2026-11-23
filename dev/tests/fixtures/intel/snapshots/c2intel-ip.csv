@@ -1,0 +1,4 @@
+#ip,ioc
+203.0.113.81,Possible demo-beacon C2 IP
+203.0.113.82,Possible demo-beacon C2 IP
+198.51.100.83,Possible domain-fronted C2 IP

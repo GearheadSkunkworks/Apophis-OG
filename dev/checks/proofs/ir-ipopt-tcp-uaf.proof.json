@@ -1,0 +1,479 @@
+{
+ "scenario": "ir-ipopt-tcp-uaf",
+ "build": {
+  "module": "ir-ipopt-tcp-uaf",
+  "scale": 1.0,
+  "date": "2026-11-04"
+ },
+ "pin": {
+  "scale": 0.05,
+  "date": "2026-11-04",
+  "margin": 1.25
+ },
+ "slice": {
+  "hosts": [
+   "10.10.20.45",
+   "10.10.20.46",
+   "203.0.113.140",
+   "203.0.113.141",
+   "203.0.113.142",
+   "198.51.100.171"
+  ]
+ },
+ "checks": [
+  {
+   "id": "S1",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.140 && ip.dst == 10.10.20.45 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && ip.hdr_len > 20",
+   "min": 200
+  },
+  {
+   "id": "S2",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && ip.hdr_len > 20",
+   "min": 200
+  },
+  {
+   "id": "S3",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.142 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && ip.hdr_len > 20",
+   "exact": 2
+  },
+  {
+   "id": "S4",
+   "type": "count",
+   "filter": "tcp.flags.syn == 1 && tcp.flags.ack == 0 && ip.hdr_len > 20 && !(ip.src in {203.0.113.140, 203.0.113.141, 203.0.113.142})",
+   "exact": 0
+  },
+  {
+   "id": "S5",
+   "type": "distinct",
+   "filter": "ip.src in {203.0.113.140, 203.0.113.141} && tcp.flags.syn == 1 && tcp.flags.ack == 0",
+   "field": "ip.hdr_len",
+   "exact": 2
+  },
+  {
+   "id": "S6",
+   "type": "count",
+   "filter": "ip.src in {203.0.113.140, 203.0.113.141} && tcp.flags.syn == 1 && tcp.flags.ack == 0 && !(ip.opt.type == 7 && ip.opt.type == 68)",
+   "exact": 0
+  },
+  {
+   "id": "S7",
+   "type": "count",
+   "filter": "ip.src in {203.0.113.140, 203.0.113.141} && tcp.flags.syn == 1 && tcp.flags.ack == 0 && ip.flags.df == 0",
+   "exact": 0
+  },
+  {
+   "id": "S8",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.45 && ip.dst == 203.0.113.140 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && ip.hdr_len > 20",
+   "min": 200
+  },
+  {
+   "id": "S9",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.45 && ip.dst == 203.0.113.140 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && ip.hdr_len == 20",
+   "exact": 0
+  },
+  {
+   "id": "R1",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.140 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && tcp.analysis.retransmission",
+   "min": 100
+  },
+  {
+   "id": "R2",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && tcp.analysis.retransmission",
+   "min": 100
+  },
+  {
+   "id": "R3",
+   "type": "count",
+   "filter": "ip.src in {203.0.113.140, 203.0.113.141} && tcp.flags.syn == 1 && tcp.flags.ack == 0 && tcp.analysis.retransmission && (tcp.analysis.rto < 0.19 || tcp.analysis.rto > 0.51)",
+   "exact": 0
+  },
+  {
+   "id": "R4",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.142 && tcp.analysis.retransmission",
+   "exact": 0
+  },
+  {
+   "id": "P1",
+   "type": "distinct",
+   "filter": "ip.src == 203.0.113.140 && ip.dst == 10.10.20.45 && tcp.flags.syn == 1 && tcp.flags.ack == 0",
+   "field": "tcp.srcport",
+   "min": 100
+  },
+  {
+   "id": "P2",
+   "type": "distinct",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0",
+   "field": "tcp.srcport",
+   "min": 100
+  },
+  {
+   "id": "P3",
+   "type": "distinct",
+   "filter": "ip.src == 203.0.113.140 && ip.dst == 10.10.20.45 && tcp.flags.syn == 1 && tcp.flags.ack == 0",
+   "field": "tcp.seq_raw",
+   "min": 100
+  },
+  {
+   "id": "P4",
+   "type": "count",
+   "filter": "ip.src in {203.0.113.140, 203.0.113.141} && tcp.srcport < 32768 && tcp.dstport in {8443, 9000}",
+   "exact": 0
+  },
+  {
+   "id": "P5",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.140 && ip.dst != 10.10.20.45",
+   "exact": 0
+  },
+  {
+   "id": "P6",
+   "type": "distinct",
+   "filter": "ip.src == 203.0.113.140",
+   "field": "tcp.dstport",
+   "exact": 1
+  },
+  {
+   "id": "Z1",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.140 && ip.dst == 10.10.20.45 && tcp.flags.syn == 0 && tcp.flags.reset == 0",
+   "exact": 0
+  },
+  {
+   "id": "Z2",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.45 && ip.dst == 203.0.113.140 && tcp.flags.syn == 1 && tcp.flags.ack == 1",
+   "min": 200
+  },
+  {
+   "id": "Z3",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.140 && ip.dst == 10.10.20.45 && tcp.flags.reset == 1",
+   "min": 100
+  },
+  {
+   "id": "Z4",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.45 && ip.dst == 203.0.113.140 && !(tcp.flags.syn == 1 && tcp.flags.ack == 1)",
+   "exact": 0
+  },
+  {
+   "id": "M1",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && tcp.option_kind == 30",
+   "min": 200
+  },
+  {
+   "id": "M2",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && tcp.option_kind == 30",
+   "min": 200
+  },
+  {
+   "id": "M3",
+   "type": "count",
+   "filter": "ip.addr == 203.0.113.140 && tcp.option_kind == 30",
+   "exact": 0
+  },
+  {
+   "id": "M4",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.45 && tcp.option_kind == 30",
+   "exact": 0
+  },
+  {
+   "id": "M5",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && !(tcp.option_kind == 30)",
+   "exact": 0
+  },
+  {
+   "id": "M6",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 0 && tcp.option_kind == 30",
+   "exact": 1
+  },
+  {
+   "id": "M7",
+   "type": "count",
+   "filter": "tcp.option_kind == 30 && ip.addr in {203.0.113.141, 198.51.100.171} && !tcp.options.mptcp.subtype",
+   "exact": 0
+  },
+  {
+   "id": "W1",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && ip.hdr_len == 60",
+   "exact": 1
+  },
+  {
+   "id": "W2",
+   "type": "count",
+   "filter": "ip.hdr_len == 60",
+   "exact": 1
+  },
+  {
+   "id": "W3",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && frame contains 81:ff:ff:ff:ff",
+   "exact": 1
+  },
+  {
+   "id": "W4",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.45 && ip.hdr_len > 40",
+   "exact": 0
+  },
+  {
+   "id": "W5",
+   "type": "distinct",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.dstport == 9000 && tcp.flags.syn == 0 && tcp.flags.reset == 0",
+   "field": "tcp.srcport",
+   "exact": 1
+  },
+  {
+   "id": "W6",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.dstport == 9000 && tcp.len > 0",
+   "exact": 1
+  },
+  {
+   "id": "W7",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.dstport == 9000 && tcp.flags.reset == 1",
+   "min": 100
+  },
+  {
+   "id": "W8",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793837099 && frame.time_epoch < 1793837103",
+   "exact": 2
+  },
+  {
+   "id": "W9",
+   "type": "distinct",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793837099 && frame.time_epoch < 1793837103",
+   "field": "tcp.srcport",
+   "exact": 1
+  },
+  {
+   "id": "W10",
+   "type": "distinct",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793837099 && frame.time_epoch < 1793837103",
+   "field": "tcp.seq_raw",
+   "exact": 1
+  },
+  {
+   "id": "W11",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793837099 && frame.time_epoch < 1793837103 && tcp.analysis.retransmission",
+   "exact": 1
+  },
+  {
+   "id": "W12",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && frame.time_epoch > 1793837099 && ip.hdr_len < 60",
+   "exact": 1
+  },
+  {
+   "id": "W13",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && frame.time_epoch > 1793837099",
+   "exact": 2
+  },
+  {
+   "id": "W14",
+   "type": "order",
+   "before": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && frame.time_epoch > 1793837099 && ip.hdr_len < 60",
+   "before_at": "last",
+   "after": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793837099 && tcp.analysis.retransmission"
+  },
+  {
+   "id": "W15",
+   "type": "precedes",
+   "before": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793837099 && tcp.analysis.retransmission",
+   "after": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && ip.hdr_len == 60",
+   "max_gap": 0.6
+  },
+  {
+   "id": "W16",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.reset == 1 && frame.time_epoch > 1793837099",
+   "exact": 0
+  },
+  {
+   "id": "M8",
+   "type": "count",
+   "filter": "ip.src == 198.51.100.171 && ip.dst == 10.10.20.46 && tcp.flags.syn == 0 && tcp.option_kind == 30 && tcp.options.mptcp.subtype == 0",
+   "min": 6
+  },
+  {
+   "id": "M9",
+   "type": "count",
+   "filter": "tcp.option_kind == 30 && ip.addr == 203.0.113.141 && tcp.flags.syn == 0",
+   "exact": 1
+  },
+  {
+   "id": "C1",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.dstport == 38271 && tcp.flags.syn == 1 && tcp.flags.ack == 0",
+   "exact": 1
+  },
+  {
+   "id": "C2",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.dstport == 38271 && tcp.len > 0",
+   "min": 2,
+   "max": 5
+  },
+  {
+   "id": "C3",
+   "type": "count",
+   "filter": "ip.addr == 203.0.113.141 && tcp.port == 38271 && tcp.len > 400",
+   "exact": 0
+  },
+  {
+   "id": "C4",
+   "type": "count",
+   "filter": "ip.src == 10.10.20.45 && ip.dst == 203.0.113.141",
+   "exact": 0
+  },
+  {
+   "id": "O1",
+   "type": "order",
+   "before": "ip.src == 203.0.113.141 && tcp.flags.reset == 1",
+   "before_at": "last",
+   "after": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && ip.hdr_len == 60"
+  },
+  {
+   "id": "O2",
+   "type": "precedes",
+   "before": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && ip.hdr_len == 60",
+   "after": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.dstport == 9000 && tcp.len > 0",
+   "max_gap": 3
+  },
+  {
+   "id": "O3",
+   "type": "precedes",
+   "before": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.flags.syn == 1 && tcp.flags.ack == 1 && ip.hdr_len == 60",
+   "after": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.dstport == 38271 && tcp.flags.syn == 1 && tcp.flags.ack == 0",
+   "max_gap": 12
+  },
+  {
+   "id": "O4",
+   "type": "order",
+   "before": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.reset == 1",
+   "before_at": "last",
+   "after": "ip.src == 10.10.20.46 && ip.dst == 203.0.113.141 && tcp.dstport == 38271 && tcp.flags.syn == 1 && tcp.flags.ack == 0"
+  },
+  {
+   "id": "O5",
+   "type": "precedes",
+   "before": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 0 && tcp.option_kind == 30",
+   "after": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.dstport == 9000 && tcp.len > 0",
+   "max_gap": 2
+  },
+  {
+   "id": "DA1a",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.140 && ip.dst == 10.10.20.45 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch < 1793833430",
+   "exact": 0
+  },
+  {
+   "id": "DA1b",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.140 && ip.dst == 10.10.20.45 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793836500",
+   "exact": 0
+  },
+  {
+   "id": "DA1c",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.140 && ip.dst == 10.10.20.45 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch < 1793833830",
+   "min": 1
+  },
+  {
+   "id": "DA1d",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.140 && ip.dst == 10.10.20.45 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793836100",
+   "min": 1
+  },
+  {
+   "id": "DA2a",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch < 1793834080",
+   "exact": 0
+  },
+  {
+   "id": "DA2b",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793837120",
+   "exact": 0
+  },
+  {
+   "id": "DA2c",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch < 1793834480",
+   "min": 1
+  },
+  {
+   "id": "DA2d",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.141 && ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && frame.time_epoch > 1793836720",
+   "min": 1
+  },
+  {
+   "id": "B1",
+   "type": "count",
+   "filter": "ip.dst == 10.10.20.45 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && ip.hdr_len == 20",
+   "min": 20
+  },
+  {
+   "id": "B2",
+   "type": "count",
+   "filter": "ip.dst == 10.10.20.46 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && ip.hdr_len == 20",
+   "min": 20
+  },
+  {
+   "id": "B3",
+   "type": "count",
+   "filter": "ip.src == 198.51.100.171 && tcp.flags.syn == 1 && tcp.flags.ack == 0 && tcp.analysis.retransmission && ip.hdr_len == 20",
+   "min": 2
+  },
+  {
+   "id": "B4",
+   "type": "count",
+   "filter": "ip.src == 198.51.100.171 && ip.dst == 10.10.20.46 && tcp.flags.syn == 0 && tcp.option_kind == 30",
+   "min": 6
+  },
+  {
+   "id": "B5",
+   "type": "count",
+   "filter": "ip.dst == 10.10.20.45 && tcp.dstport == 8443 && tcp.len > 0 && ip.src != 203.0.113.140",
+   "min": 20
+  },
+  {
+   "id": "B6",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.142 && tcp.flags.reset == 1",
+   "exact": 2
+  },
+  {
+   "id": "B7",
+   "type": "count",
+   "filter": "ip.src == 203.0.113.142 && tcp.flags.syn == 0 && tcp.flags.reset == 0",
+   "exact": 0
+  },
+  {
+   "id": "B8",
+   "type": "count",
+   "filter": "ip.src != 203.0.113.140 && ip.src != 203.0.113.141 && ip.src != 203.0.113.142 && ip.dst in {10.10.20.45, 10.10.20.46} && tcp.flags.reset == 1",
+   "exact": 0
+  }
+ ]
+}

@@ -1,0 +1,107 @@
+/* Design tokens -- the one source for the app, the diagrams, reports and the About page.
+
+   Contract (set from localStorage before first paint by a small inline script):
+     <html data-theme="dark|light">     no attribute = light (standalone pages); the app defaults to dark
+     <html data-palette="forge|teal|sage|clay">   no attribute (or "slate") = Slate Blue, the default
+
+   Token roles (new names):
+     --bg --p1 --p2 --p3     surfaces: page, card, raised/inset, hover or track
+     --ln --ln2              hairline, stronger hairline (decorative edges)
+     --field-ln              border of inputs, selects, textareas and toggles (>= 3:1 on every surface)
+     --ink --mu              body text, muted text
+     --ac                    accent FILL (white text sits on it)        --ac-tx  accent used AS TEXT
+     --cy                    cyan trace / progress line (not for text)  --cy-tx  cyan as text (derived from --cy and --ink)
+     --vi                    violet (never text on fills)
+     --ok --wr --er          status colours usable as text on --p1
+     --ok-fill --wr-fill --er-fill --info-fill   status FILLS (white text sits on them; same in both themes)
+     --c-sec --c-perf --c-cryp --c-rep --c-cus   scenario family colours; fixed across palettes
+     --face                  primary-button face gradient (white text)
+     --glow                  blurred gradient behind clickable buttons
+     --grid                  faint background grid line colour
+     --font-ui --font-mono   IBM Plex Sans (UI) / IBM Plex Mono (paths, ids, times), bundled below
+
+   A palette changes ONLY: --ac --ac-tx --face --glow --hdr-b. Everything else is shared.
+
+   Legacy names (--page --surface --surface-2 --mist --gray --line --line-2 --on-ink --sapphire --plum --cyan
+   --tangerine --magenta + the -tx variants, --ir --hdr-a --hdr-b --log-bg --log-ink --readybar-bg --code-bg
+   --border --card --input-bg) are aliases of the tokens above, so campaigns*.css, index.html and the static
+   pages follow the look with no other edits. Roles are kept: sapphire = accent fill, cyan = green (ok),
+   magenta = info blue, plum = red (error), tangerine = amber (warning), ir = violet. */
+
+/* ---- Fonts (self-hosted, OFL; see IBM-Plex-OFL.txt). Source Sans 3 stays as the fallback. ---- */
+@font-face{font-family:"IBM Plex Sans";font-weight:400;font-style:normal;font-display:swap;src:url("/ui/ibm-plex-sans-400.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Sans";font-weight:500;font-style:normal;font-display:swap;src:url("/ui/ibm-plex-sans-500.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Sans";font-weight:600;font-style:normal;font-display:swap;src:url("/ui/ibm-plex-sans-600.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Sans";font-weight:700;font-style:normal;font-display:swap;src:url("/ui/ibm-plex-sans-700.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-style:normal;font-display:swap;src:url("/ui/ibm-plex-mono-400.woff2") format("woff2");}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-style:normal;font-display:swap;src:url("/ui/ibm-plex-mono-500.woff2") format("woff2");}
+
+/* ---- Light (base) -- Slate Blue ---- */
+:root{
+  --bg:#edf1f7;--p1:#ffffff;--p2:#f3f6fa;--p3:#e3e9f1;
+  --ln:#d6dde8;--ln2:#b7c3d4;--field-ln:#66758b;
+  --ink:#131a25;--mu:#49566a;
+  --ac:#3F66A8;--ac-tx:#264f95;
+  --cy:#0b7f9f;--vi:#6a4fd0;
+  --cy-tx:color-mix(in srgb,var(--cy) 72%,var(--ink));   /* the trace colour used AS TEXT (>= 4.5:1 on cards and on the callout tint) */
+  --ok:#1f6f4c;--wr:#7d5400;--er:#a8362e;
+  --ok-fill:#2E7D5B;--wr-fill:#B7791F;--er-fill:#B4443C;--info-fill:#3E68A8;
+  --c-sec:#c0453c;--c-perf:#23704f;--c-cryp:#8a5a00;--c-rep:#2a559b;--c-cus:#6f4fc4;
+  --face:linear-gradient(135deg,#2a58ad,#2f6bbf);
+  --glow:linear-gradient(90deg,#3F66A8,#5CC8E8 55%,#8b7cf6);
+  --grid:rgba(38,79,149,.07);
+  --hdr-a:#0d121b;--hdr-b:#2F4F85;
+  --font-ui:"IBM Plex Sans","Source Sans 3",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+/* ---- Dark -- Slate Blue ---- */
+:root[data-theme="dark"]{
+  --bg:#070a10;--p1:#0d121b;--p2:#121a26;--p3:#1a2433;
+  --ln:#1f2a3b;--ln2:#2c3b52;--field-ln:#6b7a92;
+  --ink:#e8eef7;--mu:#8b99ae;
+  --ac:#3F66A8;--ac-tx:#8FB0E6;
+  --cy:#5CC8E8;--vi:#9d8cf5;
+  --ok:#6CCB9B;--wr:#E0B050;--er:#E88A83;
+  --c-sec:#E88A83;--c-perf:#6CCB9B;--c-cryp:#E0B050;--c-rep:#8FB0E6;--c-cus:#b79cf2;
+  --grid:rgba(143,176,230,.06);
+  color-scheme:dark;
+}
+
+/* ---- Legacy aliases (same in every theme and palette; they resolve through the tokens above) ---- */
+:root{
+  --page:var(--bg);--surface:var(--p1);--surface-2:var(--p2);--mist:var(--p3);
+  --gray:var(--mu);--line:var(--ln);--line-2:var(--ln2);--on-ink:var(--p1);
+  --sapphire:var(--ac);--sapphire-tx:var(--ac-tx);
+  --plum:var(--er-fill);--plum-tx:var(--er);
+  --cyan:var(--ok-fill);--cyan-tx:var(--ok);
+  --tangerine:var(--wr-fill);
+  --magenta:var(--info-fill);--magenta-tx:var(--c-rep);
+  --ir:var(--vi);
+  --log-bg:#090d14;--log-ink:#d5dbe6;
+  --readybar-bg:color-mix(in srgb,var(--p1) 96%,transparent);
+  --code-bg:rgba(0,0,0,.06);
+  /* Aliases for the campaigns-library module, which reads --border/--card/--input-bg. */
+  --border:var(--ln);--card:var(--p1);--input-bg:var(--p1);
+}
+:root[data-theme="dark"]{--code-bg:rgba(255,255,255,.08);}
+
+/* ---- Palettes. Light rule first, dark override after (the dark rule is more specific). ---- */
+:root[data-palette="forge"]{--ac:#C2410C;--ac-tx:#A8380A;--face:linear-gradient(135deg,#b23a0a,#c94a12);
+  --glow:linear-gradient(90deg,#C2410C,#F59E0B 55%,#FB8A50);--hdr-b:#C2410C;}
+:root[data-palette="forge"][data-theme="dark"]{--ac-tx:#FB8A50;}
+:root[data-palette="teal"]{--ac:#1F6F6B;--ac-tx:#1B6360;--face:linear-gradient(135deg,#1b6460,#25807b);
+  --glow:linear-gradient(90deg,#1F6F6B,#6CC3BD 55%,#5CC8E8);--hdr-b:#1E5C59;}
+:root[data-palette="teal"][data-theme="dark"]{--ac-tx:#6CC3BD;}
+:root[data-palette="sage"]{--ac:#356A55;--ac-tx:#2E5E4A;--face:linear-gradient(135deg,#2f5f4c,#3a7a61);
+  --glow:linear-gradient(90deg,#356A55,#86C4A9 55%,#5CC8E8);--hdr-b:#2B5645;}
+:root[data-palette="sage"][data-theme="dark"]{--ac-tx:#86C4A9;}
+:root[data-palette="clay"]{--ac:#A24F34;--ac-tx:#94452C;--face:linear-gradient(135deg,#8f4430,#b05a3c);
+  --glow:linear-gradient(90deg,#A24F34,#E0997F 55%,#E0B050);--hdr-b:#7E3E29;}
+:root[data-palette="clay"][data-theme="dark"]{--ac-tx:#E0997F;}
+
+/* The brand mark: the Gearhead Skunkworks gear-and-skull, a one-colour shape that follows the text colour in every theme. */
+.gh{display:inline-block;background:currentColor;border:0;
+  -webkit-mask:url(/ui/gearhead-mark.png) center / contain no-repeat;mask:url(/ui/gearhead-mark.png) center / contain no-repeat;}
+.mk.gh{width:34px;height:34px;color:var(--ink);background:currentColor;border:0;}
+.mark.gh{width:34px;height:34px;color:var(--ink);background:currentColor;border:0;}

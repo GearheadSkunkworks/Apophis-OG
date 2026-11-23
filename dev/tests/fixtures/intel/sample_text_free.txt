@@ -1,0 +1,8 @@
+# C2 servers
+203.0.113.60
+demo-free[.]example
+; a comment line
+Scanner seen at 198.51.100.60 and 198.51.100.61 yesterday.
+
+Contact analyst[at]demo-free[.]example about CVE-2024-3400. The e.g. sentence ends with evil-demo.example.
+Version 1.2.3 and 999.1.1.1 are not indicators, nor is file.name

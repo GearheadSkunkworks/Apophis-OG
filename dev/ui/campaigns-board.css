@@ -1,0 +1,48 @@
+/* Campaign Builder board preview. Classes are prefixed ogcb-; the generic pieces (.ogc-table, .ogc-chip, .btn) come
+   from campaigns.css. Colours come from theme.css tokens only. */
+.ogc-board{display:flex;flex-direction:column;gap:12px;font-family:var(--font-ui);color:var(--ink);}
+.ogcb-title{margin:0;font-size:1rem;font-weight:600;color:var(--ink);}
+.ogcb-note{margin:0;font-size:0.8125rem;color:var(--mu);}
+.ogcb-mapwrap{border:1px solid var(--ln);border-radius:4px;overflow:hidden;background:var(--p2);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;}
+.ogcb-flowwrap{overflow-x:auto;padding:4px;}
+.ogcb-flow{display:block;width:100%;height:auto;min-width:640px;}
+.ogcb-flow .ogcb-edge{transition:opacity .15s linear;}
+.ogcb-flow text{font-family:var(--font-ui);}
+.ogcb-flow .ogcb-node-ip{font-family:var(--font-mono);}
+.ogcb-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:0.75rem;color:var(--mu);}
+.ogcb-legend-item{display:inline-flex;align-items:center;gap:6px;}
+.ogcb-legend-sw{width:10px;height:10px;border-radius:2px;display:inline-block;flex:none;}
+
+/* stage ordering */
+.ogcb-stages{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;}
+.ogcb-stage{display:flex;flex-direction:column;gap:1px;min-width:0;padding:5px 10px;border-radius:3px;border:1px solid var(--ln2);background:var(--p1);font-size:0.75rem;line-height:1.3;}
+.ogcb-stage-name{font-weight:600;font-size:0.8125rem;color:var(--ink);}
+.ogcb-stage-tactic{display:none;}
+.ogcb-stage-state{font-size:0.75rem;color:var(--mu);}
+.ogcb-stage.is-active{border-color:var(--cy);box-shadow:0 0 12px color-mix(in srgb,var(--cy) 30%,transparent);}
+.ogcb-stage.is-active .ogcb-stage-state{font-weight:600;color:var(--cy-tx);}
+.ogcb-stage.is-done{border-style:solid;background:color-mix(in srgb,var(--ok) 9%,var(--p1));border-color:color-mix(in srgb,var(--ok) 40%,var(--ln2));}
+.ogcb-stage.is-done .ogcb-stage-state{color:var(--ok);}
+.ogcb-stage.is-done .ogcb-stage-state::before{content:"\2713  ";}
+.ogcb-stage.is-pending{border-style:dashed;}
+.ogcb-stage.is-none{border-style:dotted;opacity:.75;}
+
+/* clock and play control */
+.ogcb-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-bottom:6px;}
+.ogcb-speeds{display:inline-flex;gap:4px;}
+.ogcb-scrub{flex:1 1 220px;min-width:140px;accent-color:var(--cy);}
+.ogcb-clock{font-family:var(--font-mono);font-size:0.8125rem;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink);}
+.ogc-board :is(button,input,select,summary):focus-visible{outline:2px solid var(--cy);outline-offset:2px;}
+.ogcb-play[disabled]{opacity:.5;cursor:not-allowed;}
+
+.ogcb-threat-table tr.is-waiting td,.ogcb-pin-table tr.is-waiting td{color:var(--mu);}
+.ogcb-threat-table tr.is-seen td:last-child,.ogcb-pin-table tr.is-seen td:last-child{font-weight:600;color:var(--ok);}
+.ogcb-threats,.ogcb-pins{overflow-x:auto;max-width:100%;}
+.ogc-board caption{text-align:left;font-size:0.8125rem;font-weight:600;color:var(--ink);padding:4px 0;}
+.ogcb-alt summary{cursor:pointer;font-size:0.8125rem;color:var(--ac-tx);}
+.ogcb-alt{overflow-x:auto;max-width:100%;}
+
+@media (prefers-reduced-motion: reduce){
+  .ogc-board *{animation:none !important;transition:none !important;}
+}

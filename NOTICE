@@ -1,0 +1,18 @@
+Apophis-OG (also known as OpenGenerator)
+Copyright 2026 Rob Mathieson, Gearhead Skunkworks
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Apophis-OG is an open-source synthetic traffic generator maintained by Rob Mathieson
+of Gearhead Skunkworks, who uses AI coding assistants and reviews every change. It is provided "AS IS", without warranties of any kind; see
+DISCLAIMER.md. It generates traffic that imitates malicious activity. Use it only on
+networks, systems, and captures you own or are explicitly authorized to test.
+
+The Gearhead Skunkworks name and logo identify the author and are not licensed for
+use under the Apache License (see Section 6 of LICENSE). You may redistribute and
+modify the software; please use your own name and logo for your own versions.
+
+The packaged macOS app bundles a Python runtime and the "cryptography" library,
+each of which remains under its own license.
+
+Product and vendor names mentioned are trademarks of their owners; no affiliation or endorsement is implied.

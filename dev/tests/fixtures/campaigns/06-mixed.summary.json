@@ -1,0 +1,486 @@
+{
+ "emitted": 8,
+ "entries": [
+  {
+   "action": "web_dir_scan",
+   "bytes": 32984,
+   "campaign": "mixed-inbound-and-outbound",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186800.05,
+   "from": "scanner:0",
+   "from_host": {
+    "ip": "198.19.114.153",
+    "name": "45.88.4.21"
+   },
+   "ioc": [
+    1
+   ],
+   "last_ts": 1795186962.0,
+   "packets": 248,
+   "params": {
+    "connections": 4,
+    "count": 40,
+    "extensions": null,
+    "host": "",
+    "port": 80,
+    "rate_rps": 25.0,
+    "tls": false,
+    "user_agent": "Mozilla/5.0 (compatible; webprobe/1.0)"
+   },
+   "protocols": [
+    "TCP",
+    "HTTP",
+    "TLS"
+   ],
+   "stage": "s1",
+   "stage_name": "Probe and spray",
+   "status": "ok",
+   "techniques": [
+    "T1595.003"
+   ],
+   "to": "web",
+   "to_host": {
+    "ip": "10.10.20.40",
+    "name": "EXL-WEB1"
+   },
+   "ts": 1795186800.0
+  },
+  {
+   "action": "web_login_spray",
+   "bytes": 255866,
+   "campaign": "mixed-inbound-and-outbound",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186881.05,
+   "from": "brute:0",
+   "from_host": {
+    "ip": "198.18.212.125",
+    "name": "193.32.7.15"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187043.0,
+   "packets": 338,
+   "params": {
+    "attempts": 30,
+    "connections": 2,
+    "gap_s": 0.7,
+    "host": "",
+    "passwords": null,
+    "path": "/login",
+    "port": 443,
+    "successes": 1,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s1",
+   "stage_name": "Probe and spray",
+   "status": "ok",
+   "techniques": [
+    "T1110.004",
+    "T1078"
+   ],
+   "to": "web",
+   "to_host": {
+    "ip": "10.10.20.40",
+    "name": "EXL-WEB1"
+   },
+   "ts": 1795186881.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 27664,
+   "campaign": "mixed-inbound-and-outbound",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186990.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    2
+   ],
+   "last_ts": 1795187350.0,
+   "packets": 56,
+   "params": {
+    "count": 8,
+    "interval_s": 45,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s2",
+   "stage_name": "Foothold calls home",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:0",
+   "to_host": {
+    "ip": "198.19.30.203",
+    "name": "updates.sync-cdn.net"
+   },
+   "ts": 1795186990.0
+  },
+  {
+   "action": "dns_beacon",
+   "bytes": 51212,
+   "campaign": "mixed-inbound-and-outbound",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187170.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    3
+   ],
+   "last_ts": 1795187530.0,
+   "packets": 118,
+   "params": {
+    "count": 10,
+    "domain": "",
+    "interval_s": 60.0,
+    "jitter": 0.1,
+    "label_len": 32,
+    "qtype": "TXT"
+   },
+   "protocols": [
+    "DNS"
+   ],
+   "stage": "s2",
+   "stage_name": "Foothold calls home",
+   "status": "ok",
+   "techniques": [
+    "T1071.004"
+   ],
+   "to": "c2:1",
+   "to_host": {
+    "ip": "198.19.97.219",
+    "name": "cdn.edge-relay.org"
+   },
+   "ts": 1795187170.0
+  },
+  {
+   "action": "ldap_recon",
+   "bytes": 6468,
+   "campaign": "mixed-inbound-and-outbound",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187400.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187403.0,
+   "packets": 22,
+   "params": {
+    "max_entries": 40,
+    "page_size": 20
+   },
+   "protocols": [
+    "Kerberos",
+    "LDAP"
+   ],
+   "stage": "s3",
+   "stage_name": "Look around",
+   "status": "ok",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018"
+   ],
+   "to": "dc",
+   "to_host": {
+    "ip": "10.10.20.10",
+    "name": "EXL-DC1"
+   },
+   "ts": 1795187400.0
+  },
+  {
+   "action": "smb_share_enum",
+   "bytes": 9912,
+   "campaign": "mixed-inbound-and-outbound",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187445.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [],
+   "last_ts": 1795187447.0,
+   "packets": 21,
+   "params": {
+    "share": "Dept",
+    "user": null
+   },
+   "protocols": [
+    "Kerberos",
+    "SMB2",
+    "DCERPC"
+   ],
+   "stage": "s3",
+   "stage_name": "Look around",
+   "status": "ok",
+   "techniques": [
+    "T1135"
+   ],
+   "to": "file",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187445.0
+  },
+  {
+   "action": "https_upload",
+   "bytes": 4454,
+   "campaign": "mixed-inbound-and-outbound",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187510.05,
+   "from": "file",
+   "from_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ioc": [
+    4
+   ],
+   "last_ts": 1795187520.0,
+   "packets": 17,
+   "params": {
+    "chunk_bytes": 262144,
+    "chunked": false,
+    "method": "PUT",
+    "path": "/upload",
+    "total_bytes": 4000000
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s4",
+   "stage_name": "Send data out",
+   "status": "ok",
+   "techniques": [
+    "T1567",
+    "T1048.002"
+   ],
+   "to": "exfil:0",
+   "to_host": {
+    "ip": "198.18.121.42",
+    "name": "drop0.exfil-0.net"
+   },
+   "ts": 1795187510.0
+  },
+  {
+   "action": "dns_exfil",
+   "bytes": 294712,
+   "campaign": "mixed-inbound-and-outbound",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187618.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    5
+   ],
+   "last_ts": 1795187834.0,
+   "packets": 788,
+   "params": {
+    "domain": "",
+    "gap_s": 0.15,
+    "label_len": 63,
+    "labels": 3,
+    "qtype": "A",
+    "queries": 60
+   },
+   "protocols": [
+    "DNS"
+   ],
+   "stage": "s4",
+   "stage_name": "Send data out",
+   "status": "ok",
+   "techniques": [
+    "T1048.003",
+    "T1071.004"
+   ],
+   "to": "exfil:1",
+   "to_host": {
+    "ip": "198.19.128.6",
+    "name": "drop1.exfil-1.org"
+   },
+   "ts": 1795187618.0
+  }
+ ],
+ "errors": [],
+ "estimate": {
+  "actions": 8,
+  "flows": 151,
+  "minutes_fast": 4.5,
+  "minutes_realistic": 16.0,
+  "scale": 1.0,
+  "stages": 4
+ },
+ "id": "mixed-inbound-and-outbound",
+ "iocs": [
+  {
+   "address": "198.18.212.125",
+   "index": 0,
+   "note": "",
+   "role": "brute",
+   "type": "ipv4",
+   "value": "193.32.7.15"
+  },
+  {
+   "address": "198.19.114.153",
+   "index": 1,
+   "note": "",
+   "role": "scanner",
+   "type": "ipv4",
+   "value": "45.88.4.21"
+  },
+  {
+   "address": "198.19.30.203",
+   "index": 2,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "updates.sync-cdn.net"
+  },
+  {
+   "address": "198.19.97.219",
+   "index": 3,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "cdn.edge-relay.org"
+  },
+  {
+   "address": "198.18.121.42",
+   "index": 4,
+   "note": "",
+   "role": "exfil",
+   "type": "domain",
+   "value": "drop0.exfil-0.net"
+  },
+  {
+   "address": "198.19.128.6",
+   "index": 5,
+   "note": "",
+   "role": "exfil",
+   "type": "domain",
+   "value": "drop1.exfil-1.org"
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Both directions in one picture.",
+  "id": "mixed-inbound-and-outbound",
+  "name": "Mixed inbound and outbound",
+  "origin_country": "",
+  "seed": 6,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 6,
+   "kind": "iocs"
+  }
+ },
+ "name": "Mixed inbound and outbound",
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "stages": [
+  {
+   "id": "s1",
+   "length_s": 180.0,
+   "name": "Probe and spray",
+   "narrative": "The web server is probed and sprayed.",
+   "start": 1795186800.0,
+   "tactic": "initial-access",
+   "techniques": [
+    "T1595.003",
+    "T1110.004",
+    "T1078"
+   ]
+  },
+  {
+   "id": "s2",
+   "length_s": 400.0,
+   "name": "Foothold calls home",
+   "narrative": "The foothold beacons out.",
+   "start": 1795186990.0,
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1071.004"
+   ]
+  },
+  {
+   "id": "s3",
+   "length_s": 100.0,
+   "name": "Look around",
+   "narrative": "Directory and shares.",
+   "start": 1795187400.0,
+   "tactic": "discovery",
+   "techniques": [
+    "T1087.002",
+    "T1069.002",
+    "T1018",
+    "T1135"
+   ]
+  },
+  {
+   "id": "s4",
+   "length_s": 240.0,
+   "name": "Send data out",
+   "narrative": "Data leaves over web and DNS.",
+   "start": 1795187510.0,
+   "tactic": "exfiltration",
+   "techniques": [
+    "T1567",
+    "T1048.002",
+    "T1048.003",
+    "T1071.004"
+   ]
+  }
+ ]
+}

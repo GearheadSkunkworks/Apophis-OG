@@ -1,0 +1,253 @@
+{
+ "expect": [
+  {
+   "stage": "s1",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1047"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1021.006"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1059.001"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1021.004"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1059.004"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1053.005"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1543.003"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1021.002"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1569.002"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1003.006"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1558.003"
+  }
+ ],
+ "explain": [],
+ "iocs": [],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Many internal hops.",
+  "id": "lateral-heavy",
+  "name": "Lateral-heavy",
+  "origin_country": "",
+  "seed": 7,
+  "source": {
+   "kind": "hand"
+  }
+ },
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": [
+  {
+   "actions": [
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "file"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {
+      "duration_s": 90
+     },
+     "to": "server"
+    },
+    {
+     "action": "wmi_exec",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "sql"
+    },
+    {
+     "action": "winrm_exec",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB2"
+    },
+    {
+     "action": "ssh_remote_exec",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "host:BATCH1"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "file",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "server",
+     "ioc": [],
+     "params": {
+      "duration_s": 60
+     },
+     "to": "host:MES1"
+    },
+    {
+     "action": "wmi_exec",
+     "explain": "",
+     "from": "sql",
+     "ioc": [],
+     "params": {},
+     "to": "host:MESDB1"
+    },
+    {
+     "action": "winrm_exec",
+     "explain": "",
+     "from": "ws2",
+     "ioc": [],
+     "params": {},
+     "to": "host:LOG1"
+    }
+   ],
+   "duration_s": 600,
+   "fast_s": 150,
+   "id": "s1",
+   "name": "Spread",
+   "narrative": "The operator hops host to host.",
+   "tactic": "lateral-movement",
+   "techniques": [
+    "T1021.002",
+    "T1569.002",
+    "T1021.001",
+    "T1047",
+    "T1021.006",
+    "T1059.001",
+    "T1021.004",
+    "T1059.004"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "remote_schtask",
+     "explain": "",
+     "from": "file",
+     "ioc": [],
+     "params": {},
+     "to": "host:BACKUP1"
+    },
+    {
+     "action": "svcctl_persist",
+     "explain": "",
+     "from": "dc",
+     "ioc": [],
+     "params": {},
+     "to": "host:LIMS1"
+    },
+    {
+     "action": "smb_admin_exec",
+     "explain": "",
+     "from": "dc",
+     "ioc": [],
+     "params": {},
+     "to": "host:WEB3"
+    }
+   ],
+   "duration_s": 200,
+   "fast_s": 50,
+   "id": "s2",
+   "name": "Dig in",
+   "narrative": "Persistence on the new hosts.",
+   "tactic": "persistence",
+   "techniques": [
+    "T1053.005",
+    "T1543.003",
+    "T1021.002",
+    "T1569.002"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "dcsync",
+     "explain": "",
+     "from": "dc",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    },
+    {
+     "action": "kerberoast",
+     "explain": "",
+     "from": "ws2",
+     "ioc": [],
+     "params": {},
+     "to": "dc"
+    }
+   ],
+   "duration_s": 90,
+   "fast_s": 22,
+   "id": "s3",
+   "name": "Collect keys",
+   "narrative": "Keys from the directory.",
+   "tactic": "credential-access",
+   "techniques": [
+    "T1003.006",
+    "T1558.003"
+   ]
+  }
+ ]
+}

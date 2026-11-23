@@ -1,7 +1,9 @@
 <div align="center">
 
-![Gearhead Skunkworks](dev/ui/about-logo.png#gh-light-mode-only)
-![Gearhead Skunkworks](dev/ui/header-logo.png#gh-dark-mode-only)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/gearhead-logo-dark.png">
+  <img src="assets/gearhead-logo-light.png" alt="Gearhead Skunkworks" width="160">
+</picture>
 
 # Apophis-OG
 
@@ -12,7 +14,7 @@ Synthetic network traffic for testing and demoing NDR and NPM tools.
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB.svg?logo=python&logoColor=white)](dev/requirements.txt)
 [![macOS app](https://img.shields.io/badge/macOS%20app-Apple%20Silicon-000000.svg?logo=apple&logoColor=white)](#how-to-get-it)
-[![Version 5.2.2](https://img.shields.io/badge/version-5.2.2-brightgreen.svg)](dev/VERSION)
+[![Version 5.3.0](https://img.shields.io/badge/version-5.3.0-brightgreen.svg)](dev/VERSION)
 
 [What it is](#what-it-is) · [Get it](#how-to-get-it) · [Run it](#how-to-run-it) · [Use it](#what-you-can-do-with-it) · [Safety](#use-it-responsibly)
 
@@ -44,7 +46,7 @@ flowchart LR
 |---|---|
 | ✅ Protocol-correct | Everything is generated from scratch and follows the protocol rules. A checker, `dev/checks/check_rfc791.py`, verifies a capture independently. |
 | 🔁 Repeatable | The same inputs give you the same shape of capture every time, so you can compare one test run with the next. |
-| 🏠 Self-contained | It runs on your machine, talks to `127.0.0.1`, and doesn't phone home. |
+| 🏠 Self-contained | The web interface runs only on `127.0.0.1` and nothing is sent in the background. It contacts GitHub when you click Update, and threat-feed publishers or your sensor when you ask it to. |
 
 ## What's in a capture
 
@@ -168,6 +170,6 @@ Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 <div align="center">
 
-<sub>Apophis is maintained by Rob Mathieson, and the repository is managed collaboratively with Claude.</sub>
+<sub>Maintained by Rob Mathieson, who uses AI coding assistants and reviews every change.</sub>
 
 </div>

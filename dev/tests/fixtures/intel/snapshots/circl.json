@@ -1,0 +1,146 @@
+[
+ {
+  "Event": {
+   "uuid": "b0000000-0000-4000-8000-000000000003",
+   "info": "Synthetic circl-shaped event 3",
+   "date": "2026-02-03",
+   "threat_level_id": "2",
+   "published": true,
+   "Tag": [
+    {
+     "name": "tlp:white"
+    },
+    {
+     "name": "misp-galaxy:mitre-attack-pattern=\"Application Layer Protocol - T1071\""
+    },
+    {
+     "name": "misp-galaxy:malware=\"Demo Beacon\""
+    }
+   ],
+   "Attribute": [
+    {
+     "type": "ip-dst",
+     "category": "Network activity",
+     "value": "203.0.113.13",
+     "to_ids": true,
+     "comment": "C2 server",
+     "timestamp": "1769904000"
+    },
+    {
+     "type": "domain",
+     "category": "Network activity",
+     "value": "c2.ci3.example",
+     "to_ids": true,
+     "comment": "C2 domain"
+    },
+    {
+     "type": "url",
+     "category": "Payload delivery",
+     "value": "http://dl.ci3.example/stage3.bin",
+     "to_ids": true
+    },
+    {
+     "type": "sha256",
+     "category": "Payload delivery",
+     "value": "3333333333333333333333333333333333333333333333333333333333333333",
+     "to_ids": true
+    },
+    {
+     "type": "ip-src",
+     "category": "Network activity",
+     "value": "198.51.100.43",
+     "to_ids": false,
+     "comment": "scanner source"
+    },
+    {
+     "type": "vulnerability",
+     "category": "External analysis",
+     "value": "CVE-2025-1003"
+    },
+    {
+     "type": "text",
+     "category": "Other",
+     "value": "nothing here"
+    },
+    {
+     "type": "ip-dst",
+     "category": "Network activity",
+     "value": "203.0.113.99",
+     "deleted": true
+    }
+   ]
+  }
+ },
+ {
+  "Event": {
+   "uuid": "b0000000-0000-4000-8000-000000000004",
+   "info": "Synthetic circl-shaped event 4",
+   "date": "2026-02-04",
+   "threat_level_id": "2",
+   "published": true,
+   "Tag": [
+    {
+     "name": "tlp:white"
+    },
+    {
+     "name": "misp-galaxy:mitre-attack-pattern=\"Application Layer Protocol - T1071\""
+    },
+    {
+     "name": "misp-galaxy:malware=\"Demo Beacon\""
+    }
+   ],
+   "Attribute": [
+    {
+     "type": "ip-dst",
+     "category": "Network activity",
+     "value": "203.0.113.14",
+     "to_ids": true,
+     "comment": "C2 server",
+     "timestamp": "1769904000"
+    },
+    {
+     "type": "domain",
+     "category": "Network activity",
+     "value": "c2.ci4.example",
+     "to_ids": true,
+     "comment": "C2 domain"
+    },
+    {
+     "type": "url",
+     "category": "Payload delivery",
+     "value": "http://dl.ci4.example/stage4.bin",
+     "to_ids": true
+    },
+    {
+     "type": "sha256",
+     "category": "Payload delivery",
+     "value": "4444444444444444444444444444444444444444444444444444444444444444",
+     "to_ids": true
+    },
+    {
+     "type": "ip-src",
+     "category": "Network activity",
+     "value": "198.51.100.44",
+     "to_ids": false,
+     "comment": "scanner source"
+    },
+    {
+     "type": "vulnerability",
+     "category": "External analysis",
+     "value": "CVE-2025-1004"
+    },
+    {
+     "type": "text",
+     "category": "Other",
+     "value": "nothing here"
+    },
+    {
+     "type": "ip-dst",
+     "category": "Network activity",
+     "value": "203.0.113.99",
+     "deleted": true
+    }
+   ]
+  }
+ }
+]

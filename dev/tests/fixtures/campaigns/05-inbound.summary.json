@@ -1,0 +1,414 @@
+{
+ "emitted": 7,
+ "entries": [
+  {
+   "action": "port_probe",
+   "bytes": 6894,
+   "campaign": "inbound-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186800.05,
+   "from": "scanner:0",
+   "from_host": {
+    "ip": "198.18.3.77",
+    "name": "45.88.4.21"
+   },
+   "ioc": [
+    1
+   ],
+   "last_ts": 1795186805.0,
+   "packets": 18,
+   "params": {
+    "gap_s": 0.8,
+    "ports": [
+     22,
+     80,
+     135,
+     139,
+     443,
+     445,
+     3389
+    ]
+   },
+   "protocols": [
+    "TCP"
+   ],
+   "stage": "s1",
+   "stage_name": "Outside scan",
+   "status": "ok",
+   "techniques": [
+    "T1046"
+   ],
+   "to": "web",
+   "to_host": {
+    "ip": "10.10.20.40",
+    "name": "EXL-WEB1"
+   },
+   "ts": 1795186800.0
+  },
+  {
+   "action": "syn_scan",
+   "bytes": 12816,
+   "campaign": "inbound-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186860.05,
+   "from": "scanner:1",
+   "from_host": {
+    "ip": "198.19.132.92",
+    "name": "91.201.14.3"
+   },
+   "ioc": [
+    2
+   ],
+   "last_ts": 1795186865.0,
+   "packets": 18,
+   "params": {
+    "complete_open": false,
+    "max_hosts": 12,
+    "ports": [
+     22,
+     80,
+     135,
+     139,
+     443,
+     445,
+     3389
+    ],
+    "rate": 250.0,
+    "scope": "subnet",
+    "targets": null
+   },
+   "protocols": [
+    "TCP"
+   ],
+   "stage": "s1",
+   "stage_name": "Outside scan",
+   "status": "ok",
+   "techniques": [
+    "T1046"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795186860.0
+  },
+  {
+   "action": "web_dir_scan",
+   "bytes": 624976,
+   "campaign": "inbound-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186920.05,
+   "from": "scanner:2",
+   "from_host": {
+    "ip": "198.19.1.214",
+    "name": "probe.scan-net.org"
+   },
+   "ioc": [
+    3
+   ],
+   "last_ts": 1795187100.0,
+   "packets": 848,
+   "params": {
+    "connections": 4,
+    "count": 60,
+    "extensions": null,
+    "host": "",
+    "port": 80,
+    "rate_rps": 25.0,
+    "tls": false,
+    "user_agent": "Mozilla/5.0 (compatible; webprobe/1.0)"
+   },
+   "protocols": [
+    "TCP",
+    "HTTP",
+    "TLS"
+   ],
+   "stage": "s1",
+   "stage_name": "Outside scan",
+   "status": "ok",
+   "techniques": [
+    "T1595.003"
+   ],
+   "to": "web",
+   "to_host": {
+    "ip": "10.10.20.40",
+    "name": "EXL-WEB1"
+   },
+   "ts": 1795186920.0
+  },
+  {
+   "action": "web_login_spray",
+   "bytes": 136896,
+   "campaign": "inbound-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187010.05,
+   "from": "brute:0",
+   "from_host": {
+    "ip": "198.18.134.122",
+    "name": "193.32.7.15"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187280.0,
+   "packets": 368,
+   "params": {
+    "attempts": 40,
+    "connections": 2,
+    "gap_s": 0.7,
+    "host": "",
+    "passwords": null,
+    "path": "/login",
+    "port": 443,
+    "successes": 1,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s2",
+   "stage_name": "Try the doors",
+   "status": "ok",
+   "techniques": [
+    "T1110.004",
+    "T1078"
+   ],
+   "to": "web",
+   "to_host": {
+    "ip": "10.10.20.40",
+    "name": "EXL-WEB1"
+   },
+   "ts": 1795187010.0
+  },
+  {
+   "action": "exposed_service_login",
+   "bytes": 57408,
+   "campaign": "inbound-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187077.55,
+   "from": "brute:0",
+   "from_host": {
+    "ip": "198.18.134.122",
+    "name": "193.32.7.15"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187317.5,
+   "packets": 104,
+   "params": {
+    "attempts": 8,
+    "gap_s": 2.5,
+    "service": "rdp",
+    "session_s": 20.0,
+    "successes": 2,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "RDP",
+    "SSH",
+    "TLS"
+   ],
+   "stage": "s2",
+   "stage_name": "Try the doors",
+   "status": "ok",
+   "techniques": [
+    "T1133"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187077.5
+  },
+  {
+   "action": "rdp_brute",
+   "bytes": 213572,
+   "campaign": "inbound-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187145.05,
+   "from": "brute:0",
+   "from_host": {
+    "ip": "198.18.134.122",
+    "name": "193.32.7.15"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187415.0,
+   "packets": 428,
+   "params": {
+    "attempts": 30,
+    "gap_s": 3.0,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "RDP",
+    "TLS"
+   ],
+   "stage": "s2",
+   "stage_name": "Try the doors",
+   "status": "ok",
+   "techniques": [
+    "T1110.001"
+   ],
+   "to": "server",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187145.0
+  },
+  {
+   "action": "ssh_brute",
+   "bytes": 78976,
+   "campaign": "inbound-only",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187212.55,
+   "from": "brute:0",
+   "from_host": {
+    "ip": "198.18.134.122",
+    "name": "193.32.7.15"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187412.5,
+   "packets": 128,
+   "params": {
+    "connections": 10,
+    "gap_s": 2.0,
+    "tries": 3,
+    "users": null
+   },
+   "protocols": [
+    "TCP",
+    "SSH"
+   ],
+   "stage": "s2",
+   "stage_name": "Try the doors",
+   "status": "ok",
+   "techniques": [
+    "T1110.001"
+   ],
+   "to": "file",
+   "to_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ts": 1795187212.5
+  }
+ ],
+ "errors": [],
+ "estimate": {
+  "actions": 7,
+  "flows": 141,
+  "minutes_fast": 2.4,
+  "minutes_realistic": 8.7,
+  "scale": 1.0,
+  "stages": 2
+ },
+ "id": "inbound-only",
+ "iocs": [
+  {
+   "address": "198.18.134.122",
+   "index": 0,
+   "note": "",
+   "role": "brute",
+   "type": "ipv4",
+   "value": "193.32.7.15"
+  },
+  {
+   "address": "198.18.3.77",
+   "index": 1,
+   "note": "",
+   "role": "scanner",
+   "type": "ipv4",
+   "value": "45.88.4.21"
+  },
+  {
+   "address": "198.19.132.92",
+   "index": 2,
+   "note": "",
+   "role": "scanner",
+   "type": "ipv4",
+   "value": "91.201.14.3"
+  },
+  {
+   "address": "198.19.1.214",
+   "index": 3,
+   "note": "",
+   "role": "scanner",
+   "type": "domain",
+   "value": "probe.scan-net.org"
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Everything comes from outside.",
+  "id": "inbound-only",
+  "name": "Inbound only",
+  "origin_country": "",
+  "seed": 5,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 4,
+   "kind": "iocs"
+  }
+ },
+ "name": "Inbound only",
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "stages": [
+  {
+   "id": "s1",
+   "length_s": 200.0,
+   "name": "Outside scan",
+   "narrative": "Scanners look at the exposed hosts.",
+   "start": 1795186800.0,
+   "tactic": "reconnaissance",
+   "techniques": [
+    "T1046",
+    "T1595.003"
+   ]
+  },
+  {
+   "id": "s2",
+   "length_s": 300.0,
+   "name": "Try the doors",
+   "narrative": "Passwords are sprayed against exposed services.",
+   "start": 1795187010.0,
+   "tactic": "initial-access",
+   "techniques": [
+    "T1110.004",
+    "T1078",
+    "T1133",
+    "T1110.001"
+   ]
+  }
+ ]
+}

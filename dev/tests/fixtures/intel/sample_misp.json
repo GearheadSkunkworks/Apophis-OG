@@ -1,0 +1,19 @@
+{"response": [{"Event": {"uuid": "c0ffee00-0000-4000-8000-000000000001", "info": "Synthetic demo campaign", "date": "2026-02-01",
+ "Tag": [{"name": "tlp:white"}, {"name": "misp-galaxy:mitre-attack-pattern=\"Command and Scripting Interpreter - T1059\""},
+         {"name": "misp-galaxy:malware=\"Demo RAT\""}, {"name": "cert-ist:enriched=\"yes\""}],
+ "Attribute": [
+  {"type": "ip-dst", "category": "Network activity", "value": "203.0.113.20", "to_ids": true, "comment": "", "timestamp": "1769904000"},
+  {"type": "ip-src", "category": "Network activity", "value": "203.0.113.21", "to_ids": false, "comment": "scanner source"},
+  {"type": "domain", "category": "Network activity", "value": "c2.demo-misp.example", "to_ids": true, "comment": "C2 domain"},
+  {"type": "hostname", "category": "Network activity", "value": "host.demo-misp.example", "to_ids": true},
+  {"type": "url", "category": "Payload delivery", "value": "http://dl.demo-misp.example/x.exe", "to_ids": true},
+  {"type": "sha256", "category": "Payload delivery", "value": "0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0", "to_ids": true},
+  {"type": "md5", "category": "Artifacts dropped", "value": "fedcba9876543210fedcba9876543210", "to_ids": false},
+  {"type": "filename|sha1", "category": "Artifacts dropped", "value": "dropper.exe|0123456789abcdef0123456789abcdef01234567"},
+  {"type": "domain|ip", "category": "Network activity", "value": "pair.demo-misp.example|203.0.113.22"},
+  {"type": "ip-dst|port", "category": "Network activity", "value": "203.0.113.23|8443"},
+  {"type": "vulnerability", "category": "External analysis", "value": "CVE-2023-1234"},
+  {"type": "ip-dst", "category": "Network activity", "value": "203.0.113.24", "deleted": true},
+  {"type": "text", "category": "Other", "value": "nothing here"}
+ ],
+ "Object": [{"name": "file", "Attribute": [{"type": "sha1", "category": "Payload installation", "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]}]}}]}

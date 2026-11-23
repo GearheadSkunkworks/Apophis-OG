@@ -1,0 +1,7 @@
+{
+  "name": "nfs_observability",
+  "version": "1.0",
+  "kind": "scenario",
+  "description": "Standard-traffic module: introduces 6 workstations + 1 Linux NFS server and generates healthy all-day NFSv3 file upload/download (real files) plus Windows logins, DNS, NTP, DHCP and SMB. Appears under the new 'Standard' category. Adds on top of the baseline only when selected; never alters the baseline pin.",
+  "requires": []
+}

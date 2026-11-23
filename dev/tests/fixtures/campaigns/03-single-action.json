@@ -1,0 +1,83 @@
+{
+ "expect": [
+  {
+   "stage": "s1",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1573.002"
+  }
+ ],
+ "explain": [],
+ "iocs": [
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "domain",
+   "value": "cdn-sync.c2host-1.net",
+   "why": ""
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "One stage, one action.",
+  "id": "single-action",
+  "name": "Single action",
+  "origin_country": "",
+  "seed": 3,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 1,
+   "kind": "iocs"
+  }
+ },
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": [
+  {
+   "actions": [
+    {
+     "action": "https_beacon",
+     "explain": "One workstation checks in",
+     "from": "ws",
+     "ioc": [
+      0
+     ],
+     "params": {
+      "count": 6,
+      "interval_s": 60
+     },
+     "to": "c2:0"
+    }
+   ],
+   "duration_s": 300,
+   "fast_s": 75,
+   "id": "s1",
+   "name": "Check in",
+   "narrative": "A single beacon.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ]
+  }
+ ]
+}

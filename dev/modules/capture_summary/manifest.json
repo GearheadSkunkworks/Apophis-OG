@@ -1,0 +1,7 @@
+{
+  "name": "capture_summary",
+  "version": "1.0",
+  "kind": "exporter",
+  "description": "Writes a machine-readable <capture>-summary.json sidecar beside the pcap: generator + company identity, totals, per-protocol counts, and the selected scenarios. For CI/automation ingest.",
+  "requires": []
+}

@@ -1,0 +1,2606 @@
+{
+ "schema": "1",
+ "status": "draft-unverified",
+ "generated": "2026-11-21",
+ "scenarios": [
+  {
+   "id": "ndr-recon",
+   "family": "SEC",
+   "title": "Internal reconnaissance (host/port sweep, LDAP & share enumeration)",
+   "category": "Discovery",
+   "category_fit": "direct",
+   "expected_observation": "One workstation sweeps the server subnet, scans ports, dumps the directory and enumerates shares: a sensor should flag internal scanning and bulk directory queries from a single host.",
+   "protocols": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "DCE/RPC"
+   ],
+   "hosts": [
+    "Workstation",
+    "Domain controller",
+    "File server",
+    "Application servers"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The compromised workstation pings the server subnet to find live hosts.",
+    "It runs one fast SYN scan across common ports on the victim servers, most probes unanswered or reset.",
+    "It dumps users, computers, groups, SPNs and OUs from the domain controller over LDAP.",
+    "It lists shares on each server over SMB (srvsvc); only the traffic is visible, not the attacker's intent."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1336 (builder ndr_recon)",
+    "dev/netgen/incidents.py:4256 (registry entry)",
+    "dev/netgen/incidents.py:1360 (smb_share_enum)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-lateral-movement",
+   "family": "SEC",
+   "title": "Lateral movement (RDP, SMB admin-share PsExec, WMI)",
+   "category": "Lateral movement",
+   "category_fit": "direct",
+   "expected_observation": "A workstation reaches servers with RDP, admin-share service execution and WMI: a sensor should flag workstation-to-server admin protocols that the baseline never carries.",
+   "protocols": [
+    "RDP",
+    "SMB",
+    "DCE/RPC (svcctl)",
+    "WMI/DCOM"
+   ],
+   "hosts": [
+    "Workstation",
+    "Second compromised workstation",
+    "Jump host",
+    "File server",
+    "Domain controller"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The foothold workstation opens RDP sessions to servers, which workstations do not normally do.",
+    "It writes a service binary to the ADMIN$ share and starts it through the service control manager (PsExec style).",
+    "It runs commands remotely through WMI over DCOM on port 135.",
+    "A second popped workstation repeats the same techniques; what ran on the target is not visible, only the admin traffic."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1381 (builder ndr_lateral_movement)",
+    "dev/netgen/incidents.py:4258 (registry entry)",
+    "dev/netgen/incidents.py:423 (LATERAL_PLAN)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-credential-access",
+   "family": "SEC",
+   "title": "Credential access (Kerberoasting, AS-REP roast, spray, DCSync)",
+   "category": "Credential access",
+   "category_fit": "direct",
+   "expected_observation": "Kerberoasting, AS-REP roasting, a password spray and a DCSync from a non-domain-controller: a sensor should raise Kerberos and directory-replication detections against one workstation.",
+   "protocols": [
+    "Kerberos",
+    "DCE/RPC (DRSUAPI)"
+   ],
+   "hosts": [
+    "Workstation",
+    "Domain controller"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "A burst of service ticket requests asks for RC4 only (Kerberoasting).",
+    "AS-REQ without pre-authentication for several accounts (AS-REP roasting).",
+    "Many accounts fail pre-authentication with one password (spray).",
+    "A directory replication request (DsGetNCChanges) comes from a host that is not a domain controller (DCSync); cracked secrets are not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1398 (builder ndr_credential_access)",
+    "dev/netgen/incidents.py:4260 (registry entry)",
+    "dev/netgen/incidents.py:416 (CRED_PHASES)",
+    "dev/netgen/incidents.py:1432 (asrep_roast)",
+    "dev/netgen/incidents.py:1464 (dcsync)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-c2-beaconing",
+   "family": "SEC",
+   "title": "C2 beaconing (RMM cloud + low-and-slow HTTPS + ngrok tunnel)",
+   "category": "Command and control",
+   "category_fit": "direct",
+   "expected_observation": "A workstation makes a first-time remote-access (RMM) connection, beacons on a jittered interval to a known C2 and holds a long tunnel: a sensor should flag the RMM, the periodic beacon and the persistent opaque tunnel.",
+   "protocols": [
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Internet host (RMM cloud)",
+    "Internet host (C2)",
+    "Internet host (tunnel)"
+   ],
+   "zone_path": [
+    "user",
+    "edge"
+   ],
+   "steps": [
+    "A first-time connection to a remote-management cloud service appears.",
+    "Small HTTPS check-ins to a C2 host repeat roughly every minute with jitter all window long.",
+    "A persistent TLS tunnel to a tunnelling service is opened and held for at least an hour.",
+    "Payloads are TLS-encrypted, so only cadence, destination and volume are observable."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1494 (builder ndr_c2_beaconing)",
+    "dev/netgen/incidents.py:4262 (registry entry)",
+    "dev/netgen/incidents.py:365 (rmm_beacon)",
+    "dev/netgen/incidents.py:1509 (ngrok_tunnel)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-dns-tunneling",
+   "family": "SEC",
+   "title": "DNS tunneling (long encoded TXT queries via the resolver)",
+   "category": "Exfiltration",
+   "category_fit": "stretch",
+   "expected_observation": "Long encoded subdomain queries and TXT responses at high volume to one attacker name server: a sensor should flag DNS tunnelling by query length, entropy and volume.",
+   "protocols": [
+    "DNS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Internal DNS resolver",
+    "Internet host (attacker name server)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "The workstation sends bursts of queries with long base32-looking labels under one parent domain.",
+    "Queries go through the internal resolver, which recurses toward an attacker-controlled name server.",
+    "Answers return as TXT records carrying payload.",
+    "Burst after burst with random gaps; the data inside the labels is encoded, so what was moved is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1517 (builder ndr_dns_tunneling)",
+    "dev/netgen/incidents.py:4264 (registry entry)",
+    "dev/netgen/incidents.py:1537 (dns_tunnel_burst)"
+   ],
+   "notes": "Category is a judgement: DNS tunnelling is also command and control in common taxonomies; placed under Exfiltration to balance the taxonomy. The code does not say which use the traffic models.",
+   "also_categories": [
+    "Command and control"
+   ]
+  },
+  {
+   "id": "ndr-data-exfil",
+   "family": "SEC",
+   "title": "Data staging & exfiltration (SMB staging then HTTPS upload)",
+   "category": "Exfiltration",
+   "category_fit": "direct",
+   "expected_observation": "Bulk SMB reads from file and backup servers followed by a large asymmetric HTTPS upload to external object storage: a sensor should flag staging and an outbound transfer far above normal.",
+   "protocols": [
+    "SMB",
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "hosts": [
+    "Workstation",
+    "File server",
+    "Backup server",
+    "Internet host (cloud storage)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "The workstation pulls large volumes from a department share over SMB.",
+    "It reads a database or user share on the backup server in the same way.",
+    "After staging it resolves a cloud-storage name and opens a TLS session.",
+    "A long chunked upload of PUT requests runs with a ramp and one pause; the content is encrypted."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1596 (builder ndr_data_exfil)",
+    "dev/netgen/incidents.py:4266 (registry entry)",
+    "dev/netgen/incidents.py:1608 (exfil_upload)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-scattered-spider",
+   "family": "SEC",
+   "title": "Scattered Spider kill chain (recon->creds->lateral->C2->exfil)",
+   "category": "Multi-stage campaign",
+   "category_fit": "direct",
+   "expected_observation": "A full kill chain from one workstation (scan, credentials, lateral movement, C2, DNS tunnel, staging, upload): a sensor should show several correlated detections on the same host over about two hours.",
+   "protocols": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Domain controller",
+    "File server",
+    "Backup server",
+    "Internet host (C2)",
+    "Internet host (cloud storage)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "C2 beaconing starts first and runs for the whole window.",
+    "Recon, then credential attacks, then lateral movement run in consecutive phases.",
+    "DNS tunnelling overlaps the end of lateral movement.",
+    "The chain ends with SMB staging and a large HTTPS upload; there is no encryption or wiper stage."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1646 (builder ndr_scattered_spider)",
+    "dev/netgen/incidents.py:4268 (registry entry)"
+   ],
+   "notes": "Multi-tactic chain. Terminal stage is exfiltration, so it is filed there; also_categories lists the other tactics.",
+   "also_categories": [
+    "Discovery",
+    "Credential access",
+    "Lateral movement",
+    "Command and control",
+    "Exfiltration"
+   ]
+  },
+  {
+   "id": "ndr-ransomware-encryption",
+   "family": "SEC",
+   "title": "Ransomware encryption write-storm (SMB in-place encrypt + .ext)",
+   "category": "Impact",
+   "category_fit": "direct",
+   "expected_observation": "A write-storm over SMB: files are read and rewritten in place, renamed with a .akira extension, and a ransom note is dropped on the shares: a sensor should flag mass modification and rename on file servers.",
+   "protocols": [
+    "SMB"
+   ],
+   "hosts": [
+    "Workstation",
+    "File server",
+    "Backup server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The workstation opens a share and lists the directory.",
+    "Each file is opened with read, write and delete access and rewritten block by block.",
+    "Each file is renamed to carry the .akira extension in the same handle.",
+    "A ransom note lands in its own short SMB session per directory; the encryption itself is not observable, only its I/O."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2069 (builder ndr_ransomware_encryption)",
+    "dev/netgen/incidents.py:4270 (registry entry)",
+    "dev/netgen/incidents.py:1759 (ransom_encrypt)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-cobalt-strike",
+   "family": "SEC",
+   "title": "Cobalt Strike C2 (HTTP jittered beacon + SMB named-pipe P2P)",
+   "category": "Command and control",
+   "category_fit": "direct",
+   "expected_observation": "A jittered HTTPS beacon to a Cobalt Strike team server plus SMB named-pipe peer beacons between internal servers: a sensor should flag the periodic beacon and internal named-pipe sessions.",
+   "protocols": [
+    "TLS/HTTPS",
+    "DNS",
+    "SMB (named pipe)"
+   ],
+   "hosts": [
+    "Workstation",
+    "Internal servers (pipe peers)",
+    "Internet host (team server)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "The workstation checks in over HTTPS to the team server on a jittered interval.",
+    "Beacon requests are small and use a pinned profile (one URI, one user agent).",
+    "Two or three servers each hold one long-lived SMB named-pipe session (msagent style) from the workstation.",
+    "Pipe sessions are polled with small framed reads and writes; commands and results are not readable."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2077 (builder ndr_cobalt_strike)",
+    "dev/netgen/incidents.py:4272 (registry entry)",
+    "dev/netgen/incidents.py:1887 (cobalt_http_beacon)",
+    "dev/netgen/incidents.py:1898 (cobalt_smb_pipe)",
+    "dev/netgen/incidents.py:1993 (c2_cobalt)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-akira",
+   "family": "SEC",
+   "title": "Akira ransomware kill chain (CISA AA24-109A)",
+   "category": "Multi-stage campaign",
+   "category_fit": "direct",
+   "expected_observation": "A ransomware kill chain from one workstation (C2, recon, credentials, lateral movement, exfiltration, then encryption with the .akira extension): a sensor should show correlated detections ending in a write-storm.",
+   "protocols": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Domain controller",
+    "File server",
+    "Backup server",
+    "Internet host (C2)",
+    "Internet host (cloud storage)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "C2 starts first: RMM cloud, a Cloudflare tunnel and an ngrok-style tunnel for C2; the exfil upload uses an rclone user agent.",
+    "Recon, credential access and lateral movement follow in order.",
+    "A large HTTPS upload to external storage follows the staging reads.",
+    "The chain ends with an SMB read/rewrite/rename storm (.akira) on the file and backup servers; the ransom note is written to the shares, but the cryptography is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2043 (builder ndr_akira)",
+    "dev/netgen/incidents.py:4274 (registry entry)",
+    "dev/netgen/incidents.py:2014 (_actor_chain)"
+   ],
+   "notes": "Shares one chain builder with the other actor scenarios; they differ in C2 style, file extension and note text. Multi-tactic; filed under its end state.",
+   "also_categories": [
+    "Impact",
+    "Command and control",
+    "Discovery",
+    "Credential access",
+    "Lateral movement",
+    "Exfiltration"
+   ]
+  },
+  {
+   "id": "ndr-medusa",
+   "family": "SEC",
+   "title": "Medusa ransomware kill chain (CISA AA25-071A)",
+   "category": "Multi-stage campaign",
+   "category_fit": "direct",
+   "expected_observation": "A ransomware kill chain from one workstation (C2, recon, credentials, lateral movement, exfiltration, then encryption with the .medusa extension): a sensor should show correlated detections ending in a write-storm.",
+   "protocols": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Domain controller",
+    "File server",
+    "Backup server",
+    "Internet host (C2)",
+    "Internet host (cloud storage)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "C2 starts first: a Cloudflared tunnel, a persistent Ligolo-style TLS tunnel and jittered HTTPS check-ins for C2.",
+    "Recon, credential access and lateral movement follow in order.",
+    "A large HTTPS upload to external storage follows the staging reads.",
+    "The chain ends with an SMB read/rewrite/rename storm (.medusa) on the file and backup servers; the ransom note is written to the shares, but the cryptography is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2047 (builder ndr_medusa)",
+    "dev/netgen/incidents.py:4276 (registry entry)",
+    "dev/netgen/incidents.py:2014 (_actor_chain)"
+   ],
+   "notes": "Shares one chain builder with the other actor scenarios; they differ in C2 style, file extension and note text. Multi-tactic; filed under its end state.",
+   "also_categories": [
+    "Impact",
+    "Command and control",
+    "Discovery",
+    "Credential access",
+    "Lateral movement",
+    "Exfiltration"
+   ]
+  },
+  {
+   "id": "ndr-black-basta",
+   "family": "SEC",
+   "title": "Black Basta ransomware kill chain (CISA AA24-131A)",
+   "category": "Multi-stage campaign",
+   "category_fit": "direct",
+   "expected_observation": "A ransomware kill chain from one workstation (C2, recon, credentials, lateral movement, exfiltration, then encryption with the .basta extension): a sensor should show correlated detections ending in a write-storm.",
+   "protocols": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Domain controller",
+    "File server",
+    "Backup server",
+    "Internet host (C2)",
+    "Internet host (cloud storage)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "C2 starts first: Cobalt Strike HTTP and SMB-pipe C2 to its own team server.",
+    "Recon, credential access and lateral movement follow in order.",
+    "A large HTTPS upload to external storage follows the staging reads.",
+    "The chain ends with an SMB read/rewrite/rename storm (.basta) on the file and backup servers; the ransom note is written to the shares, but the cryptography is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2051 (builder ndr_black_basta)",
+    "dev/netgen/incidents.py:4278 (registry entry)",
+    "dev/netgen/incidents.py:2014 (_actor_chain)"
+   ],
+   "notes": "Shares one chain builder with the other actor scenarios; they differ in C2 style, file extension and note text. Multi-tactic; filed under its end state.",
+   "also_categories": [
+    "Impact",
+    "Command and control",
+    "Discovery",
+    "Credential access",
+    "Lateral movement",
+    "Exfiltration"
+   ]
+  },
+  {
+   "id": "ndr-play",
+   "family": "SEC",
+   "title": "Play ransomware kill chain (CISA AA23-352A)",
+   "category": "Multi-stage campaign",
+   "category_fit": "direct",
+   "expected_observation": "A ransomware kill chain from one workstation (C2, recon, credentials, lateral movement, exfiltration, then encryption with the .play extension): a sensor should show correlated detections ending in a write-storm.",
+   "protocols": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Domain controller",
+    "File server",
+    "Backup server",
+    "Internet host (C2)",
+    "Internet host (cloud storage)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "C2 starts first: Cobalt Strike HTTP and SMB-pipe C2 to its own team server.",
+    "Recon, credential access and lateral movement follow in order.",
+    "A large HTTPS upload to external storage follows the staging reads.",
+    "The chain ends with an SMB read/rewrite/rename storm (.play) on the file and backup servers; the ransom note is written to the shares, but the cryptography is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2056 (builder ndr_play)",
+    "dev/netgen/incidents.py:4280 (registry entry)",
+    "dev/netgen/incidents.py:2014 (_actor_chain)"
+   ],
+   "notes": "Shares one chain builder with the other actor scenarios; they differ in C2 style, file extension and note text. Multi-tactic; filed under its end state.",
+   "also_categories": [
+    "Impact",
+    "Command and control",
+    "Discovery",
+    "Credential access",
+    "Lateral movement",
+    "Exfiltration"
+   ]
+  },
+  {
+   "id": "ndr-handala",
+   "family": "SEC",
+   "title": "Handala / Void Manticore (network-observable subset: theft + share wiper)",
+   "category": "Multi-stage campaign",
+   "category_fit": "direct",
+   "expected_observation": "Recon, lateral movement, a large theft and Telegram bot C2, then an SMB share wiper that overwrites files in place without renaming: a sensor should show correlated detections ending in mass overwrite.",
+   "protocols": [
+    "ICMP",
+    "TCP",
+    "LDAP",
+    "SMB",
+    "Kerberos",
+    "RDP",
+    "TLS/HTTPS",
+    "DNS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Domain controller",
+    "File server",
+    "Backup server",
+    "Internet host (Telegram API)",
+    "Internet host (IP check)",
+    "Internet host (cloud storage)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "An IP-check call and Telegram Bot API long polling provide C2.",
+    "Recon and lateral movement reach the file server.",
+    "A large HTTPS upload follows the staging reads.",
+    "A share wiper overwrites files in place with random data and leaves a defacement note, with no rename; phishing delivery and local wiping are endpoint-only and absent."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2061 (builder ndr_handala)",
+    "dev/netgen/incidents.py:4282 (registry entry)",
+    "dev/netgen/incidents.py:1925 (telegram_poll_session)",
+    "dev/netgen/incidents.py:1826 (share_wiper)"
+   ],
+   "notes": "",
+   "also_categories": [
+    "Impact",
+    "Command and control",
+    "Discovery",
+    "Lateral movement",
+    "Exfiltration"
+   ]
+  },
+  {
+   "id": "ndr-needymantis",
+   "family": "SEC",
+   "title": "NeedyMantis implant (separate foothold: fixed-UA HTTPS beacon + Impacket SMB exec)",
+   "category": "Command and control",
+   "category_fit": "direct",
+   "expected_observation": "A second, unrelated compromised workstation makes a fixed-user-agent HTTPS beacon and Impacket-style SMB execution against its own disjoint servers: a sensor should show a separate campaign from the other workstation scenarios.",
+   "protocols": [
+    "TLS/HTTPS",
+    "WebSocket upgrade",
+    "SMB"
+   ],
+   "hosts": [
+    "Workstation (separate foothold)",
+    "Internal servers (own target set)",
+    "Internet host (C2)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "First contact carries a system-info cookie and a one-time HTTP-to-WebSocket upgrade.",
+    "Slow, jittered check-ins repeat over most of the day.",
+    "A fixed, old-looking user agent is used throughout.",
+    "Impacket-style ADMIN$ execution reaches its own server targets; the C2 host is Cloudflare-fronted so the edge address is what is on the wire."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:462 (builder ndr_needymantis)",
+    "dev/netgen/incidents.py:4285 (registry entry)",
+    "dev/netgen/incidents.py:454 (needy_checkin)",
+    "dev/netgen/incidents.py:480 (F_smb_exec)"
+   ],
+   "notes": "Helper bodies (needymantis_beacon) read only by name and comments."
+  },
+  {
+   "id": "ndr-fastflux",
+   "family": "SEC",
+   "title": "Fast-flux / DGA C2 (algorithmic NXDOMAIN bursts, rotating A records)",
+   "category": "Command and control",
+   "category_fit": "direct",
+   "expected_observation": "Bursts of NXDOMAIN lookups for algorithmic names, then a stable C2 name answered with a rotating set of addresses and a short HTTPS check-in: a sensor should flag DGA-like lookups and fast-flux answers.",
+   "protocols": [
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Internal DNS resolver",
+    "Internet hosts (flux pool)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "Several lookups of algorithmic names return NXDOMAIN.",
+    "The one stable C2 name then resolves to a different subset of a node pool each time, with a short TTL.",
+    "A short HTTPS check-in goes to the first node returned.",
+    "The pattern repeats every few minutes over the working day; the check-in body is encrypted."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:670 (builder ndr_fastflux)",
+    "dev/netgen/incidents.py:4287 (registry entry)",
+    "dev/netgen/incidents.py:649 (fastflux_resolve)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-infostealer",
+   "family": "SEC",
+   "title": "Infostealer exfiltration (Lumma-class credential upload to a panel)",
+   "category": "Credential access",
+   "category_fit": "stretch",
+   "expected_observation": "A commodity infostealer uploads a credential archive to a panel and sends a few small follow-up heartbeats: a sensor should flag one large outbound upload to a first-seen external host from a workstation.",
+   "protocols": [
+    "DNS",
+    "TLS/HTTPS"
+   ],
+   "hosts": [
+    "Workstation",
+    "Internet host (stealer panel)"
+   ],
+   "zone_path": [
+    "user",
+    "edge"
+   ],
+   "steps": [
+    "Shortly after infection the workstation resolves the panel name.",
+    "One full archive upload goes out over HTTPS.",
+    "A couple of short heartbeats follow over the next hour.",
+    "Which credentials were in the archive is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:733 (builder ndr_infostealer)",
+    "dev/netgen/incidents.py:4289 (registry entry)",
+    "dev/netgen/incidents.py:690 (infostealer_exfil)"
+   ],
+   "notes": "Could equally be Exfiltration (the traffic is an upload). Filed under Credential access because the payload is stolen credentials.",
+   "also_categories": [
+    "Exfiltration"
+   ]
+  },
+  {
+   "id": "ndr-rdp-brute",
+   "family": "SEC",
+   "title": "Exposed-RDP brute force (internet → jump host, failures then a success)",
+   "category": "Initial access",
+   "category_fit": "direct",
+   "expected_observation": "Many failed RDP attempts from an internet source against the exposed jump host, then one full session: a sensor should flag brute-force then success on an externally reachable RDP service.",
+   "protocols": [
+    "RDP (TCP 3389)"
+   ],
+   "hosts": [
+    "Internet host (attacker)",
+    "Jump host"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "An internet address opens many short RDP connections to the jump host.",
+    "Most end in resets, one every few seconds.",
+    "The attempts cycle through a small account list.",
+    "One attempt succeeds and runs a full RDP session; passwords are not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:805 (builder ndr_rdp_brute)",
+    "dev/netgen/incidents.py:4291 (registry entry)",
+    "dev/netgen/incidents.py:753 (rdp_brute_attempt)"
+   ],
+   "notes": "",
+   "also_categories": [
+    "Credential access"
+   ]
+  },
+  {
+   "id": "ndr-salt-typhoon",
+   "family": "SEC",
+   "title": "Salt Typhoon network-device espionage (SNMP walks of switches/APs/sensor)",
+   "category": "Discovery",
+   "category_fit": "direct",
+   "expected_observation": "A workstation walks switches, controller, sensor and other infrastructure over SNMP, slowly and repeatedly: a sensor should flag a user host doing SNMP against network infrastructure.",
+   "protocols": [
+    "SNMP"
+   ],
+   "hosts": [
+    "Workstation (collector)",
+    "Switch",
+    "Wireless controller",
+    "Sensor",
+    "NTP server",
+    "Log server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The workstation picks one infrastructure device.",
+    "It walks that device with SNMP.",
+    "Every few minutes it picks another from a small set.",
+    "The sweep runs all window long; device configuration read is not visible beyond the SNMP traffic."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:836 (builder ndr_salt_typhoon)",
+    "dev/netgen/incidents.py:4293 (registry entry)",
+    "dev/netgen/incidents.py:829 (salt_recon)",
+    "dev/netgen/incidents.py:826 (SALT_DEVICES)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-webshell",
+   "family": "SEC",
+   "title": "Web shell on an internal server (POSTs to an odd URI, decrypted commands)",
+   "category": "Command and control",
+   "category_fit": "stretch",
+   "expected_observation": "An internal workstation drives a web shell on an internal web server: POSTs to an odd URI with commands in the request and output in the response, in clusters: a sensor should flag unusual POST traffic to one URI.",
+   "protocols": [
+    "HTTPS"
+   ],
+   "hosts": [
+    "Workstation (operator)",
+    "Web server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The operator opens HTTPS to the internal web server.",
+    "A POST to an odd URI carries a command.",
+    "The response carries the command output.",
+    "Commands come in clusters of two to five with long gaps; the traffic is decryptable with the exported keys."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:884 (builder ndr_webshell)",
+    "dev/netgen/incidents.py:4295 (registry entry)",
+    "dev/netgen/incidents.py:857 (webshell_cmd)"
+   ],
+   "notes": "Category is a judgement; a web shell is also persistence or initial access in common taxonomies. Here the operator is already inside, so it is filed as a command channel.",
+   "also_categories": [
+    "Initial access"
+   ]
+  },
+  {
+   "id": "ndr-volt-typhoon",
+   "family": "SEC",
+   "title": "Volt Typhoon living-off-the-land (valid-account admin protocols, no malware)",
+   "category": "Lateral movement",
+   "category_fit": "direct",
+   "expected_observation": "Valid-account use of LDAP, SMB and RDP from one workstation to a few servers at a low rate: a sensor should flag baseline deviation, not malware.",
+   "protocols": [
+    "LDAP",
+    "SMB",
+    "RDP"
+   ],
+   "hosts": [
+    "Workstation (beachhead)",
+    "Domain controller",
+    "File server",
+    "Database server",
+    "Jump host"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The workstation makes one quiet admin touch every twenty to forty minutes.",
+    "Most touches are LDAP or SMB; one in five is RDP.",
+    "Targets are the domain controller, file server, SQL server and jump host.",
+    "There is no malware and no C2; the detection is that a workstation uses these protocols at all."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1000 (builder ndr_volt_typhoon)",
+    "dev/netgen/incidents.py:4297 (registry entry)",
+    "dev/netgen/incidents.py:990 (volt_action)"
+   ],
+   "notes": "",
+   "also_categories": [
+    "Discovery"
+   ]
+  },
+  {
+   "id": "ndr-coercion-adcs",
+   "family": "SEC",
+   "title": "Coercion → NTLM relay → AD CS → DA (ESC8)",
+   "category": "Credential access",
+   "category_fit": "direct",
+   "expected_observation": "A workstation coerces a machine account over MS-EFSR, relays NTLM to the certificate authority, obtains a certificate and requests a TGT: a sensor should flag the coercion, the relay and the certificate-based logon.",
+   "protocols": [
+    "SMB/MS-EFSR",
+    "NTLM",
+    "HTTP(S) to AD CS",
+    "Kerberos PKINIT"
+   ],
+   "hosts": [
+    "Workstation (relay)",
+    "Domain controller",
+    "Certificate authority"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The relay host coerces a machine account with an MS-EFSR call over SMB.",
+    "The machine's NTLM authentication is relayed to the CA web enrollment endpoint.",
+    "A certificate is issued for the relayed identity.",
+    "A PKINIT TGT request uses that certificate. The chain repeats a few times."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1110 (builder ndr_coercion_adcs)",
+    "dev/netgen/incidents.py:4299 (registry entry)",
+    "dev/netgen/incidents.py:1048 (esc8_chain)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "ndr-edge-exploit",
+   "family": "SEC",
+   "title": "Edge-device exploitation → inward pivot (compromised VPN/firewall)",
+   "category": "Initial access",
+   "category_fit": "direct",
+   "expected_observation": "An inbound exploit burst against the firewall, then the firewall's inside interface originates admin SMB inward and a beachhead workstation beacons out: a sensor should flag an edge device acting as a client.",
+   "protocols": [
+    "HTTPS",
+    "SMB",
+    "DNS"
+   ],
+   "hosts": [
+    "Internet host (attacker)",
+    "Firewall",
+    "Internal servers",
+    "Workstation (beachhead)",
+    "Internet host (C2)"
+   ],
+   "zone_path": [
+    "edge",
+    "server",
+    "user"
+   ],
+   "steps": [
+    "Three exploit requests hit the firewall from an internet address.",
+    "The firewall's inside interface then uses admin shares on servers with a harvested account.",
+    "Those pivots repeat every ten to twenty minutes.",
+    "A beachhead workstation beacons out on a fast-flux style channel; the exploit payload itself is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:1143 (builder ndr_edge_exploit)",
+    "dev/netgen/incidents.py:4301 (registry entry)",
+    "dev/netgen/incidents.py:1130 (edge_pivot)",
+    "dev/netgen/incidents.py:1162 (_edge_exploit_probe)"
+   ],
+   "notes": "",
+   "also_categories": [
+    "Lateral movement",
+    "Command and control"
+   ]
+  },
+  {
+   "id": "campaign",
+   "family": "CAMPAIGN",
+   "title": "Campaign built from threat indicators",
+   "category": "Custom recipe",
+   "category_fit": "direct",
+   "expected_observation": "An ATT&CK-mapped campaign compiled from threat indicators or a campaign file: what a sensor sees depends on the campaign.",
+   "protocols": [
+    "Depends on the campaign"
+   ],
+   "hosts": [
+    "Hosts from the campaign"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "Indicators or a campaign file are compiled into stages.",
+    "Stages are placed from the campaign's own start time.",
+    "Each action is real protocol traffic from the action catalogue.",
+    "With no campaign supplied the scenario is inert."
+   ],
+   "confidence": "low",
+   "sources": [
+    "dev/netgen/incidents.py:5765 (builder campaign_scenario)",
+    "dev/netgen/incidents.py:5776 (registry entry)"
+   ],
+   "notes": "recipe_driven: not shown in the grid. Not one of the five named families; family is CAMPAIGN in the registry.",
+   "recipe_driven": true
+  },
+  {
+   "id": "custom-import",
+   "family": "CUSTOM",
+   "title": "Custom scenario rebuilt from an imported pcap recipe",
+   "category": "Custom recipe",
+   "category_fit": "direct",
+   "expected_observation": "The flows of an imported pcap recipe are recreated in the simulated environment: what a sensor sees depends entirely on the recipe.",
+   "protocols": [
+    "Depends on the recipe"
+   ],
+   "hosts": [
+    "Mapped hosts from the recipe"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "A recipe JSON produced by the pcap importer is read.",
+    "Its hosts are mapped into the simulated environment (corp domain, users, PKI).",
+    "Each flow is rebuilt; protocols the engine cannot build are skipped and reported.",
+    "With no recipe the scenario is inert."
+   ],
+   "confidence": "low",
+   "sources": [
+    "dev/netgen/incidents.py:5742 (builder custom_import_scenario)",
+    "dev/netgen/incidents.py:5782 (registry entry)"
+   ],
+   "notes": "recipe_driven: not a default scenario, built once per imported recipe. Protocols, hosts and zones are deliberately unspecified; the lists here are placeholders.",
+   "recipe_driven": true
+  },
+  {
+   "id": "npm-fw-update",
+   "family": "PERF",
+   "title": "Firewall content update (Palo Alto): WHEN it ran, IF it completed, and the remote-access outage it caused",
+   "category": "Slow applications",
+   "category_fit": "stretch",
+   "expected_observation": "A firewall bundle is pulled early and pushed later; the commit reloads the dataplane and drops the remote-access workforce for about a minute: a sensor should show the update and the VPN outage with reconnect storm.",
+   "protocols": [
+    "HTTPS",
+    "IPsec/IKE",
+    "NAT keepalive",
+    "DNS"
+   ],
+   "hosts": [
+    "Jump host",
+    "Firewall",
+    "Remote-access clients",
+    "Vendor update server"
+   ],
+   "zone_path": [
+    "edge",
+    "server",
+    "user"
+   ],
+   "steps": [
+    "The jump host downloads the bundle before the working day.",
+    "An admin pushes it later.",
+    "The roughly 90-second commit drops every VPN tunnel; dead-peer detection gets no answer.",
+    "Tunnels rebuild within seconds of return and traffic resumes in a reconnect storm."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:4600 (builder npm_fw_update)",
+    "dev/netgen/incidents.py:5787 (registry entry)"
+   ],
+   "notes": "Category stretch: an outage event rather than slowness. Read the builder body but not the download and push helpers."
+  },
+  {
+   "id": "npm-pqc-posture",
+   "family": "PERF",
+   "title": "Post-quantum readiness: which hosts can use PQC key exchange, which do, and which cannot",
+   "category": "Capacity",
+   "category_fit": "stretch",
+   "expected_observation": "TLS 1.3 handshakes across PQC-capable, PQC-using and not-capable hosts: a sensor should report post-quantum key-exchange readiness by host.",
+   "protocols": [
+    "TLS 1.3"
+   ],
+   "hosts": [
+    "Capable workstations",
+    "Legacy devices",
+    "PQC-ready web servers",
+    "Legacy servers"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Capable clients offer a hybrid group first.",
+    "PQC-ready servers select it, so sessions are using PQC.",
+    "Legacy servers choose a classical group, so capable clients are not using it.",
+    "Not-capable clients never offer one; no fault, a readiness view."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:4684 (builder npm_pqc)",
+    "dev/netgen/incidents.py:5789 (registry entry)",
+    "dev/netgen/incidents.py:4665 (pqc_session)"
+   ],
+   "notes": "Not a fault at all; the taxonomy has no readiness bucket. Capacity is a placeholder; Weak TLS under the crypto family is the closer conceptual home."
+  },
+  {
+   "id": "npm-sql1-service-failure",
+   "family": "PERF",
+   "title": "SQL Server service failure (degrade/outage/recover)",
+   "category": "Slow applications",
+   "category_fit": "direct",
+   "expected_observation": "The SQL Server service degrades, then fails outright, then recovers while the host stays up: a sensor should show rising database errors and drops, with ping and RDP still working.",
+   "protocols": [
+    "TDS (SQL Server)",
+    "HTTP",
+    "ICMP",
+    "RDP"
+   ],
+   "hosts": [
+    "Database server",
+    "Web servers",
+    "Workstations"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Pooled web-to-database connections get slow.",
+    "Some users see errors as the backend degrades.",
+    "The service goes down; logins and queries fail while ICMP and RDP keep working.",
+    "The admin restarts the service and traffic recovers."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:2280 (builder npm_sql1)",
+    "dev/netgen/incidents.py:5791 (registry entry)"
+   ],
+   "notes": "Only the first 20 lines of the 90-line builder were read; the steps follow its docstring phases. Window times are absolute in the code but are not shown here."
+  },
+  {
+   "id": "npm-dns-degradation",
+   "family": "PERF",
+   "title": "DNS degradation on EXL-DC1 (timeouts, SERVFAIL, failover)",
+   "category": "DNS and DHCP faults",
+   "category_fit": "direct",
+   "expected_observation": "Workstation lookups to the primary domain controller time out or return SERVFAIL, with retries and failover to the secondary: a sensor should show slow and failed DNS from one resolver.",
+   "protocols": [
+    "DNS"
+   ],
+   "hosts": [
+    "Workstations",
+    "Primary DNS server",
+    "Secondary DNS server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Healthy lookups before the fault.",
+    "Lookups to the primary slow down or time out.",
+    "Some return SERVFAIL; clients retry and fail over to the secondary.",
+    "Recovery follows the severity envelope; there is no cause on the wire."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2374 (builder npm_dns_degradation)",
+    "dev/netgen/incidents.py:5793 (registry entry)",
+    "dev/netgen/incidents.py:2388 (dns_slow_or_fail)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery."
+  },
+  {
+   "id": "npm-smb-slowdown",
+   "family": "PERF",
+   "title": "SMB file-server slowdown (zero-window, high service time)",
+   "category": "Slow applications",
+   "category_fit": "direct",
+   "expected_observation": "File-server reads get slow with zero-window stalls and high service time: a sensor should show high SMB response time and receiver-window stalls toward one file server.",
+   "protocols": [
+    "SMB"
+   ],
+   "hosts": [
+    "Workstations",
+    "File server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Fast reads flank the fault.",
+    "Reads against the file server slow down.",
+    "Zero-window stalls appear at peak.",
+    "Service time recovers at the end; the server-side cause is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2450 (builder npm_smb_slowdown)",
+    "dev/netgen/incidents.py:5795 (registry entry)",
+    "dev/netgen/incidents.py:2464 (smb_slow_read)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery."
+  },
+  {
+   "id": "npm-wan-congestion",
+   "family": "PERF",
+   "title": "WAN congestion (high RTT, retransmissions on egress)",
+   "category": "Packet loss and retransmits",
+   "category_fit": "stretch",
+   "expected_observation": "Egress HTTPS shows elevated round-trip time and retransmissions: a sensor should show WAN-side latency and retransmits to internet destinations.",
+   "protocols": [
+    "TLS/HTTPS"
+   ],
+   "hosts": [
+    "Workstations",
+    "Internet hosts"
+   ],
+   "zone_path": [
+    "user",
+    "edge"
+   ],
+   "steps": [
+    "Fast egress before the fault.",
+    "Round-trip time rises.",
+    "Segments are retransmitted as loss increases.",
+    "Egress recovers at the end."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2508 (builder npm_wan_congestion)",
+    "dev/netgen/incidents.py:5797 (registry entry)",
+    "dev/netgen/incidents.py:2521 (wan_slow_session)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery. Could also be Capacity; filed with loss because retransmission is the visible symptom.",
+   "also_categories": [
+    "Capacity"
+   ]
+  },
+  {
+   "id": "npm-auth-latency",
+   "family": "PERF",
+   "title": "Authentication latency (slow Kerberos on EXL-DC1)",
+   "category": "DNS and DHCP faults",
+   "category_fit": "stretch",
+   "expected_observation": "Kerberos logons slow down because the KDC answers late: a sensor should show high Kerberos response time to the domain controller.",
+   "protocols": [
+    "Kerberos"
+   ],
+   "hosts": [
+    "Workstations",
+    "Domain controller (KDC)"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Fast logons before the fault.",
+    "AS-REQ to AS-REP time rises.",
+    "Service ticket requests slow as well.",
+    "Logons recover afterwards."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2556 (builder npm_auth_latency)",
+    "dev/netgen/incidents.py:5799 (registry entry)",
+    "dev/netgen/incidents.py:2569 (slow_kerberos)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery. Category is a stretch: this is core-service latency, not DNS or DHCP. Taxonomy has no better home."
+  },
+  {
+   "id": "npm-web-degradation",
+   "family": "PERF",
+   "title": "Web-server degradation (EXL-WEB2 cascade from slow SQL1)",
+   "category": "Slow applications",
+   "category_fit": "direct",
+   "expected_observation": "Web-server page time tracks slow SQL queries, with some 503 responses: a sensor should show web latency whose cause is database time.",
+   "protocols": [
+    "HTTP",
+    "TDS (SQL Server)",
+    "Kerberos"
+   ],
+   "hosts": [
+    "Workstations",
+    "Web server",
+    "Database server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Pages load fast before the fault.",
+    "The web server's database pool slows.",
+    "Page time follows database time and some return 503.",
+    "Recovery; the database is the root cause."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2605 (builder npm_web_degradation)",
+    "dev/netgen/incidents.py:5801 (registry entry)",
+    "dev/netgen/incidents.py:2697 (web2_slow_page)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery."
+  },
+  {
+   "id": "npm-wireless-degradation",
+   "family": "PERF",
+   "title": "Wireless degradation (EXL-WLC1 control-plane issue)",
+   "category": "Packet loss and retransmits",
+   "category_fit": "stretch",
+   "expected_observation": "The wireless controller stalls: APs see late or lost CAPWAP echoes, rejoin in waves, and clients drop and then burst DHCP and DNS: a sensor should show control-plane loss and rejoin storms.",
+   "protocols": [
+    "CAPWAP",
+    "DTLS",
+    "DHCP",
+    "DNS",
+    "Syslog"
+   ],
+   "hosts": [
+    "Wireless controller",
+    "Access points",
+    "Wireless clients",
+    "Management host"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Echo responses arrive late or not at all.",
+    "APs that wait out retransmissions rejoin (Discovery, DTLS, Join, Configuration).",
+    "Their clients drop for about a minute and a half.",
+    "Clients renew addresses and re-resolve names in a burst; a configuration-saved syslog message precedes the fault."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:2834 (builder npm_wireless_degradation)",
+    "dev/netgen/incidents.py:5803 (registry entry)"
+   ],
+   "notes": "Zone placement of the controller and APs not confirmed from code."
+  },
+  {
+   "id": "npm-web-dns-degradation",
+   "family": "PERF",
+   "title": "Web degradation from DNS (10 hosts, slow/failed resolution)",
+   "category": "DNS and DHCP faults",
+   "category_fit": "direct",
+   "expected_observation": "Ten named workstations see slow page loads because DNS resolution slows or fails: a sensor should show DNS failures correlated with web stalls for those hosts.",
+   "protocols": [
+    "DNS",
+    "HTTP"
+   ],
+   "hosts": [
+    "Ten named workstations",
+    "DNS server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Each of the ten hosts loads pages fine before the fault.",
+    "DNS answers slow or fail.",
+    "Page loads stall behind resolution.",
+    "Recovery follows the envelope."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:2960 (builder npm_web_dns_degradation)",
+    "dev/netgen/incidents.py:5805 (registry entry)",
+    "dev/netgen/incidents.py:2975 (web_load_blocked_by_dns)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery."
+  },
+  {
+   "id": "npm-voip-quality",
+   "family": "PERF",
+   "title": "VoIP call-quality degradation (RTP jitter, loss, reorder)",
+   "category": "Packet loss and retransmits",
+   "category_fit": "direct",
+   "expected_observation": "Calls between handsets show RTP jitter, loss and reordering: a sensor should show degraded call quality scores.",
+   "protocols": [
+    "SIP",
+    "RTP",
+    "RTCP"
+   ],
+   "hosts": [
+    "IP phones"
+   ],
+   "zone_path": [
+    "user"
+   ],
+   "steps": [
+    "A clean call before the fault.",
+    "SIP sets up calls between handset pairs.",
+    "RTP shows jitter, loss and reordering.",
+    "RTCP reports poor quality; recovery follows."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:3036 (builder npm_voip_quality)",
+    "dev/netgen/incidents.py:5807 (registry entry)",
+    "dev/netgen/incidents.py:3082 (degraded_call)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery."
+  },
+  {
+   "id": "npm-tcp-loss-storm",
+   "family": "PERF",
+   "title": "TCP retransmission / packet-loss storm on a segment",
+   "category": "Packet loss and retransmits",
+   "category_fit": "direct",
+   "expected_observation": "Retransmits, duplicate ACKs and fast retransmits on the path to the file server after a workstation SSHes into a switch: a sensor should flag both the loss and the odd SSH source.",
+   "protocols": [
+    "SSH",
+    "SMB",
+    "TCP"
+   ],
+   "hosts": [
+    "Workstation (collector)",
+    "Server-distribution switch",
+    "File server",
+    "Workstations"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "A workstation SSHes into the switch, an unusual source for admin.",
+    "Downloads from the file server run clean before the fault.",
+    "Duplicate ACKs and retransmits climb on the path.",
+    "Loss recovers at the end; the cause is stated in code as a duplex mismatch, which is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:3182 (builder npm_tcp_loss_storm)",
+    "dev/netgen/incidents.py:5809 (registry entry)",
+    "dev/netgen/incidents.py:3204 (lossy_download)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery. Auto-selects ndr-salt-typhoon (SCENARIO_DEPENDENCIES). Downloads are SMB, not HTTP.",
+   "requires": "ndr-salt-typhoon"
+  },
+  {
+   "id": "npm-ntp-failure",
+   "family": "PERF",
+   "title": "NTP time-sync failure (EXL-NTP1 unreachable)",
+   "category": "DNS and DHCP faults",
+   "category_fit": "stretch",
+   "expected_observation": "Clients poll the time server and get no answer; clocks drift and Kerberos starts failing with clock-skew errors: a sensor should show unanswered NTP and then Kerberos errors.",
+   "protocols": [
+    "NTP",
+    "Kerberos"
+   ],
+   "hosts": [
+    "Workstations",
+    "Servers",
+    "NTP server",
+    "Domain controller"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Healthy NTP syncs before the fault.",
+    "The server stops answering the scenario's polls.",
+    "About a third of user machines drift by seconds per minute.",
+    "Once a clock is more than five minutes off, its Kerberos requests fail with skew errors."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:3258 (builder npm_ntp_failure)",
+    "dev/netgen/incidents.py:5811 (registry entry)",
+    "dev/netgen/incidents.py:3308 (ntp_unreachable)",
+    "dev/netgen/incidents.py:3319 (kerberos_skew_fail)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery. Category stretch: time sync is not DNS or DHCP."
+  },
+  {
+   "id": "npm-http-errors",
+   "family": "PERF",
+   "title": "HTTP 5xx error-rate surge (LOB API on EXL-WEB2)",
+   "category": "Slow applications",
+   "category_fit": "direct",
+   "expected_observation": "The line-of-business API returns 500, 502 and 503 at volume while service time stays low: a sensor should show a status-code mix spike.",
+   "protocols": [
+    "HTTP",
+    "TDS (SQL Server)"
+   ],
+   "hosts": [
+    "Workstations",
+    "Web server",
+    "Database server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Normal responses before the fault.",
+    "5xx responses start to appear.",
+    "At peak the status mix is dominated by 500, 502 and 503.",
+    "Service time stays low throughout; recovery follows."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:4711 (builder npm_http_errors)",
+    "dev/netgen/incidents.py:5813 (registry entry)",
+    "dev/netgen/incidents.py:4724 (http_err_page)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery."
+  },
+  {
+   "id": "npm-dhcp-exhaustion",
+   "family": "PERF",
+   "title": "DHCP scope exhaustion (clients cannot get a lease)",
+   "category": "DNS and DHCP faults",
+   "category_fit": "direct",
+   "expected_observation": "DHCP discovers get no offer and requests are NAKed after a workstation RDPs to the domain controller: a sensor should flag both the lease failures and the odd RDP source.",
+   "protocols": [
+    "DHCP",
+    "RDP"
+   ],
+   "hosts": [
+    "Workstation (beachhead)",
+    "Domain controller (DHCP)",
+    "Workstations"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "A workstation RDPs into the domain controller, an admin protocol it never uses.",
+    "Lease attempts work before the fault.",
+    "DISCOVERs get no OFFER and REQUESTs are NAKed.",
+    "Recovery follows; narrowing the scope is not visible."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:4767 (builder npm_dhcp_exhaustion)",
+    "dev/netgen/incidents.py:5815 (registry entry)",
+    "dev/netgen/incidents.py:4789 (dhcp_lease_attempt)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery. Auto-selects ndr-volt-typhoon.",
+   "requires": "ndr-volt-typhoon"
+  },
+  {
+   "id": "npm-db-pool-exhaustion",
+   "family": "PERF",
+   "title": "Database connection-pool exhaustion (EXL-SQL1 saturated, not down)",
+   "category": "Capacity",
+   "category_fit": "direct",
+   "expected_observation": "A demand surge opens more database connections than the pool allows: a sensor should show a burst of new connections to the web server, queued TDS logins and resource errors.",
+   "protocols": [
+    "HTTP",
+    "TDS (SQL Server)"
+   ],
+   "hosts": [
+    "Workstations",
+    "Web servers",
+    "Database server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "A burst of 24 to 40 workstations hit the web server at once.",
+    "The app tier opens more database connections.",
+    "Login queues, query time climbs and some requests abort with a resource error.",
+    "The database is saturated, not down."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:4855 (builder npm_db_pool_exhaustion)",
+    "dev/netgen/incidents.py:5817 (registry entry)",
+    "dev/netgen/incidents.py:4891 (tds_pool_query)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery."
+  },
+  {
+   "id": "npm-radius-storm",
+   "family": "PERF",
+   "title": "RADIUS / 802.1X NAC auth-failure storm (NPS on EXL-DC1)",
+   "category": "DNS and DHCP faults",
+   "category_fit": "stretch",
+   "expected_observation": "Access-Reject surge, dropped requests with retransmits and slow Access-Accepts on 802.1X: a sensor should show RADIUS failures during onboarding.",
+   "protocols": [
+    "RADIUS",
+    "EAP/PEAP"
+   ],
+   "hosts": [
+    "Workstations",
+    "Network policy server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "Normal EAP exchanges before the fault.",
+    "Rejects increase.",
+    "Requests drop and retransmit.",
+    "Accepts slow; recovery follows."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:4921 (builder npm_radius_storm)",
+    "dev/netgen/incidents.py:5819 (registry entry)",
+    "dev/netgen/incidents.py:4934 (radius_attempt)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery. Category stretch: NAC authentication, not DNS or DHCP."
+  },
+  {
+   "id": "npm-nfs-latency",
+   "family": "PERF",
+   "title": "NFS / NAS storage latency (EXL-BACKUP1)",
+   "category": "Slow applications",
+   "category_fit": "direct",
+   "expected_observation": "NFSv3 GETATTR and READ service time climbs on port 2049 after an admin SSH to the NAS: a sensor should show high NFS latency from one server.",
+   "protocols": [
+    "NFS v3",
+    "SSH",
+    "RPC (portmap, mountd)"
+   ],
+   "hosts": [
+    "Workstations",
+    "NAS",
+    "Jump host"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The admin SSHes from the jump host into the NAS.",
+    "A job starts, loading the storage.",
+    "NFS read and attribute calls take longer.",
+    "Reads stall at peak; recovery follows."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:5026 (builder npm_nfs_latency)",
+    "dev/netgen/incidents.py:5821 (registry entry)",
+    "dev/netgen/incidents.py:5058 (nfs_slow_read)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery."
+  },
+  {
+   "id": "npm-smtp-backup",
+   "family": "PERF",
+   "title": "SMTP mail-flow backup / delivery latency (relay EXL-BACKUP1)",
+   "category": "Capacity",
+   "category_fit": "stretch",
+   "expected_observation": "SMTP reply latency climbs and 451 greylisting backs the queue up after an admin SSH reload of the relay: a sensor should show slow mail transactions and deferrals.",
+   "protocols": [
+    "SMTP",
+    "SSH"
+   ],
+   "hosts": [
+    "Workstations",
+    "Mail relay",
+    "Jump host"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "An admin SSHes from the jump host into the relay and reloads Postfix.",
+    "SMTP reply latency rises.",
+    "A growing share of messages get 450, 451 or 421 deferrals.",
+    "Deferred messages are resent later by the same host."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:5119 (builder npm_smtp_backup)",
+    "dev/netgen/incidents.py:5823 (registry entry)",
+    "dev/netgen/incidents.py:5155 (smtp_slow_send)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery. Category stretch: queue backup is the closest fit to Capacity.",
+   "also_categories": [
+    "Slow applications"
+   ]
+  },
+  {
+   "id": "npm-mtu-blackhole",
+   "family": "PERF",
+   "title": "MTU blackhole / PMTUD failure (bulk flows stall to EXL-WEB2)",
+   "category": "Packet loss and retransmits",
+   "category_fit": "direct",
+   "expected_observation": "Small requests succeed but oversized DF segments are dropped and ICMP fragmentation-needed does not lower the MSS: a sensor should show stalled bulk flows and the ICMP messages.",
+   "protocols": [
+    "HTTP",
+    "TCP",
+    "ICMP",
+    "SSH"
+   ],
+   "hosts": [
+    "Workstations",
+    "Web server",
+    "Firewall",
+    "Jump host"
+   ],
+   "zone_path": [
+    "user",
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "The admin SSHes into the firewall (the stated cause).",
+    "Small requests work.",
+    "Large DF segments are dropped and ICMP fragmentation-needed appears.",
+    "The sender never lowers its MSS, so bulk flows stall."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:5210 (builder npm_mtu_blackhole)",
+    "dev/netgen/incidents.py:5825 (registry entry)",
+    "dev/netgen/incidents.py:5248 (mtu_stall_flow)"
+   ],
+   "notes": "Faults share a sev() envelope: healthy lead-in, ramp to a plateau, then recovery."
+  },
+  {
+   "id": "ndr-ot-modbus-write",
+   "family": "SEC",
+   "title": "OT: unauthorized Modbus write / setpoint tampering (writes to a read-only PLC)",
+   "category": "Impact",
+   "category_fit": "direct",
+   "expected_observation": "A compromised engineering workstation issues Modbus write function codes to PLCs that normally only serve reads: a sensor should flag control writes from an unexpected source.",
+   "protocols": [
+    "Modbus/TCP"
+   ],
+   "hosts": [
+    "Engineering workstation",
+    "PLC"
+   ],
+   "zone_path": [
+    "ot"
+   ],
+   "steps": [
+    "The workstation connects to a PLC that normally only answers reads.",
+    "The first write to each PLC follows a read.",
+    "Most writes are FC6, with some FC16 and FC5 and an occasional exception.",
+    "Each PLC gets its own small reused register pool; the physical effect is not visible."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:5333 (builder ndr_ot_modbus_write)",
+    "dev/netgen/incidents.py:5829 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only).",
+   "ot_only": true
+  },
+  {
+   "id": "ndr-ot-sis-tamper",
+   "family": "SEC",
+   "title": "OT: safety-system (SIS) tampering (TRITON-shape writes to a safety controller)",
+   "category": "Impact",
+   "category_fit": "direct",
+   "expected_observation": "Modbus/TCP contact with the safety system, which should essentially never be touched: a sensor should flag any conversation with the safety controller.",
+   "protocols": [
+    "Modbus/TCP"
+   ],
+   "hosts": [
+    "Compromised host",
+    "Safety controller"
+   ],
+   "zone_path": [
+    "ot"
+   ],
+   "steps": [
+    "A host opens a Modbus/TCP session to the safety controller.",
+    "It reads registers outside the normal poll map.",
+    "A conversation with this device is itself the signal.",
+    "The real TriStation shape used by TRITON is not reproduced."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:5357 (builder ndr_ot_sis_tamper)",
+    "dev/netgen/incidents.py:5831 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only). The docstring itself says the TRITON protocol shape is not reproduced.",
+   "ot_only": true
+  },
+  {
+   "id": "ndr-ot-zone-violation",
+   "family": "SEC",
+   "title": "OT: cross-Purdue zone violation (IT host talks straight to a Level-1 PLC)",
+   "category": "Lateral movement",
+   "category_fit": "direct",
+   "expected_observation": "An IT host speaks Modbus directly to a Level-1 PLC, bypassing the jump host: a sensor should flag a cross-zone flow that is not from the permitted initiator.",
+   "protocols": [
+    "Modbus/TCP"
+   ],
+   "hosts": [
+    "IT host",
+    "PLC"
+   ],
+   "zone_path": [
+    "user",
+    "ot"
+   ],
+   "steps": [
+    "A compromised IT host connects straight to a field PLC.",
+    "Each session is one request and one response.",
+    "It reads a register range the baseline pollers never touch.",
+    "The permitted initiator (the jump host) is not involved."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:5379 (builder ndr_ot_zone_violation)",
+    "dev/netgen/incidents.py:5833 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only). zone_path lists the IT side as user; the docstring says Level 4, exact subnet not read.",
+   "ot_only": true
+  },
+  {
+   "id": "ndr-ot-recon",
+   "family": "SEC",
+   "title": "OT: device enumeration (Modbus unit sweep, BACnet reads, DNP3 probes)",
+   "category": "Discovery",
+   "category_fit": "direct",
+   "expected_observation": "The jump host sweeps the OT assets over Modbus, BACnet and DNP3: a sensor should flag device enumeration across industrial protocols.",
+   "protocols": [
+    "Modbus/TCP",
+    "BACnet",
+    "DNP3"
+   ],
+   "hosts": [
+    "Jump host",
+    "PLC",
+    "Field devices",
+    "RTU"
+   ],
+   "zone_path": [
+    "ot"
+   ],
+   "steps": [
+    "A Modbus unit and function-code sweep of the PLCs.",
+    "A BACnet Who-Is discovery sweep of the field devices.",
+    "DNP3 link-status checks reach the RTUs.",
+    "DNP3 reads follow; device identity is learned only from the replies."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:5446 (builder ndr_ot_recon)",
+    "dev/netgen/incidents.py:5835 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only).",
+   "ot_only": true
+  },
+  {
+   "id": "ndr-ot-rogue-asset",
+   "family": "SEC",
+   "title": "OT: rogue / previously-unseen device on the OT segment",
+   "category": "Initial access",
+   "category_fit": "stretch",
+   "expected_observation": "A new MAC and IP appears on the OT VLAN and polls a PLC as a Modbus master: a sensor should flag a previously unseen asset on a static segment.",
+   "protocols": [
+    "ARP",
+    "Modbus/TCP"
+   ],
+   "hosts": [
+    "Rogue device",
+    "PLC"
+   ],
+   "zone_path": [
+    "ot"
+   ],
+   "steps": [
+    "The device announces itself with an ARP probe and a gratuitous ARP.",
+    "It opens Modbus sessions to a PLC.",
+    "It sticks to a small recurring set of targets.",
+    "It was never in the baseline asset set."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:5491 (builder ndr_ot_rogue_asset)",
+    "dev/netgen/incidents.py:5837 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only). Category is a stretch: no taxonomy entry fits a rogue device cleanly.",
+   "ot_only": true
+  },
+  {
+   "id": "ndr-ot-camera-beacon",
+   "family": "SEC",
+   "title": "OT/IoT: IP camera outbound beacon (Mirai-shape egress)",
+   "category": "Command and control",
+   "category_fit": "direct",
+   "expected_observation": "An IP camera that should only talk to its recorder beacons to an internet cloud: a sensor should flag egress from a camera.",
+   "protocols": [
+    "DNS",
+    "HTTP(S)",
+    "TLS"
+   ],
+   "hosts": [
+    "IP camera",
+    "Internet host (cloud)"
+   ],
+   "zone_path": [
+    "ot",
+    "edge"
+   ],
+   "steps": [
+    "The camera resolves a cloud name.",
+    "It makes a fixed small check-in to one path.",
+    "A device user agent and the camera's own embedded TLS fingerprint are used.",
+    "A short JSON reply comes back; this is the IoT-botnet shape."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:5511 (builder ndr_ot_camera_beacon)",
+    "dev/netgen/incidents.py:5839 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only).",
+   "ot_only": true
+  },
+  {
+   "id": "npm-ot-plc-unresponsive",
+   "family": "PERF",
+   "title": "OT: PLC unresponsive to supervisory polls (Modbus exceptions, then timeouts)",
+   "category": "Slow applications",
+   "category_fit": "stretch",
+   "expected_observation": "A PLC stops answering SCADA polls: slave-busy exceptions first, then no reply and retransmits: a sensor should show loss of view for one controller.",
+   "protocols": [
+    "Modbus/TCP"
+   ],
+   "hosts": [
+    "SCADA host",
+    "PLC"
+   ],
+   "zone_path": [
+    "ot"
+   ],
+   "steps": [
+    "One long Modbus connection polls every one to two seconds.",
+    "The PLC returns slave-busy exceptions.",
+    "Replies stop and TCP retransmits follow.",
+    "After repeated timeouts the connection is closed and reopened."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:5532 (builder npm_ot_plc_unresponsive)",
+    "dev/netgen/incidents.py:5841 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only). Category stretch; not part of the default 58.",
+   "ot_only": true
+  },
+  {
+   "id": "ndr-php2shell",
+   "family": "SEC",
+   "title": "php2shell PHP core RCE (CVE-2026-109618 / -109619): internet → internal PHP server",
+   "category": "Initial access",
+   "category_fit": "direct",
+   "expected_observation": "Internet recon and exploit attempts against an internal PHP server (worker-crash resets, memory leaks), then a 200, an outbound callback and web-shell commands: a sensor should flag the exploitation pattern and the server calling out.",
+   "protocols": [
+    "HTTPS (multipart POST)",
+    "TLS"
+   ],
+   "hosts": [
+    "Internet host (attacker)",
+    "PHP web server",
+    "Internet host (callback)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "A short burst of PHP fingerprinting GETs.",
+    "Interleaved out-of-memory and session-upload-progress POSTs, mostly ending in worker-crash resets, with memory-disclosure responses.",
+    "A breakthrough request returns 200 and the server calls out.",
+    "Hands-on web-shell commands follow in clusters; the CVE labels are generator-owned models, not a real exploit shape."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:3889 (builder php2shell)",
+    "dev/netgen/incidents.py:5848 (registry entry)",
+    "dev/netgen/incidents.py:3843 (php2shell_callback)"
+   ],
+   "notes": "The CVE identifiers are fictional in the capture; do not present them as real advisories.",
+   "also_categories": [
+    "Command and control"
+   ]
+  },
+  {
+   "id": "ndr-ot-sanctioned-writes",
+   "family": "SEC",
+   "title": "OT: sanctioned operator setpoint writes + logons (BENIGN baseline for the control-writes table)",
+   "category": "Impact",
+   "category_fit": "stretch",
+   "expected_observation": "Sanctioned operator setpoint writes, a few benign OT logons and one after-hours item, all benign: a sensor's control-writes and logon tables should show a normal baseline so the attack scenarios stand out.",
+   "protocols": [
+    "Modbus/TCP",
+    "NTLM",
+    "Kerberos"
+   ],
+   "hosts": [
+    "HMI (dedicated writer)",
+    "PLC",
+    "SCADA host",
+    "File server"
+   ],
+   "zone_path": [
+    "ot",
+    "server"
+   ],
+   "steps": [
+    "One dedicated HMI writes setpoints to a PLC over a small reused register range.",
+    "A couple of benign OT NTLM logons run to a file server.",
+    "Failed Kerberos pre-authentications appear at shift change (mistyped password).",
+    "One after-hours item is included; nothing in it is an attack."
+   ],
+   "confidence": "low",
+   "sources": [
+    "dev/netgen/incidents.py:3977 (builder ndr_ot_sanctioned_writes)",
+    "dev/netgen/incidents.py:5850 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only). This is a BENIGN baseline add-on, not a security scenario. The fixed taxonomy has no honest category for it; Impact is a placeholder that the engine owner should replace (suggest a dedicated 'Baseline' bucket or exclude it from the security rail). Behaviour read from the docstring only.",
+   "ot_only": true
+  },
+  {
+   "id": "ndr-ot-new-pair",
+   "family": "SEC",
+   "title": "OT: newly-seen pair (unknown engineering laptop appears in Zone 2 and polls+writes a PLC)",
+   "category": "Lateral movement",
+   "category_fit": "direct",
+   "expected_observation": "An unknown engineering laptop appears in the supervisory zone, reads a PLC it has never touched, then writes a register: a sensor should flag a new client-to-PLC pair and the read-to-write escalation.",
+   "protocols": [
+    "ARP",
+    "LLMNR/NBNS",
+    "Modbus/TCP"
+   ],
+   "hosts": [
+    "Engineering laptop",
+    "PLC"
+   ],
+   "zone_path": [
+    "ot"
+   ],
+   "steps": [
+    "The laptop appears and announces itself by ARP and name-service chatter.",
+    "It reads a PLC it has never talked to.",
+    "Reads continue low and slow while it learns the register map.",
+    "It finally writes a register."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:4070 (builder ndr_ot_new_pair)",
+    "dev/netgen/incidents.py:5857 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only).",
+   "ot_only": true
+  },
+  {
+   "id": "ndr-ot-field-egress",
+   "family": "SEC",
+   "title": "OT: egress from a field device (Zone-1 RTU resolves + beacons to the internet, rogue firmware)",
+   "category": "Command and control",
+   "category_fit": "direct",
+   "expected_observation": "A field RTU resolves a first-seen internet domain and makes low-and-slow cleartext HTTP requests out: a sensor should flag egress from a control-zone device.",
+   "protocols": [
+    "DNS",
+    "HTTP"
+   ],
+   "hosts": [
+    "RTU or PLC (Zone 1)",
+    "Internet host"
+   ],
+   "zone_path": [
+    "ot",
+    "edge"
+   ],
+   "steps": [
+    "The field device resolves a first-seen domain.",
+    "It makes cleartext HTTP requests to an internet address.",
+    "The rate is low and slow.",
+    "A control-zone asset has no reason to do either."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:4125 (builder ndr_ot_field_egress)",
+    "dev/netgen/incidents.py:5863 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only).",
+   "ot_only": true
+  },
+  {
+   "id": "ndr-ot-protocol-sweep",
+   "family": "SEC",
+   "title": "OT: short-burst protocol sweep (Level-3 host sweeps Level-1 with sub-second connections)",
+   "category": "Discovery",
+   "category_fit": "direct",
+   "expected_observation": "A Level-3 host sweeps Level-1 assets with sub-second connections: a sensor should show connection fan-out and churn rather than sustained polling.",
+   "protocols": [
+    "Modbus/TCP",
+    "DNP3"
+   ],
+   "hosts": [
+    "Operations host (Level 3)",
+    "PLC",
+    "RTU"
+   ],
+   "zone_path": [
+    "ot"
+   ],
+   "steps": [
+    "The host cycles Modbus unit IDs across every PLC.",
+    "Each probe is its own short-lived connection.",
+    "Each PLC answers only for its own unit ID; other IDs draw exceptions.",
+    "DNP3 probes then run across the RTUs."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py:4169 (builder ndr_ot_protocol_sweep)",
+    "dev/netgen/incidents.py:5869 (registry entry)"
+   ],
+   "notes": "Requires the OT subnet to be generated (ot_only).",
+   "ot_only": true
+  },
+  {
+   "id": "npm-nightly-backup",
+   "family": "PERF",
+   "title": "Diurnal shape: nightly backup window (bulk SMB from servers to the backup server)",
+   "category": "Capacity",
+   "category_fit": "direct",
+   "expected_observation": "Several Windows servers push bulk SMB backups to the backup server in a late-evening window: a sensor should show an expected nightly byte spike in a by-hour view.",
+   "protocols": [
+    "SMB"
+   ],
+   "hosts": [
+    "Windows servers",
+    "Backup server"
+   ],
+   "zone_path": [
+    "server"
+   ],
+   "steps": [
+    "Servers begin pushing late in the day.",
+    "Bulk SMB flows run to the backup server.",
+    "The by-hour byte view shows a spike.",
+    "It ends before the night; this is an expected shape, not a fault."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:4201 (builder npm_nightly_backup)",
+    "dev/netgen/incidents.py:5876 (registry entry)"
+   ],
+   "notes": "Opt-in diurnal shape; not a fault."
+  },
+  {
+   "id": "crp-weak-tls",
+   "family": "CRYP",
+   "title": "Weak TLS (TLS 1.0 / RC4) on an internal service",
+   "category": "Weak TLS",
+   "category_fit": "direct",
+   "expected_observation": "Windows clients negotiate TLS 1.0 with an RC4 cipher to a legacy internal web server: a sensor should flag deprecated protocol versions and weak ciphers.",
+   "protocols": [
+    "TLS 1.0",
+    "DNS"
+   ],
+   "hosts": [
+    "Windows workstations",
+    "Web server"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "A Windows client resolves the legacy name.",
+    "It sends a legacy ClientHello.",
+    "The server picks TLS 1.0 with RC4.",
+    "Sessions repeat across the day; macOS clients are excluded because they cannot offer RC4."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:3331 (builder crp_weak_tls)",
+    "dev/netgen/incidents.py:5884 (registry entry)",
+    "dev/netgen/incidents.py:3343 (weak_tls_session)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "crp-expired-cert",
+   "family": "CRYP",
+   "title": "Expired / self-signed certificates on an internal service",
+   "category": "Certificate problems",
+   "category_fit": "direct",
+   "expected_observation": "An internal portal and console present expired or self-signed certificates, and some first attempts abort at the warning: a sensor should flag certificate validity problems.",
+   "protocols": [
+    "TLS",
+    "DNS"
+   ],
+   "hosts": [
+    "Windows workstations",
+    "Internal portal",
+    "Internal console"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The client connects to the portal or console.",
+    "The server sends an expired or self-signed certificate.",
+    "Some first attempts close right after the Certificate, before key exchange.",
+    "The user clicks through a few seconds later and the retry completes."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:3359 (builder crp_expired_cert)",
+    "dev/netgen/incidents.py:5886 (registry entry)",
+    "dev/netgen/incidents.py:3406 (expired_cert_session)"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "crp-plaintext-creds",
+   "family": "CRYP",
+   "title": "Plaintext credentials (HTTP Basic, FTP, LDAP simple bind)",
+   "category": "Weak TLS",
+   "category_fit": "stretch",
+   "expected_observation": "Credentials cross the network in the clear over HTTP Basic, FTP and LDAP simple bind: a sensor should flag cleartext authentication.",
+   "protocols": [
+    "HTTP Basic",
+    "FTP",
+    "LDAP simple bind",
+    "DNS"
+   ],
+   "hosts": [
+    "Workstations",
+    "Web, FTP and directory servers"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "A client picks one of three cleartext services.",
+    "It sends HTTP Basic, a USER and PASS pair or an LDAP simple bind.",
+    "The server accepts.",
+    "Credentials are readable on the wire."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:3518 (builder crp_plaintext_creds)",
+    "dev/netgen/incidents.py:5888 (registry entry)",
+    "dev/netgen/incidents.py:3529 (plaintext_cred_session)"
+   ],
+   "notes": "Category stretch: there is no TLS at all, which is the weakest transport."
+  },
+  {
+   "id": "crp-anonymous-ftp",
+   "family": "CRYP",
+   "title": "Anonymous FTP on a smart board (internal and inbound from the internet)",
+   "category": "Certificate problems",
+   "category_fit": "stretch",
+   "expected_observation": "A smart board runs an unmanaged FTP server that accepts anonymous login from inside and from the internet: a sensor should flag an unexpected FTP service and anonymous sessions.",
+   "protocols": [
+    "FTP"
+   ],
+   "hosts": [
+    "Smart board",
+    "Workstation",
+    "Internet host (scanner)"
+   ],
+   "zone_path": [
+    "user",
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "Nine internal sessions log in as anonymous with a mail-style password.",
+    "They list and fetch or store files.",
+    "Six inbound internet sessions probe with LIST and at most one small RETR.",
+    "Everything is in clear text; the firewall pinhole is inferred from the inbound sessions."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/incidents.py:3468 (builder crp_anonymous_ftp)",
+    "dev/netgen/incidents.py:5890 (registry entry)"
+   ],
+   "notes": "Category stretch: not a certificate problem. The fixed taxonomy has no cleartext-service bucket; flag for the owner."
+  },
+  {
+   "id": "ir-netscaler-compromise",
+   "family": "REPLAY",
+   "title": "NetScaler Compromise (webshell → beacon → DTLS → replay → exfil → LDAP SPN scan → SMB → reverse SSH)",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "A gateway webshell, outbound beacon, DTLS burst, session replay, config exfil, LDAP SPN scan, SMB failures and reverse SSH: the scenario is designed so that one detection (the LDAP SPN scan) fires.",
+   "protocols": [
+    "HTTPS",
+    "DTLS",
+    "DNS",
+    "HTTP PUT",
+    "LDAP",
+    "SMB",
+    "SSH"
+   ],
+   "hosts": [
+    "Gateway (VIP and SNIP)",
+    "Domain controllers",
+    "Web server",
+    "Internet host (attacker)",
+    "Internet hosts (C2, exfil, workforce)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "Webshell and C2 beacon from the gateway appear over a benign portal day.",
+    "DTLS probe and burst, then first-seen C2 DNS (NXDOMAIN) and a replayed portal session cookie.",
+    "A cleartext config upload and an LDAP enumeration plus SPN scan from the gateway's own address.",
+    "SMB session-setup failures and an SSH test then reverse SSH close the chain; TLS payloads need the exported keys."
+   ],
+   "confidence": "high",
+   "sources": [
+    "dev/netgen/netscaler/__init__.py:104 (builder build)",
+    "dev/netgen/incidents.py:5900 (registry entry)",
+    "dev/netgen/netscaler/__init__.py:104"
+   ],
+   "notes": "Phase list read from build(); fingerprint fidelity limits are stated in the note."
+  },
+  {
+   "id": "ir-netscaler-cve88771",
+   "family": "REPLAY",
+   "title": "NetScaler CVE-2026-88771 (exploit → webshell → C2 beacon → LDAP SPN scan → SMB → TDS/MSSQL pivot)",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "An unauthenticated RCE drops a webshell on the gateway, which beacons on 8443, exfils its config and pivots with a cleartext LDAP SPN scan, SMB failures and a TDS login to SQL1: a sensor should show an edge device originating admin protocols inward.",
+   "protocols": [
+    "HTTPS",
+    "DNS",
+    "LDAP",
+    "SMB",
+    "TDS (SQL Server)"
+   ],
+   "hosts": [
+    "Gateway",
+    "Domain controller",
+    "Database server",
+    "Internet host (attacker)",
+    "Internet hosts (C2, exfil)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "Exploit then webshell write on the gateway.",
+    "The gateway beacons on 8443 with first-seen C2 DNS and exfils the stolen config.",
+    "A cleartext LDAP SPN scan hits the domain controller.",
+    "SMB session-setup failures and a TDS/MSSQL login enumerate the database; xp_cmdshell is blocked."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/netscaler88771/__init__.py:176 (builder build)",
+    "dev/netgen/incidents.py:5913 (registry entry)",
+    "dev/netgen/netscaler88771/__init__.py:176"
+   ],
+   "notes": "Steps follow the registry note and function names; the exploit shape is a model, not a real exploit (code comment)."
+  },
+  {
+   "id": "ir-beyondtrust-cve102764",
+   "family": "REPLAY",
+   "title": "BeyondTrust CVE-2026-102764 (origin-spoofed file ops → webshell → C2 → inward RDP/SMB/LDAP pivot)",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "An origin-spoofed request reads a secret and writes a webshell on the published appliance, which beacons, exfils its session store and then reaches inward with LDAP, SMB, RDP and SSH: a sensor should show a DMZ device acting as a client.",
+   "protocols": [
+    "HTTPS",
+    "DNS",
+    "LDAP",
+    "SMB",
+    "RDP",
+    "SSH"
+   ],
+   "hosts": [
+    "Remote-support appliance",
+    "Domain controller",
+    "Jump host",
+    "Server",
+    "Internet host (attacker)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "Origin-spoofed file read and write on the appliance.",
+    "A webshell beacons on 8443 with first-seen C2 DNS.",
+    "The session store is exfiltrated.",
+    "The appliance then originates LDAP SPN scan, SMB failures, RDP to the jump host and SSH to a server."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/beyondtrust102764/__init__.py:153 (builder build)",
+    "dev/netgen/incidents.py:5928 (registry entry)",
+    "dev/netgen/beyondtrust102764/__init__.py:153"
+   ],
+   "notes": "Steps follow the registry note and function names."
+  },
+  {
+   "id": "ir-metabase-cve72898",
+   "family": "REPLAY",
+   "title": "Metabase CVE-2026-72898 (unauth /reset_password SQLi → admin takeover → bulk TDS exfil from SQL1)",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "An unauthenticated SQLi takes over the BI host as admin, which then pulls stored database credentials and runs bulk TDS queries against SQL1, exporting to the attacker: a sensor should flag anomalous bulk TDS from the BI server.",
+   "protocols": [
+    "HTTPS",
+    "DNS",
+    "TDS (SQL Server)"
+   ],
+   "hosts": [
+    "BI server (published)",
+    "Database server",
+    "Internet host (attacker)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "A SQLi POST to the password-reset path takes over the admin account.",
+    "The admin API reads the connected database's stored credentials.",
+    "The BI host opens a pool to SQL1 and runs bulk queries.",
+    "The results are exported to the attacker."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/metabase72898/__init__.py:137 (builder build)",
+    "dev/netgen/incidents.py:5943 (registry entry)",
+    "dev/netgen/metabase72898/__init__.py:137"
+   ],
+   "notes": "Steps follow the registry note and function names."
+  },
+  {
+   "id": "ir-sharepoint-cve58644",
+   "family": "REPLAY",
+   "title": "SharePoint ToolShell CVE-2026-58644 (ToolPane RCE → spinstall0 webshell + MachineKey theft → DB/DC pivot)",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "A ToolPane POST drops a webshell, the machine key is stolen for forged ViewState commands, the host beacons and exfils, then pivots to the content DB, directory and DC: a sensor should show web-tier to database and directory pivots.",
+   "protocols": [
+    "HTTPS",
+    "DNS",
+    "TDS (SQL Server)",
+    "LDAP",
+    "SMB"
+   ],
+   "hosts": [
+    "SharePoint server (published)",
+    "Database server",
+    "Domain controller",
+    "Internet host (attacker)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "ToolPane exploit with the tell-tale referer drops a webshell.",
+    "The farm machine key is stolen and used for forged ViewState commands.",
+    "The host beacons on 8443 and exfils keys and documents.",
+    "It pulls the content database over TDS, runs an LDAP SPN scan and SMB to the DC."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/sharepoint58644/__init__.py:183 (builder build)",
+    "dev/netgen/incidents.py:5957 (registry entry)",
+    "dev/netgen/sharepoint58644/__init__.py:183"
+   ],
+   "notes": "Steps follow the registry note and function names."
+  },
+  {
+   "id": "ir-panos-globalprotect-cve0257",
+   "family": "REPLAY",
+   "title": "PAN-OS GlobalProtect CVE-2026-0257 (forged auth-override cookie → unauthorized VPN → RDP/SMB/LDAP lateral)",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "A forged auth-override cookie stands up an unauthorised VPN session; internal recon, LDAP SPN scan, SMB probes and RDP to the jump host then originate from the assigned VPN address: a sensor should show lateral movement from a VPN pool address.",
+   "protocols": [
+    "HTTPS",
+    "LDAP",
+    "SMB",
+    "RDP",
+    "Kerberos"
+   ],
+   "hosts": [
+    "VPN gateway",
+    "Domain controller",
+    "File server",
+    "Jump host",
+    "Internet host (attacker)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "A forged auth-override cookie on the portal bypasses authentication.",
+    "The gateway assigns an internal VPN address.",
+    "Recon and an LDAP SPN scan originate from that address.",
+    "SMB probes of the DC and file server, then RDP to the jump host (the ransomware precursor)."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/panos0257/__init__.py:122 (builder build)",
+    "dev/netgen/incidents.py:5972 (registry entry)",
+    "dev/netgen/panos0257/__init__.py:122"
+   ],
+   "notes": "Steps follow the registry note and function names."
+  },
+  {
+   "id": "ir-vcenter-cve59310",
+   "family": "REPLAY",
+   "title": "VMware vCenter CVE-2026-59310 (syslog traversal → cron RCE → reverse SSH → ESXi ransomware push)",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "A syslog traversal writes a cron file on the vCenter, which dials reverse SSH out, beacons, exfils the VM inventory and then drives every ESXi host on 443 and 902 to deploy ransomware: a sensor should show reverse SSH and management-plane fan-out.",
+   "protocols": [
+    "HTTPS",
+    "SSH",
+    "DNS",
+    "vSphere API",
+    "ESXi agent (902)"
+   ],
+   "hosts": [
+    "vCenter appliance",
+    "ESXi hosts",
+    "Internet host (attacker)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "A traversal request writes a cron file on the appliance.",
+    "The appliance dials reverse SSH and beacons on 8443 with first-seen C2 DNS.",
+    "The VM inventory is exfiltrated.",
+    "vCenter pushes the payload to each ESXi host over 443 and 902; no visible encryption stage beyond the push (code comment)."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/vcenter59310/__init__.py:162 (builder build)",
+    "dev/netgen/incidents.py:5986 (registry entry)",
+    "dev/netgen/vcenter59310/__init__.py:162"
+   ],
+   "notes": "Steps follow the registry note and function names."
+  },
+  {
+   "id": "ir-wordpress-upgrade-race",
+   "family": "REPLAY",
+   "title": "WordPress upgrade-window race (CVE-2026-119977): staged setup-config.php -> rogue MySQL takeover",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "Hours of mostly-404 polling for a staged installer, an admin-triggered core update, a short window where the same GET returns 200, then an exploit POST that points the site at an attacker MySQL server: a sensor should show web-server-originated MySQL to an external host.",
+   "protocols": [
+    "HTTP",
+    "MySQL",
+    "DNS"
+   ],
+   "hosts": [
+    "Web server",
+    "Internal database",
+    "Attacker MySQL host",
+    "Internet host (scanner)",
+    "Admin host",
+    "Package CDN"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "Background scanners poll the staged setup path and get 404.",
+    "An admin triggers a core update and the package downloads.",
+    "For a few seconds the same polling GET returns 200 and one scanner posts the setup step with attacker DB settings.",
+    "The web server now keeps talking to the attacker MySQL; benign look-alikes are included."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/wordpress_upgrade_race/__init__.py:414 (builder build)",
+    "dev/netgen/incidents.py:6002 (registry entry)",
+    "dev/netgen/wordpress_upgrade_race/__init__.py:414"
+   ],
+   "notes": "Steps follow the registry note; the module's own comments state that several failure variants are kept unused."
+  },
+  {
+   "id": "ir-ipopt-tcp-uaf",
+   "family": "REPLAY",
+   "title": "Linux IPv4 TCP use-after-free race (CVE-2026-98432): IP-options SYN retry spray -> MPTCP listener leak and callback",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "Two internet sources spray SYNs with IPv4 options at two Linux hosts; one never completes, the other loses a race, takes a payload and calls back: a sensor should show option-bearing SYN retransmits and a high-port callback.",
+   "protocols": [
+    "TCP",
+    "IPv4 options",
+    "MPTCP"
+   ],
+   "hosts": [
+    "Linux host (plain listener)",
+    "Linux host (MPTCP listener)",
+    "Internet hosts (two sprayers)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "Option-bearing SYNs are retransmitted with the same port and sequence number for about fifty minutes.",
+    "The plain listener never completes a handshake and the attacker sends RSTs.",
+    "The MPTCP host loses one race: the SYN-ACK carries extra option bytes and one small payload is sent.",
+    "The host calls back to the attacker on a high port; the code marks the extra bytes and the callback as assumed, not documented."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/ipopt_tcp_uaf/__init__.py:306 (builder build)",
+    "dev/netgen/incidents.py:6020 (registry entry)",
+    "dev/netgen/ipopt_tcp_uaf/__init__.py:306"
+   ],
+   "notes": "Retransmit gap, rate and leak are modelling choices per the registry note."
+  }
+ ]
+}

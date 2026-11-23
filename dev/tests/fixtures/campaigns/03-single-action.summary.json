@@ -1,0 +1,111 @@
+{
+ "emitted": 1,
+ "entries": [
+  {
+   "action": "https_beacon",
+   "bytes": 46552,
+   "campaign": "single-action",
+   "error": null,
+   "explain": "One workstation checks in",
+   "first_ts": 1795186800.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187070.0,
+   "packets": 92,
+   "params": {
+    "count": 6,
+    "interval_s": 60,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s1",
+   "stage_name": "Check in",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:0",
+   "to_host": {
+    "ip": "198.19.237.110",
+    "name": "cdn-sync.c2host-1.net"
+   },
+   "ts": 1795186800.0
+  }
+ ],
+ "errors": [],
+ "estimate": {
+  "actions": 1,
+  "flows": 6,
+  "minutes_fast": 1.4,
+  "minutes_realistic": 5.2,
+  "scale": 1.0,
+  "stages": 1
+ },
+ "id": "single-action",
+ "iocs": [
+  {
+   "address": "198.19.237.110",
+   "index": 0,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "cdn-sync.c2host-1.net"
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "One stage, one action.",
+  "id": "single-action",
+  "name": "Single action",
+  "origin_country": "",
+  "seed": 3,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 1,
+   "kind": "iocs"
+  }
+ },
+ "name": "Single action",
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "stages": [
+  {
+   "id": "s1",
+   "length_s": 300.0,
+   "name": "Check in",
+   "narrative": "A single beacon.",
+   "start": 1795186800.0,
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ]
+  }
+ ]
+}

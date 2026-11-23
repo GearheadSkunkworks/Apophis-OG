@@ -1,0 +1,285 @@
+{
+ "emitted": 4,
+ "entries": [
+  {
+   "action": "payload_download",
+   "bytes": 9823,
+   "campaign": "real-addresses",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186800.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    3
+   ],
+   "last_ts": 1795186805.0,
+   "packets": 19,
+   "params": {
+    "filename": "",
+    "filetype": "exe",
+    "path": "/stage/pack.bin",
+    "scheme": "http",
+    "size": 150000
+   },
+   "protocols": [
+    "DNS",
+    "HTTP",
+    "HTTPS"
+   ],
+   "stage": "s1",
+   "stage_name": "Fetch",
+   "status": "ok",
+   "techniques": [
+    "T1105"
+   ],
+   "to": "ioc:3",
+   "to_host": {
+    "ip": "198.18.121.190",
+    "name": "dl.fast-files.org"
+   },
+   "ts": 1795186800.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 17700,
+   "campaign": "real-addresses",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795186900.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187260.0,
+   "packets": 50,
+   "params": {
+    "count": 6,
+    "interval_s": 60.0,
+    "jitter": 0.2,
+    "keepalive": false,
+    "profile": "generic",
+    "size_max": 900,
+    "size_min": 180
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s2",
+   "stage_name": "Beacon",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:0",
+   "to_host": {
+    "ip": "185.234.72.11",
+    "name": "185.234.72.11"
+   },
+   "ts": 1795186900.0
+  },
+  {
+   "action": "dns_beacon",
+   "bytes": 49520,
+   "campaign": "real-addresses",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187080.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    1
+   ],
+   "last_ts": 1795187440.0,
+   "packets": 80,
+   "params": {
+    "count": 8,
+    "domain": "",
+    "interval_s": 60.0,
+    "jitter": 0.1,
+    "label_len": 32,
+    "qtype": "TXT"
+   },
+   "protocols": [
+    "DNS"
+   ],
+   "stage": "s2",
+   "stage_name": "Beacon",
+   "status": "ok",
+   "techniques": [
+    "T1071.004"
+   ],
+   "to": "c2:1",
+   "to_host": {
+    "ip": "198.18.16.30",
+    "name": "mail.update-service.net"
+   },
+   "ts": 1795187080.0
+  },
+  {
+   "action": "https_upload",
+   "bytes": 14136,
+   "campaign": "real-addresses",
+   "error": null,
+   "explain": "",
+   "first_ts": 1795187310.05,
+   "from": "file",
+   "from_host": {
+    "ip": "10.10.20.20",
+    "name": "EXL-FILE1"
+   },
+   "ioc": [
+    2
+   ],
+   "last_ts": 1795187320.0,
+   "packets": 19,
+   "params": {
+    "chunk_bytes": 262144,
+    "chunked": false,
+    "method": "PUT",
+    "path": "/upload",
+    "total_bytes": 2000000
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s3",
+   "stage_name": "Out",
+   "status": "ok",
+   "techniques": [
+    "T1567",
+    "T1048.002"
+   ],
+   "to": "exfil:0",
+   "to_host": {
+    "ip": "91.215.85.40",
+    "name": "91.215.85.40"
+   },
+   "ts": 1795187310.0
+  }
+ ],
+ "errors": [],
+ "estimate": {
+  "actions": 4,
+  "flows": 16,
+  "minutes_fast": 3.4,
+  "minutes_realistic": 12.0,
+  "scale": 1.0,
+  "stages": 3
+ },
+ "id": "real-addresses",
+ "iocs": [
+  {
+   "address": "185.234.72.11",
+   "index": 0,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.234.72.11"
+  },
+  {
+   "address": "198.18.16.30",
+   "index": 1,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "mail.update-service.net"
+  },
+  {
+   "address": "91.215.85.40",
+   "index": 2,
+   "note": "",
+   "role": "exfil",
+   "type": "ipv4",
+   "value": "91.215.85.40"
+  },
+  {
+   "address": "198.18.121.190",
+   "index": 3,
+   "note": "",
+   "role": "payload",
+   "type": "url",
+   "value": "http://dl.fast-files.org/stage/pack.bin"
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Indicators keep their real public addresses.",
+  "id": "real-addresses",
+  "name": "Real addresses",
+  "origin_country": "",
+  "seed": 14,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 4,
+   "kind": "iocs"
+  }
+ },
+ "name": "Real addresses",
+ "options": {
+  "address_mode": "real",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "stages": [
+  {
+   "id": "s1",
+   "length_s": 90.0,
+   "name": "Fetch",
+   "narrative": "A tool is fetched.",
+   "start": 1795186800.0,
+   "tactic": "execution",
+   "techniques": [
+    "T1105"
+   ]
+  },
+  {
+   "id": "s2",
+   "length_s": 400.0,
+   "name": "Beacon",
+   "narrative": "Check-ins.",
+   "start": 1795186900.0,
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1071.004"
+   ]
+  },
+  {
+   "id": "s3",
+   "length_s": 200.0,
+   "name": "Out",
+   "narrative": "Data leaves.",
+   "start": 1795187310.0,
+   "tactic": "exfiltration",
+   "techniques": [
+    "T1567",
+    "T1048.002"
+   ]
+  }
+ ]
+}

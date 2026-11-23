@@ -1,0 +1,399 @@
+{
+  "$comment": "At most 400 actions in total across stages. The validator also checks action params, endpoint references and technique ids.",
+  "$id": "opengenerator.campaign/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "expect": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "cve": {
+            "pattern": "^CVE-\\d{4}-\\d{4,7}$",
+            "type": "string"
+          },
+          "detection": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          },
+          "technique": {
+            "pattern": "^T\\d{4}(\\.\\d{3})?$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "technique"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "explain": {
+      "description": "compiler notes: skipped actions, unsupported indicators",
+      "items": {
+        "maxLength": 1000,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "iocs": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "default": 50,
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          },
+          "first_seen": {
+            "maxLength": 40,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "role": {
+            "default": "unknown",
+            "enum": [
+              "c2",
+              "payload",
+              "exfil",
+              "scanner",
+              "brute",
+              "phishing",
+              "tor",
+              "compromised",
+              "vulnerability",
+              "unknown"
+            ]
+          },
+          "source": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "type": "array"
+          },
+          "techniques": {
+            "items": {
+              "pattern": "^T\\d{4}(\\.\\d{3})?$",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "type": "array"
+          },
+          "type": {
+            "enum": [
+              "ipv4",
+              "ipv6",
+              "domain",
+              "url",
+              "md5",
+              "sha1",
+              "sha256",
+              "email",
+              "cve",
+              "filename",
+              "cidr"
+            ]
+          },
+          "value": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "why": {
+            "maxLength": 500,
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ],
+        "type": "object"
+      },
+      "maxItems": 5000,
+      "type": "array"
+    },
+    "meta": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "type": "string"
+        },
+        "created": {
+          "pattern": "^(\\d{4}-\\d{2}-\\d{2})?$",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 2000,
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "origin_country": {
+          "maxLength": 200,
+          "type": "string"
+        },
+        "seed": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source": {
+          "additionalProperties": false,
+          "properties": {
+            "feeds": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 50,
+              "type": "array"
+            },
+            "ioc_count": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "kind": {
+              "enum": [
+                "iocs",
+                "hand",
+                "feed"
+              ]
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "options": {
+      "additionalProperties": false,
+      "properties": {
+        "address_mode": {
+          "default": "mapped",
+          "enum": [
+            "mapped",
+            "real"
+          ],
+          "type": "string"
+        },
+        "beacons_per_c2": {
+          "default": 4,
+          "maximum": 50,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "compromised": {
+          "default": "ws",
+          "pattern": "^[A-Za-z][A-Za-z0-9_:-]{0,39}$",
+          "type": "string"
+        },
+        "family": {
+          "default": "auto",
+          "pattern": "^[a-z0-9-]{1,40}$",
+          "type": "string"
+        },
+        "include": {
+          "default": [
+            "discovery",
+            "credential_access",
+            "lateral_movement",
+            "exfiltration"
+          ],
+          "items": {
+            "enum": [
+              "discovery",
+              "credential_access",
+              "lateral_movement",
+              "exfiltration",
+              "impact",
+              "execution",
+              "persistence",
+              "privilege_escalation",
+              "stealth",
+              "defense_impairment",
+              "collection",
+              "reconnaissance",
+              "resource_development",
+              "initial_access"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "lateral_target": {
+          "default": "server",
+          "pattern": "^[A-Za-z][A-Za-z0-9_:-]{0,39}$",
+          "type": "string"
+        },
+        "speed": {
+          "default": "realistic",
+          "enum": [
+            "realistic",
+            "fast"
+          ],
+          "type": "string"
+        },
+        "start": {
+          "default": "10:00",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "schema": {
+      "const": "opengenerator.campaign/1"
+    },
+    "stages": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "description": "token from the action registry; params are checked per ActionSpec",
+                  "pattern": "^[a-z][a-z0-9_]{1,40}$",
+                  "type": "string"
+                },
+                "at": {
+                  "maximum": 86400,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "explain": {
+                  "maxLength": 1000,
+                  "type": "string"
+                },
+                "from": {
+                  "description": "internal role (ws, ws2, server, dc, file, sql, web, fw, any_ws), host:SUFFIX, attacker, or c2:N, exfil:N, payload:N, scanner:N, phish:N, tor:N, brute:N:N / ioc:N",
+                  "pattern": "^(ws|ws2|server|dc|file|sql|web|fw|any_ws|host:[A-Za-z][A-Za-z0-9_-]{0,31}|attacker|(c2|exfil|payload|scanner|phish|tor|brute|ioc):[0-9]{1,6})$",
+                  "type": "string"
+                },
+                "ioc": {
+                  "items": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "maxItems": 500,
+                  "type": "array"
+                },
+                "params": {
+                  "type": "object"
+                },
+                "to": {
+                  "description": "internal role (ws, ws2, server, dc, file, sql, web, fw, any_ws), host:SUFFIX, attacker, or c2:N, exfil:N, payload:N, scanner:N, phish:N, tor:N, brute:N:N / ioc:N",
+                  "pattern": "^(ws|ws2|server|dc|file|sql|web|fw|any_ws|host:[A-Za-z][A-Za-z0-9_-]{0,31}|attacker|(c2|exfil|payload|scanner|phish|tor|brute|ioc):[0-9]{1,6})$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "action",
+                "from",
+                "to"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "duration_s": {
+            "exclusiveMinimum": 0,
+            "maximum": 86400,
+            "type": "number"
+          },
+          "fast_s": {
+            "exclusiveMinimum": 0,
+            "maximum": 86400,
+            "type": "number"
+          },
+          "id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "narrative": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "tactic": {
+            "enum": [
+              "reconnaissance",
+              "resource-development",
+              "initial-access",
+              "execution",
+              "persistence",
+              "privilege-escalation",
+              "stealth",
+              "defense-impairment",
+              "credential-access",
+              "discovery",
+              "lateral-movement",
+              "collection",
+              "command-and-control",
+              "exfiltration",
+              "impact"
+            ]
+          },
+          "techniques": {
+            "items": {
+              "pattern": "^T\\d{4}(\\.\\d{3})?$",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "tactic",
+          "actions"
+        ],
+        "type": "object"
+      },
+      "maxItems": 60,
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "meta",
+    "iocs",
+    "stages"
+  ],
+  "title": "OpenGenerator campaign file v1",
+  "type": "object"
+}

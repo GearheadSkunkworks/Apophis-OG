@@ -1,0 +1,217 @@
+{
+ "emitted": 3,
+ "entries": [
+  {
+   "action": "https_beacon",
+   "bytes": 89056,
+   "campaign": "beacon-only-with-a-family",
+   "error": null,
+   "explain": "C2 indicator 1 (updates.sync-cdn.net) received HTTPS beacons from the compromised workstation (Cobalt Strike look-alike beacon profile, chosen for the campaign)",
+   "first_ts": 1795186800.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    0
+   ],
+   "last_ts": 1795187469.6,
+   "packets": 176,
+   "params": {
+    "count": 12,
+    "interval_s": 60.0,
+    "jitter": 0.0,
+    "keepalive": false,
+    "profile": "cobalt-strike",
+    "size_max": 1400,
+    "size_min": 80
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s1",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:0",
+   "to_host": {
+    "ip": "198.18.163.71",
+    "name": "updates.sync-cdn.net"
+   },
+   "ts": 1795186800.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 52164,
+   "campaign": "beacon-only-with-a-family",
+   "error": null,
+   "explain": "C2 indicator 2 (185.44.12.9) received HTTPS beacons from the compromised workstation (Cobalt Strike look-alike beacon profile, chosen for the campaign)",
+   "first_ts": 1795186807.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    1
+   ],
+   "last_ts": 1795187476.6,
+   "packets": 92,
+   "params": {
+    "count": 12,
+    "interval_s": 60.0,
+    "jitter": 0.0,
+    "keepalive": false,
+    "profile": "cobalt-strike",
+    "size_max": 1400,
+    "size_min": 80
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s1",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:1",
+   "to_host": {
+    "ip": "198.19.224.61",
+    "name": "185.44.12.9"
+   },
+   "ts": 1795186807.0
+  },
+  {
+   "action": "https_beacon",
+   "bytes": 42968,
+   "campaign": "beacon-only-with-a-family",
+   "error": null,
+   "explain": "C2 indicator 3 (cdn.edge-relay.org) received HTTPS beacons from the compromised workstation (Cobalt Strike look-alike beacon profile, chosen for the campaign)",
+   "first_ts": 1795186814.05,
+   "from": "ws",
+   "from_host": {
+    "ip": "10.10.10.147",
+    "name": "EXL-WS-047"
+   },
+   "ioc": [
+    2
+   ],
+   "last_ts": 1795187483.6,
+   "packets": 164,
+   "params": {
+    "count": 12,
+    "interval_s": 60.0,
+    "jitter": 0.0,
+    "keepalive": false,
+    "profile": "cobalt-strike",
+    "size_max": 1400,
+    "size_min": 80
+   },
+   "protocols": [
+    "DNS",
+    "TLS",
+    "HTTPS"
+   ],
+   "stage": "s1",
+   "stage_name": "Command And Control",
+   "status": "ok",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ],
+   "to": "c2:2",
+   "to_host": {
+    "ip": "198.18.104.107",
+    "name": "cdn.edge-relay.org"
+   },
+   "ts": 1795186814.0
+  }
+ ],
+ "errors": [],
+ "estimate": {
+  "actions": 3,
+  "flows": 36,
+  "minutes_fast": 3.3,
+  "minutes_realistic": 12.6,
+  "scale": 1.0,
+  "stages": 1
+ },
+ "id": "beacon-only-with-a-family",
+ "iocs": [
+  {
+   "address": "198.18.163.71",
+   "index": 0,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "updates.sync-cdn.net"
+  },
+  {
+   "address": "198.19.224.61",
+   "index": 1,
+   "note": "",
+   "role": "c2",
+   "type": "ipv4",
+   "value": "185.44.12.9"
+  },
+  {
+   "address": "198.18.104.107",
+   "index": 2,
+   "note": "",
+   "role": "c2",
+   "type": "domain",
+   "value": "cdn.edge-relay.org"
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "",
+  "description": "Compiled from 3 indicators (3 c2); 3 used by actions.",
+  "id": "beacon-only-with-a-family",
+  "name": "Beacon only, with a family",
+  "origin_country": "",
+  "seed": 1922366250,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 3,
+   "kind": "iocs"
+  }
+ },
+ "name": "Beacon only, with a family",
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 12,
+  "compromised": "ws",
+  "family": "cobalt-strike",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "stages": [
+  {
+   "id": "s1",
+   "length_s": 744.0,
+   "name": "Command And Control",
+   "narrative": "the implant checks in with its command-and-control infrastructure",
+   "start": 1795186800.0,
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ]
+  }
+ ]
+}

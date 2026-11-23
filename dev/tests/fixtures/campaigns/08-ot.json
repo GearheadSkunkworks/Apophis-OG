@@ -1,0 +1,164 @@
+{
+ "expect": [
+  {
+   "stage": "s1",
+   "technique": "T1046"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1021.001"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1135"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1021.006"
+  },
+  {
+   "stage": "s1",
+   "technique": "T1059.001"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1573.002"
+  }
+ ],
+ "explain": [],
+ "iocs": [
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "domain",
+   "value": "updates.sync-cdn.net",
+   "why": ""
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Hops through the jump host.",
+  "id": "touches-the-ot-zone",
+  "name": "Touches the OT zone",
+  "origin_country": "",
+  "seed": 8,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 1,
+   "kind": "iocs"
+  }
+ },
+ "options": {
+  "address_mode": "mapped",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": [
+  {
+   "actions": [
+    {
+     "action": "port_probe",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {},
+     "to": "host:OTJUMP1"
+    },
+    {
+     "action": "rdp_session",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {
+      "duration_s": 120
+     },
+     "to": "host:OTJUMP1"
+    },
+    {
+     "action": "smb_share_enum",
+     "explain": "",
+     "from": "host:OTJUMP1",
+     "ioc": [],
+     "params": {},
+     "to": "host:OTFS1"
+    },
+    {
+     "action": "syn_scan",
+     "explain": "",
+     "from": "host:OTJUMP1",
+     "ioc": [],
+     "params": {
+      "scope": "targets",
+      "targets": [
+       "10.30.0.20"
+      ]
+     },
+     "to": "host:SCADA1"
+    },
+    {
+     "action": "winrm_exec",
+     "explain": "",
+     "from": "host:OTJUMP1",
+     "ioc": [],
+     "params": {},
+     "to": "host:OTENG1"
+    }
+   ],
+   "duration_s": 400,
+   "fast_s": 100,
+   "id": "s1",
+   "name": "Reach the plant",
+   "narrative": "A foothold reaches the plant network.",
+   "tactic": "discovery",
+   "techniques": [
+    "T1046",
+    "T1021.001",
+    "T1135",
+    "T1021.006",
+    "T1059.001"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "ws",
+     "ioc": [],
+     "params": {
+      "count": 5
+     },
+     "to": "c2:0"
+    }
+   ],
+   "duration_s": 300,
+   "fast_s": 75,
+   "id": "s2",
+   "name": "Beacon out",
+   "narrative": "The foothold calls out.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,200 @@
+{
+ "expect": [
+  {
+   "stage": "s1",
+   "technique": "T1105"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1071.001"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1573.002"
+  },
+  {
+   "stage": "s2",
+   "technique": "T1071.004"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1567"
+  },
+  {
+   "stage": "s3",
+   "technique": "T1048.002"
+  }
+ ],
+ "explain": [],
+ "iocs": [
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [
+    "c2"
+   ],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "185.234.72.11",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "c2",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "domain",
+   "value": "mail.update-service.net",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "exfil",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "ipv4",
+   "value": "91.215.85.40",
+   "why": ""
+  },
+  {
+   "confidence": 70,
+   "first_seen": null,
+   "note": "",
+   "role": "payload",
+   "source": "fixture-feed",
+   "tags": [],
+   "techniques": [],
+   "type": "url",
+   "value": "http://dl.fast-files.org/stage/pack.bin",
+   "why": ""
+  }
+ ],
+ "meta": {
+  "actor": "Unattributed",
+  "created": "2026-11-20",
+  "description": "Indicators keep their real public addresses.",
+  "id": "real-addresses",
+  "name": "Real addresses",
+  "origin_country": "",
+  "seed": 14,
+  "source": {
+   "feeds": [
+    "fixture-feed"
+   ],
+   "ioc_count": 4,
+   "kind": "iocs"
+  }
+ },
+ "options": {
+  "address_mode": "real",
+  "beacons_per_c2": 4,
+  "compromised": "ws",
+  "family": "auto",
+  "include": [],
+  "lateral_target": "server",
+  "speed": "realistic",
+  "start": "10:00"
+ },
+ "schema": "opengenerator.campaign/1",
+ "stages": [
+  {
+   "actions": [
+    {
+     "action": "payload_download",
+     "explain": "",
+     "from": "ws",
+     "ioc": [
+      3
+     ],
+     "params": {
+      "path": "/stage/pack.bin"
+     },
+     "to": "ioc:3"
+    }
+   ],
+   "duration_s": 90,
+   "fast_s": 22,
+   "id": "s1",
+   "name": "Fetch",
+   "narrative": "A tool is fetched.",
+   "tactic": "execution",
+   "techniques": [
+    "T1105"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_beacon",
+     "explain": "",
+     "from": "ws",
+     "ioc": [
+      0
+     ],
+     "params": {
+      "count": 6
+     },
+     "to": "c2:0"
+    },
+    {
+     "action": "dns_beacon",
+     "explain": "",
+     "from": "ws",
+     "ioc": [
+      1
+     ],
+     "params": {
+      "count": 8
+     },
+     "to": "c2:1"
+    }
+   ],
+   "duration_s": 400,
+   "fast_s": 100,
+   "id": "s2",
+   "name": "Beacon",
+   "narrative": "Check-ins.",
+   "tactic": "command-and-control",
+   "techniques": [
+    "T1071.001",
+    "T1573.002",
+    "T1071.004"
+   ]
+  },
+  {
+   "actions": [
+    {
+     "action": "https_upload",
+     "explain": "",
+     "from": "file",
+     "ioc": [
+      2
+     ],
+     "params": {
+      "total_bytes": 2000000
+     },
+     "to": "exfil:0"
+    }
+   ],
+   "duration_s": 200,
+   "fast_s": 50,
+   "id": "s3",
+   "name": "Out",
+   "narrative": "Data leaves.",
+   "tactic": "exfiltration",
+   "techniques": [
+    "T1567",
+    "T1048.002"
+   ]
+  }
+ ]
+}

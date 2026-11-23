@@ -1,0 +1,4 @@
+{"scenario": "ip-options-engine",
+ "build": {"module": "none", "scale": 0.05, "date": "2026-11-04"},
+ "pin": {"scale": 0.05, "date": "2026-11-04", "margin": 1.25},
+ "checks": []}
