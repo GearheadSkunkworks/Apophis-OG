@@ -11,13 +11,19 @@
                                         and anything skipped or failed
 * ``<prefix>.report.html``              the same as one self-contained HTML page (tables only, no
                                         scripts, no external resources, everything escaped)
+* ``<prefix>.indicators.csv``           every indicator with the address it has in the capture and whether
+                                        an action put it on the wire (spreadsheet-safe cells)
+* ``<prefix>.misp-event.json``          MISP event of the indicators that were on the wire, importable into
+                                        a MISP instance or back into this builder
 
 When a malware-family beacon profile was used (see ``families``), the STIX bundle also carries a ``malware``
 object for the family and ``indicates`` relationships from the indicators its beacons went to.
 
 Everything is derived from the runner's record of what was emitted. Deterministic: ids are uuid5.
 """
+import csv
 import html
+import io
 import json
 import os
 import uuid
@@ -221,6 +227,48 @@ def report_md(campaign, crep):
     return "\n".join(L) + "\n"
 
 
+_MISP_TYPES = {"ipv4": ("ip-dst", "Network activity"), "ipv6": ("ip-dst", "Network activity"),
+               "domain": ("domain", "Network activity"), "url": ("url", "Network activity")}
+
+
+def _cell(v):
+    """A CSV cell that a spreadsheet will not run as a formula."""
+    v = "" if v is None else str(v)
+    return "'" + v if v[:1] in ("=", "+", "-", "@", "\t", "\r") else v
+
+
+def indicators_csv(campaign, crep):
+    table = {r["index"]: r for r in crep.get("iocs") or []}
+    used = used_indexes(crep, campaign)
+    out = io.StringIO()
+    w = csv.writer(out, lineterminator="\n")
+    w.writerow(["type", "value", "role", "confidence", "source", "in_capture_as", "on_the_wire"])
+    for i, ioc in enumerate(campaign.get("iocs") or []):
+        w.writerow([_cell(x) for x in (ioc.get("type"), ioc.get("value"), ioc.get("role"), ioc.get("confidence"),
+                                       ioc.get("source"), (table.get(i) or {}).get("address") or ioc.get("value"),
+                                       "yes" if i in used else "no")])
+    return out.getvalue()
+
+
+def misp_event(campaign, crep):
+    meta = campaign.get("meta") or {}
+    table = {r["index"]: r for r in crep.get("iocs") or []}
+    used = used_indexes(crep, campaign)
+    attrs = []
+    for i, ioc in enumerate(campaign.get("iocs") or []):
+        if i not in used or ioc.get("type") not in _MISP_TYPES:
+            continue
+        typ, cat = _MISP_TYPES[ioc["type"]]
+        value = (table.get(i) or {}).get("address") or ioc["value"]
+        attrs.append({"uuid": str(uuid.uuid5(_NS, "misp|%s|%s|%s" % (crep.get("id"), typ, value))), "type": typ,
+                      "category": cat, "value": str(value), "to_ids": True,
+                      "comment": "campaign indicator, role %s" % ioc.get("role", "unknown")})
+    return {"Event": {"uuid": str(uuid.uuid5(_NS, "misp-event|%s" % crep.get("id"))),
+                      "info": "%s (benign lab simulation, no malware present)" % (meta.get("name") or "OpenGenerator campaign"),
+                      "date": _day_iso()[:10], "threat_level_id": "4", "analysis": "2", "distribution": "0",
+                      "Tag": [{"name": "tlp:clear"}, {"name": "opengenerator:simulation"}], "Attribute": attrs}}
+
+
 _CSS = ("body{font:14px/1.45 sans-serif;margin:24px;color:#1b1f24;background:#fff}"
         "h1{font-size:22px}h2{font-size:16px;margin-top:28px;border-bottom:1px solid #ccd}"
         "table{border-collapse:collapse;margin:8px 0;width:100%}th,td{border:1px solid #c9ced6;padding:4px 8px;"
@@ -338,14 +386,14 @@ def report_html(campaign, crep):
 
 
 def write_all(campaign, report, prefix):
-    """Write the outputs and return {"campaign","stix","navigator","report","html"} paths."""
+    """Write the outputs and return {"campaign","stix","navigator","report","html","csv","misp"} paths."""
     d = os.path.dirname(prefix)
     if d:
         os.makedirs(d, exist_ok=True)
     crep = _camp_report(report, (campaign.get("meta") or {}).get("id"))
     paths = {"campaign": prefix + ".campaign.json", "stix": prefix + ".campaign-iocs.stix.json",
              "navigator": prefix + ".attack-navigator.json", "report": prefix + ".campaign-report.md",
-             "html": prefix + ".report.html"}
+             "html": prefix + ".report.html", "csv": prefix + ".indicators.csv", "misp": prefix + ".misp-event.json"}
     with open(paths["campaign"], "w") as f:
         json.dump(campaign, f, indent=2, sort_keys=True)
         f.write("\n")
@@ -357,4 +405,8 @@ def write_all(campaign, report, prefix):
         f.write(report_md(campaign, crep))
     with open(paths["html"], "w") as f:
         f.write(report_html(campaign, crep))
+    with open(paths["csv"], "w", newline="") as f:
+        f.write(indicators_csv(campaign, crep))
+    with open(paths["misp"], "w") as f:
+        json.dump(misp_event(campaign, crep), f, indent=1)
     return paths

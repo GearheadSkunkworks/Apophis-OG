@@ -643,8 +643,8 @@
         refreshVault();
         extras.push(ui.vaultBox);
       }
-      if (feed.id === 'otx') {
-        ui.q = el('input', {type: 'text', 'class': 'ogc-q', placeholder: 'search pulses (optional)', 'aria-label': 'Search ' + feed.title,
+      if (feed.id === 'otx' || feed.id === 'shodan') {
+        ui.q = el('input', {type: 'text', 'class': 'ogc-q', placeholder: feed.id === 'shodan' ? 'Shodan query (default has_vuln:true)' : 'search pulses (optional)', 'aria-label': 'Search ' + feed.title,
           onkeydown: function (ev) { if (ev.key === 'Enter') fetchFeed(feed, ui); }});
         extras.push(ui.q);
       }
@@ -919,6 +919,7 @@
     var INC_LABELS = {discovery: 'Discovery', credential_access: 'Credential access', lateral_movement: 'Lateral movement', exfiltration: 'Exfiltration', impact: 'Impact',
       reconnaissance: 'Reconnaissance', resource_development: 'Resource development', initial_access: 'Initial access', execution: 'Execution',
       persistence: 'Persistence', privilege_escalation: 'Privilege escalation', stealth: 'Stealth', defense_impairment: 'Defense impairment', collection: 'Collection'};
+    var incCbs = {};
     function incGroup(keys) {
       return el('div', {'class': 'ogc-checks'}, keys.map(function (k) {
         var cb = el('input', {type: 'checkbox', checked: opts.include.indexOf(k) >= 0, onchange: function () {
@@ -927,6 +928,7 @@
           opts.include = INCLUDE_ALL.filter(function (x) { return s.indexOf(x) >= 0; });
           scheduleObservability();
         }});
+        incCbs[k] = cb;
         return el('label', {'class': 'ogc-check'}, cb, ' ' + INC_LABELS[k]);
       }));
     }
@@ -1005,8 +1007,48 @@
       }).then(function () { setBusy(false); renderSummary(); });
     }
 
+    // ---- goal modes and starter templates (GET /api/campaign/templates)
+    var goalSel = el('select', {id: 'ogc-goal', 'aria-label': 'Goal', disabled: true}, el('option', {value: ''}, 'Loading\u2026'));
+    var tplSel = el('select', {id: 'ogc-tpl', 'aria-label': 'Starter template', disabled: true}, el('option', {value: ''}, 'Loading\u2026'));
+    var goalNote = el('p', {'class': 'hint ogc-goal-note'}, 'A goal only sets the stages and beacon count below; you can still change them.');
+    var catalog = {goals: [], templates: []};
+    function applyGoal(g) {
+      var base = defaultOptions(), o = g && g.options ? g.options : {};
+      opts.include = (o.include || base.include).slice();
+      opts.beacons_per_c2 = o.beacons_per_c2 || base.beacons_per_c2;
+      beacons.value = String(opts.beacons_per_c2);
+      Object.keys(incCbs).forEach(function (k) { incCbs[k].checked = opts.include.indexOf(k) >= 0; });
+      goalNote.textContent = g ? g.plain : 'A goal only sets the stages and beacon count below; you can still change them.';
+      scheduleObservability();
+    }
+    goalSel.addEventListener('change', function () {
+      applyGoal(catalog.goals.filter(function (g) { return g.id === goalSel.value; })[0]);
+    });
+    tplSel.addEventListener('change', function () {
+      var t = catalog.templates.filter(function (x) { return x.id === tplSel.value; })[0];
+      if (!t) return;
+      goalSel.value = t.goal;
+      applyGoal(catalog.goals.filter(function (g) { return g.id === t.goal; })[0]);
+      nameInput.value = OGC.state.name = t.title;
+      absorb({iocs: t.iocs}, 'Template "' + t.title + '"');
+      tplSel.value = '';
+    });
+    function renderCatalog(c) {
+      c = {goals: Array.isArray(c && c.goals) ? c.goals : [], templates: Array.isArray(c && c.templates) ? c.templates : []};
+      catalog = c;
+      clear(goalSel); clear(tplSel);
+      c.goals.forEach(function (g) { goalSel.appendChild(el('option', {value: g.id}, g.title)); });
+      tplSel.appendChild(el('option', {value: ''}, 'Choose a template\u2026'));
+      c.templates.forEach(function (t) { tplSel.appendChild(el('option', {value: t.id, title: t.plain}, t.title)); });
+      goalSel.disabled = tplSel.disabled = false;
+    }
+
     var compilePanel = el('div', {'class': 'ogc-compile'},
       el('h3', {}, 'Compile a campaign'),
+      el('div', {'class': 'ogc-grid ogc-grid-3'},
+        el('div', {}, el('label', {'for': 'ogc-tpl'}, 'Start from a template'), tplSel),
+        el('div', {}, el('label', {'for': 'ogc-goal'}, 'Goal'), goalSel)),
+      goalNote,
       el('div', {'class': 'ogc-grid ogc-grid-3'},
         el('div', {}, el('label', {'for': 'ogc-name'}, 'Campaign name'), nameInput),
         el('div', {}, el('label', {'for': 'ogc-o-comp'}, 'Compromised host'), compromised),
@@ -1051,6 +1093,11 @@
         vaultChanged();
       }, function () {});
     } catch (e) { /* no key storage: keys stay in memory only */ }
+
+    OGC.api.get('/api/campaign/templates').then(renderCatalog, function () {
+      goalSel.disabled = tplSel.disabled = true; clear(goalSel); clear(tplSel);
+      goalSel.appendChild(el('option', {value: ''}, 'not available')); tplSel.appendChild(el('option', {value: ''}, 'not available'));
+    });
 
     OGC.api.get('/api/intel/feeds').then(function (res) {
       renderFeeds(Array.isArray(res.feeds) ? res.feeds : []);

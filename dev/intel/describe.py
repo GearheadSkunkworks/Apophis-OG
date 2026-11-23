@@ -6,7 +6,7 @@ builder with a plain reason. card(ioc) -> {"what", "traffic"}: what the indicato
 campaign will send for it, built only from the record's own fields and the role table below.
 """
 
-from . import cve_profiles
+from . import catalog, cve_profiles
 
 WIRE_TYPES = ("ipv4", "domain", "url")
 
@@ -36,8 +36,7 @@ _ROLE = {
     "phishing": ("a host used in phishing delivery",
                  "a workstation fetching the lure page or file"),
     "tor": ("a Tor relay or exit node", "a Tor-style TLS session from the workstation"),
-    "compromised": ("a legitimate site known to be compromised",
-                    "a workstation fetching content from it"),
+    "compromised": ("a legitimate site known to be compromised", None),
     "unknown": ("an indicator whose role is not known", None),
 }
 
@@ -68,7 +67,11 @@ def card(ioc):
         bits.append("tags: " + ", ".join(ioc["tags"][:5]))
     if ioc.get("note"):
         bits.append(ioc["note"])
+    fid = catalog.family_for(ioc)
+    if fid and ioc.get("role") != "tor":
+        bits.append(catalog.text(fid).rstrip("."))
     return {"what": ". ".join(bits), "traffic": ("Sends: " + traffic + ".") if traffic else
+            "Sends nothing: the campaign has no traffic for the compromised role. Give it another role to use it." if role == "compromised" else
             "Sends nothing until you give it a role (c2, payload, exfil, scanner, brute...)."}
 
 

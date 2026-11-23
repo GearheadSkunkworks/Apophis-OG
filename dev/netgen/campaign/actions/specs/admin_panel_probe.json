@@ -1,0 +1,19 @@
+{
+  "token": "admin_panel_probe",
+  "title": "Admin panel probe",
+  "tactic": "reconnaissance",
+  "techniques": ["T1595.003"],
+  "summary": "An internet host requests common admin-panel paths on a web server and mostly gets 401 or 404 replies.",
+  "direction": "inbound",
+  "tls": false,
+  "port": 80,
+  "user_agent": "Mozilla/5.0 (compatible; panelcheck/1.0)",
+  "repeat": 1,
+  "gap_s": 0.5,
+  "requests": [
+    {"method": "GET", "path": "/admin", "status": "401 Unauthorized", "reply": "{\"error\":\"unauthorized\"}", "content_type": "application/json"},
+    {"method": "GET", "path": "/administrator/", "status": "404 Not Found", "reply": "<html><title>404</title></html>"},
+    {"method": "GET", "path": "/manager/html", "status": "401 Unauthorized", "reply": "{\"error\":\"unauthorized\"}", "content_type": "application/json"},
+    {"method": "GET", "path": "/wp-login.php", "status": "404 Not Found", "reply": "<html><title>404</title></html>"}
+  ]
+}

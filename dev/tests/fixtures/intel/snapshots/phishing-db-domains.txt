@@ -1,0 +1,2 @@
+login.phish-one.example
+secure.phish-two.example

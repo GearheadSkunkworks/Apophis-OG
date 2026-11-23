@@ -12,23 +12,23 @@ import re
 # id, regex on "vendor product name" text, title, what it is, endpoints, port, tls
 PROFILES = (
     ("vpn_gateway", r"citrix|netscaler|fortinet|fortigate|fortios|pulse|ivanti|globalprotect|palo alto|sonicwall|"
-                    r"anyconnect|cisco asa|secure access|vpn",
+                    r"anyconnect|cisco asa|adaptive security|secure access|vpn|check point|big-ip|\bf5\b|juniper|junos|arista|barracuda",
      "VPN / remote-access gateway", "an internet-facing VPN or remote-access gateway",
      ("/remote/login", "/vpn/index.html", "/global-protect/login.esp"), 443, True),
-    ("mail_server", r"exchange|zimbra|roundcube|mail|owa",
+    ("mail_server", r"exchange server|microsoft exchange|exchange online|zimbra|roundcube|mail|\bowa\b|sangoma|freepbx",
      "Mail server", "a web-facing mail server",
      ("/owa/auth/logon.aspx", "/autodiscover/autodiscover.json"), 443, True),
-    ("file_transfer", r"moveit|goanywhere|cleo|accellion|file transfer|sharepoint",
+    ("file_transfer", r"moveit|ws_ftp|goanywhere|cleo|accellion|file transfer|sharepoint|gladinet|centrestack|papercut",
      "File-transfer / collaboration server", "a web-facing file-transfer or collaboration server",
      ("/human.aspx", "/_layouts/15/start.aspx"), 443, True),
-    ("remote_mgmt", r"screenconnect|connectwise|teamviewer|solarwinds|manageengine|kaseya|remote (?:management|monitoring)",
+    ("remote_mgmt", r"screenconnect|connectwise|teamviewer|solarwinds|manageengine|kaseya|beyondtrust|n-able|nagios|apex one|deep security|control manager|officescan|vcenter|esxi|vmware (?:workspace|aria|nsx|cloud)|vrealize|remote (?:management|monitoring)",
      "Remote-management server", "a remote-management or monitoring server",
      ("/SetupWizard.aspx", "/webclient/"), 443, True),
     ("web_app", r"confluence|jenkins|weblogic|tomcat|struts|jboss|wordpress|joomla|drupal|gitlab|atlassian|apache|"
-               r"nginx|php|jira|spring|log4j|web server|web application|http",
+               r"nginx|php|jira|spring|log4j|web server|web application|http|\bsap\b|netweaver|sitecore|kentico|craft cms|langflow|jfrog|artifactory|\bplex\b|telerik|ruby on rails|\brails\b|oracle (?:e-business|fusion|identity)",
      "Web application / server", "a web application or application server",
      ("/login", "/admin/", "/api/"), 443, True),
-    ("network_device", r"router|firewall|switch|appliance|gateway|camera|dvr|nas|d-link|tp-link|zyxel|netgear|qnap",
+    ("network_device", r"router|firewall|switch|appliance|gateway|camera|\bdvr\b|\bnas\b|d-link|tp-link|zyxel|netgear|qnap|mikrotik|draytek|ubiquiti|cisco (?:ise|identity)|cisco unified|cisco small business|cisco rv",
      "Network appliance", "a network appliance with a web management interface",
      ("/login.cgi", "/cgi-bin/luci/"), 80, False),
 )

@@ -150,6 +150,149 @@ class Install(Env):
         updater._LAST.clear()
 
 
+def app_release_list(*tags):
+    out = []
+    for t in tags:
+        v = t[1:]
+        names = ["og-app-%s.json" % v, "og-app-%s.sig" % v, "OpenGenerator-%s-app.zip" % v]
+        out.append({"tag_name": t, "assets": [{"name": n, "browser_download_url": "https://x/" + n} for n in names]})
+    return json.dumps(out).encode()
+
+
+class AppSwap(Env):
+    """Whole-app update from any older version: a fake release feed, a fake .app on disk, fake ditto/codesign."""
+    def setUp(self):
+        super().setUp()
+        import plistlib
+        self.plistlib = plistlib
+        self.parent = os.path.join(self.tmp, "Applications")
+        self.bundle = os.path.join(self.parent, "OpenGenerator.app")
+        self.write_app(self.bundle, "com.example.trafficgen", "5.5.0")
+        self.keep = os.path.join(self.tmp, "app-previous")
+        self.calls = []
+        self.codesign_ok = True
+        self.publish("5.8.0")
+
+    def write_app(self, path, ident, version):
+        os.makedirs(os.path.join(path, "Contents"))
+        with open(os.path.join(path, "Contents", "Info.plist"), "wb") as f:
+            self.plistlib.dump({"CFBundleIdentifier": ident, "CFBundleShortVersionString": version}, f)
+
+    def publish(self, version, ident="com.example.trafficgen", plist_version=None):
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr("OpenGenerator.app/Contents/Info.plist", self.plistlib.dumps({"CFBundleIdentifier": ident, "CFBundleShortVersionString": plist_version or version}))
+        zp = os.path.join(self.tmp, "OpenGenerator-%s-app.zip" % version)
+        with open(zp, "wb") as f:
+            f.write(buf.getvalue())
+        make_patch.build_app(zp, self.out, "new full release", self.keyfile)
+        for n in os.listdir(self.out):
+            with open(os.path.join(self.out, n), "rb") as f:
+                self.files[n] = f.read()
+        self.files["OpenGenerator-%s-app.zip" % version] = buf.getvalue()
+
+    def run_cmd(self, cmd):
+        self.calls.append(cmd[0])
+        if cmd[0].endswith("ditto"):
+            with zipfile.ZipFile(cmd[3]) as z:
+                z.extractall(cmd[4])
+        elif cmd[0].endswith("codesign") and not self.codesign_ok:
+            raise subprocess.CalledProcessError(1, cmd)
+
+    def check(self, current="5.5.0", listing=None):
+        return updater.check(current, self.get(listing=listing or app_release_list("v5.8.0")))
+
+    def install(self, info=None, tamper=None, bundle=None):
+        return updater.install_app(info or self.check(), self.app, bundle=bundle or self.bundle,
+                                   get=self.get(listing=app_release_list("v5.8.0"), tamper=tamper), run=self.run_cmd, keep=self.keep)
+
+    def version_on_disk(self):
+        with open(os.path.join(self.bundle, "Contents", "Info.plist"), "rb") as f:
+            return self.plistlib.load(f)["CFBundleShortVersionString"]
+
+    def test_any_older_version_is_offered_the_newest_app(self):
+        for cur in ("5.5.0", "5.5.2", "5.1.0", "4.9.9"):           # no window: how far behind does not matter
+            i = self.check(current=cur)
+            self.assertEqual((i["state"], i["latest"]), ("app", "5.8.0"), cur)
+        self.assertEqual(self.check(current="5.8.0")["state"], "current")
+        self.assertEqual(self.check(current="6.0.0")["state"], "current")
+
+    def test_newest_app_wins_and_beats_a_same_line_patch(self):
+        self.publish("5.9.0")
+        both = json.loads(app_release_list("v5.8.0", "v5.9.0")) + json.loads(release_list("v5.5.3"))
+        self.assertEqual(updater.check("5.5.0", self.get(listing=json.dumps(both).encode()))["latest"], "5.9.0")
+
+    def test_newer_line_without_app_files_points_to_the_page(self):
+        self.assertEqual(self.check(listing=release_list("v5.8.0"))["state"], "newer")
+
+    def test_install_replaces_the_app_and_keeps_the_old_one(self):
+        self.assertEqual(self.install(), "5.8.0")
+        self.assertEqual(self.version_on_disk(), "5.8.0")
+        with open(os.path.join(self.keep, "OpenGenerator.app.old", "Contents", "Info.plist"), "rb") as f:
+            self.assertEqual(self.plistlib.load(f)["CFBundleShortVersionString"], "5.5.0")
+        self.assertEqual(sorted(os.listdir(self.parent)), ["OpenGenerator.app"])      # no work folder or .old left behind
+
+    def test_tamper_bad_signature_and_failed_checks_change_nothing(self):
+        for tamper in (lambda n, d: d.replace(b"new full", b"evil") if n.endswith(".json") else d,
+                       lambda n, d: d + b"x" if n.endswith(".zip") else d,
+                       lambda n, d: ("00" * 64 + "\n").encode() if n.endswith(".sig") else d):
+            with self.assertRaises(updater.UpdateError):
+                self.install(tamper=tamper)
+        self.codesign_ok = False
+        with self.assertRaises(updater.UpdateError):
+            self.install()
+        self.codesign_ok = True
+        self.assertEqual(self.version_on_disk(), "5.5.0")
+        self.assertEqual(sorted(os.listdir(self.parent)), ["OpenGenerator.app"])
+
+    def test_other_app_or_wrong_version_refused(self):
+        self.publish("5.8.0", ident="com.evil.app")
+        with self.assertRaises(updater.UpdateError):
+            self.install()
+        self.publish("5.8.0", plist_version="5.7.0")
+        with self.assertRaises(updater.UpdateError):
+            self.install()
+        self.assertEqual(self.version_on_disk(), "5.5.0")
+
+    def test_a_patch_manifest_cannot_stand_in_for_an_app(self):
+        info = self.check()
+        info["assets"] = {"json": "https://x/og-patch-5.2.3.json", "sig": "https://x/og-patch-5.2.3.sig", "zip": "https://x/og-patch-5.2.3.zip"}
+        info["latest"] = "5.2.3"
+        make_patch.build(self.src, self.out, "fixes", self.keyfile)
+        with self.assertRaises(updater.UpdateError):
+            self.install(info=info)
+        self.assertEqual(self.version_on_disk(), "5.5.0")
+
+    def test_app_info_cannot_drive_the_patch_path_or_back(self):
+        with self.assertRaises(updater.UpdateError):               # an app manifest offered as a patch is refused
+            updater.install({"state": "patch", "latest": "5.8.0", "assets": self.check()["assets"]}, self.app, base=self.base, get=self.get())
+
+    def test_translocated_and_unwritable_locations_refused(self):
+        with self.assertRaises(updater.UpdateError):
+            self.install(bundle="/private/var/folders/x/AppTranslocation/ABC/d/OpenGenerator.app")
+        os.chmod(self.parent, 0o500)
+        self.addCleanup(os.chmod, self.parent, 0o700)
+        if not os.access(self.parent, os.W_OK):                    # root ignores the mode
+            with self.assertRaises(updater.UpdateError):
+                self.install()
+
+    def test_source_run_refused(self):
+        with self.assertRaises(updater.UpdateError):
+            updater.install_app(self.check(), self.app)
+
+    def test_build_app_needs_the_release_file_name(self):
+        zp = os.path.join(self.tmp, "x.zip")
+        open(zp, "wb").close()
+        with self.assertRaises(SystemExit):
+            make_patch.build_app(zp, self.out, "n", self.keyfile)
+
+    def test_route_accepts_an_app_check(self):
+        updater._LAST.clear()
+        updater._LAST.update(self.check())
+        self.assertEqual(updater.route_post("/api/update/install", self.app, lambda: "a capture is being generated")[0], 409)
+        updater._LAST.clear()
+
+
 class OverlayLoad(Env):
     def run_py(self, code):
         code = "import overlay; overlay.PUBLIC_KEY = %r\n%s" % (overlay.PUBLIC_KEY, code)     # the test key stands in for the built-in one

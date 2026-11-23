@@ -1,0 +1,2 @@
+hxxp://203.0.113.85:48170/i
+http://dl.malware-demo.example/x.sh

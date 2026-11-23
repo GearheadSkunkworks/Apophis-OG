@@ -280,7 +280,7 @@ class Outputs(unittest.TestCase):
     def test_write_all_writes_html(self):
         with tempfile.TemporaryDirectory() as d:
             paths = exports.write_all(self.camp, {"campaigns": [_crep(self.camp)], "entries": [], "errors": []}, os.path.join(d, "out"))
-            self.assertEqual(set(paths), {"campaign", "stix", "navigator", "report", "html"})
+            self.assertEqual(set(paths), {"campaign", "stix", "navigator", "report", "html", "csv", "misp"})
             self.assertTrue(paths["html"].endswith(".report.html"))
             for p in paths.values():
                 self.assertTrue(os.path.getsize(p) > 0, p)

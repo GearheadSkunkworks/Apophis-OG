@@ -502,16 +502,17 @@ class TestCache(CacheCase):
 
 class TestSources(CacheCase):
     def test_registry(self):
-        want = {"botvrij", "circl", "otx", "url", "threatfox", "urlhaus", "feodo", "c2intel-ip", "c2intel-domain",
-                "et-compromised", "blocklist-ssh", "blocklist-login", "blocklist-mail", "tor-exit", "openphish",
-                "malwarebazaar", "cisa-kev"}
+        want = {"circl", "otx", "url", "threatfox", "urlhaus", "c2intel-ip", "c2intel-domain",
+                "blocklist-ssh", "blocklist-login", "blocklist-mail", "tor-exit", "openphish", "cisa-kev"}
         self.assertTrue(want <= set(sources.FEEDS))
+        # removed because they cannot yield traffic: hash-only, empty after takedowns, a role with no compiler traffic
+        self.assertFalse({"malwarebazaar", "feodo", "et-compromised"} & set(sources.FEEDS))
         for fid, f in sources.FEEDS.items():
             self.assertEqual(fid, f.id)
             self.assertTrue(f.url.startswith("https://") or f.kind == "user_url", fid)
             self.assertTrue(callable(f.parse))
             if f.needs_key:
-                self.assertTrue(f.key_env and f.key_header)
+                self.assertTrue(f.key_env and (f.key_header or f.kind == "shodan"))  # shodan takes its key as a query parameter
         self.assertEqual(sources.FEEDS["otx"].key_env, "OTX_API_KEY")
         self.assertEqual(sources.FEEDS["threatfox"].key_env, "ABUSECH_AUTH_KEY")
 
@@ -562,8 +563,9 @@ class TestSources(CacheCase):
         with mock.patch.dict(os.environ, {}, clear=False):
             os.environ.pop("ABUSECH_AUTH_KEY", None)
             os.environ.pop("OTX_API_KEY", None)
+            os.environ.pop("SHODAN_API_KEY", None)
             with mock.patch.object(sources, "http_get", side_effect=AssertionError("no network")):
-                for fid in ("threatfox", "urlhaus", "malwarebazaar", "otx"):
+                for fid in ("threatfox", "urlhaus", "otx", "shodan"):
                     with self.assertRaises(sources.FeedError) as cm:
                         sources.fetch(fid)
                     self.assertIn("API key", str(cm.exception))
@@ -572,31 +574,27 @@ class TestSources(CacheCase):
         with self.assertRaises(sources.FeedError):
             sources.fetch("nope")
         with self.assertRaises(sources.FeedError) as cm:
-            sources.fetch("feodo", offline=True)
+            sources.fetch("tor-exit", offline=True)
         self.assertIn("offline", str(cm.exception))
 
     def test_fetch_cache_and_offline(self):
-        feodo = json.dumps([{"ip_address": "203.0.113.70", "port": 443, "status": "online",
-                             "malware": "DemoBot", "first_seen": "2026-01-01 00:00:00"},
-                            {"ip_address": "203.0.113.71", "port": 80, "status": "offline", "malware": "DemoBot"},
-                            {"ip_address": "bogus"}]).encode()
+        feodo = b"203.0.113.70\n203.0.113.71\n"
         calls = []
 
         def fake(url, **kw):
             calls.append(url)
             return feodo
         with mock.patch.object(sources, "http_get", side_effect=fake):
-            r = sources.fetch("feodo", limit=1)
+            r = sources.fetch("tor-exit", limit=1)
             self.assertEqual(len(r), 1)
-            self.assertEqual((r[0]["value"], r[0]["role"], r[0]["source"]), ("203.0.113.70", "c2", "feodo"))
-            self.assertIn("port:443", r[0]["tags"])
-            r2 = sources.fetch("feodo", limit=10)
+            self.assertEqual((r[0]["value"], r[0]["role"], r[0]["source"]), ("203.0.113.70", "tor", "tor-exit"))
+            r2 = sources.fetch("tor-exit", limit=10)
             self.assertEqual(len(r2), 2)
             self.assertEqual(len(calls), 1)  # second call served from cache
-            sources.fetch("feodo", cache=False)
+            sources.fetch("tor-exit", cache=False)
             self.assertEqual(len(calls), 2)
         with mock.patch.object(sources, "http_get", side_effect=AssertionError("no network")):
-            self.assertEqual(len(sources.fetch("feodo", offline=True)), 2)
+            self.assertEqual(len(sources.fetch("tor-exit", offline=True)), 2)
 
     def test_keys_never_cached_or_leaked(self):
         body = json.dumps({"query_status": "ok", "data": [
@@ -658,7 +656,7 @@ class TestSources(CacheCase):
     def test_list_feeds_roles(self):
         text = b"# comment\n203.0.113.1\n203.0.113.2 extra\n\nnot-an-ip\n10.0.0.1\n"
         want = {"blocklist-ssh": "brute", "blocklist-login": "brute", "blocklist-mail": "brute",
-                "tor-exit": "tor", "et-compromised": "compromised"}
+                "tor-exit": "tor", "cins-army": "scanner", "ipsum": "scanner"}
         for fid, role in want.items():
             with mock.patch.object(sources, "http_get", return_value=text):
                 r = sources.fetch(fid, cache=False)
@@ -679,7 +677,7 @@ class TestSources(CacheCase):
         self.assertEqual(r[1]["confidence"], 30)
         self.assertIn("domain-fronting", r[1]["tags"])
 
-    def test_urlhaus_bazaar_kev(self):
+    def test_urlhaus_kev(self):
         uh = json.dumps({"query_status": "ok", "urls": [
             {"url": "http://203.0.113.95/a.bin", "url_status": "online", "threat": "malware_download",
              "tags": ["elf"], "date_added": "2026-01-01 00:00:00 UTC"}]})
@@ -687,12 +685,6 @@ class TestSources(CacheCase):
             r = sources.fetch("urlhaus", key="k", cache=False, limit=7)
         self.assertEqual((r[0]["type"], r[0]["role"]), ("url", "payload"))
         self.assertIn("/limit/7/", g.call_args.args[0])
-        mb = json.dumps({"query_status": "ok", "data": [{"sha256_hash": "c" * 64, "md5_hash": "d" * 32,
-                         "signature": "DemoFam", "file_name": "x.exe", "first_seen": "2026-01-01 00:00:00"}]})
-        with mock.patch.object(sources, "http_get", return_value=mb.encode()):
-            r = sources.fetch("malwarebazaar", key="k", cache=False)
-        self.assertEqual({i["type"] for i in r}, {"sha256", "md5"})
-        self.assertIn("demofam", r[0]["tags"])
         kev = json.dumps({"vulnerabilities": [
             {"cveID": "CVE-2020-0001", "dateAdded": "2026-01-01", "vendorProject": "V", "product": "P",
              "vulnerabilityName": "N", "knownRansomwareCampaignUse": "Known"},
@@ -714,6 +706,22 @@ class TestSources(CacheCase):
         with self.assertRaises(sources.FeedError):
             sources.fetch("url", url="https://127.0.0.1/x")
 
+    def test_shodan_key_goes_in_the_query_only(self):
+        body = b'{"matches": [{"ip_str": "203.0.113.5", "port": 80, "product": "x"}]}'
+        seen = {}
+
+        def fake(url, **kw):
+            seen.update(url=url, headers=kw.get("headers"))
+            return body
+        with mock.patch.object(sources, "http_get", side_effect=fake):
+            r = sources.fetch("shodan", key="SECRETKEY", q="port:80", cache=True)
+        self.assertIn("key=SECRETKEY", seen["url"])
+        self.assertIn("query=port%3A80", seen["url"])
+        self.assertFalse(seen["headers"])
+        self.assertEqual(r[0]["value"], "203.0.113.5")
+        with mock.patch.object(sources, "http_get", side_effect=AssertionError("no network")):
+            self.assertEqual(len(sources.fetch("shodan", q="port:80", offline=True)), 1)     # key not needed from cache
+
     def test_misp_feed(self):
         man = {"11111111-1111-4111-8111-111111111111": {"timestamp": "10", "info": "old"},
                "22222222-2222-4222-8222-222222222222": {"timestamp": "20", "info": "new"},
@@ -725,9 +733,9 @@ class TestSources(CacheCase):
             urls.append(url)
             return json.dumps(man if url.endswith("manifest.json") else ev).encode()
         with mock.patch.object(sources, "http_get", side_effect=fake):
-            r = sources.fetch("botvrij", limit=5, cache=False)
+            r = sources.fetch("circl", limit=5, cache=False)
         self.assertEqual(len(r), 5)
-        self.assertEqual(r[0]["source"], "botvrij")
+        self.assertEqual(r[0]["source"], "circl")
         self.assertTrue(urls[1].endswith("22222222-2222-4222-8222-222222222222.json"))  # newest first
         self.assertFalse(any("evil" in u for u in urls))
 
@@ -756,7 +764,7 @@ class TestCli(CacheCase):
         self.assertEqual(json.loads(out.splitlines()[0])["source"], "sample_otx.json")
 
     def test_fetch_errors(self):
-        rc, out, err = self.run_cli(["fetch", "feodo", "--offline"])
+        rc, out, err = self.run_cli(["fetch", "tor-exit", "--offline"])
         self.assertEqual(rc, 2)
         self.assertIn("offline", err)
 

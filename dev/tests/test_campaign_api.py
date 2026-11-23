@@ -88,7 +88,7 @@ class TestCatalog(ApiCase):
         s, d, _ = self.get("/api/intel/feeds")
         self.assertEqual(s, 200)
         ids = {f["id"] for f in d["feeds"]}
-        self.assertTrue({"feodo", "otx", "url"} <= ids)
+        self.assertTrue({"urlhaus", "otx", "url"} <= ids)
         for f in d["feeds"]:
             for k in ("id", "title", "group", "url", "needs_key", "key_env", "roles", "note"):
                 self.assertIn(k, f)
@@ -172,7 +172,7 @@ class TestIntel(ApiCase):
         from intel import sources, model
         ok = [model.new_ioc("ipv4", "203.0.113.5", role="c2"), model.new_ioc("ipv4", "192.168.1.1", role="c2")]
         with mock.patch.object(sources, "fetch", lambda feed_id, **kw: ok):
-            s, d = self.post("/api/intel/fetch", {"feed": "feodo", "limit": 10, "key": SECRET})
+            s, d = self.post("/api/intel/fetch", {"feed": "tor-exit", "limit": 10, "key": SECRET})
         self.assertEqual(s, 200)
         self.assertEqual(d["count"], 1)
         self.assertEqual(d["iocs"][0]["value"], "203.0.113.5")
@@ -182,7 +182,7 @@ class TestIntel(ApiCase):
         def boom(feed_id, **kw):
             raise RuntimeError("/Users/x/secret/path " + kw["key"])  # release-scan: allow
         with mock.patch.object(sources, "fetch", boom):
-            s, b, _ = self.req("POST", "/api/intel/fetch", {"feed": "feodo", "key": SECRET})
+            s, b, _ = self.req("POST", "/api/intel/fetch", {"feed": "tor-exit", "key": SECRET})
         self.assertEqual(s, 200)
         self.assertNotIn(SECRET.encode(), b)
         self.assertNotIn(b"/Users/", b)  # release-scan: allow
@@ -196,7 +196,7 @@ class TestIntel(ApiCase):
 
     def test_offline_no_cache_is_inline_error(self):
         with mock.patch.dict(os.environ, {"OPENGENERATOR_CACHE": os.path.join(self.tmp, "nocache")}):
-            s, d = self.post("/api/intel/fetch", {"feed": "feodo", "offline": True})
+            s, d = self.post("/api/intel/fetch", {"feed": "tor-exit", "offline": True})
         self.assertEqual(s, 200)
         self.assertTrue(d["error"])
 

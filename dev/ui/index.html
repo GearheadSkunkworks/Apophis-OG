@@ -2075,6 +2075,9 @@ function ogUpdateDialog(){
     if(info.state === 'patch' && !info.frozen) show('Version ' + info.latest + ' is available', 'This copy runs from source, so it cannot update itself. Update it with git pull.', closeBtn());
     else if(info.state === 'patch') show('Version ' + info.latest + ' is available', 'You have ' + info.current + '.' + (info.notes ? '\n\n' + info.notes : '') + '\n\nInstalling restarts the app. Captures in progress must finish first.',
       btn('Install and restart', 'primary', () => install(info)), closeBtn('Later'));
+    else if(info.state === 'app' && !info.frozen) show('Version ' + info.latest + ' is available', 'This copy runs from source, so it cannot update itself. Update it with git pull.', closeBtn());
+    else if(info.state === 'app') show('Version ' + info.latest + ' is available', 'You have ' + info.current + '.' + (info.notes ? '\n\n' + info.notes : '') + '\n\nInstalling replaces the app and restarts it. Captures in progress must finish first.',
+      btn('Install and restart', 'primary', () => install(info)), closeBtn('Later'));
     else if(info.state === 'newer') show('Version ' + info.latest + ' is available', 'This is a full release, so it is a download rather than an update. You have ' + info.current + '.',
       btn('Open releases page', 'primary', () => { window.open(info.page, '_blank', 'noopener'); close(); }), closeBtn('Later'));
     else if(info.state === 'current') show('You are up to date', 'Version ' + info.current + ' is the latest.', closeBtn());

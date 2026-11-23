@@ -8,7 +8,7 @@ resolve to loopback/private/link-local/multicast/reserved addresses, validated a
 validated address is the one connected to, so DNS rebinding cannot swap it) and on every redirect.
 API keys: argument or env var (OTX_API_KEY, ABUSECH_AUTH_KEY); sent only as a request header to
 the feed's own host; never cached, logged or put in error text.
-Feeds set their own roles (Feodo => c2, blocklist.de ssh => brute, Tor exit list => tor, ...).
+Feeds set their own roles (C2IntelFeeds => c2, blocklist.de ssh => brute, Tor exit list => tor, ...).
 Verification status of each feed is recorded in the `notes` field (checked 2026-11-19).
 """
 import ipaddress
@@ -59,11 +59,15 @@ class Feed:
     kind: str = "simple"          # simple | misp_feed | user_url | post
     terms: str = ""
     notes: str = ""
+    max_bytes: int = 0            # response cap for this feed; 0 means FETCH_MAX
+    why: str = ""                 # one line on why the feed is offered
+    gives: str = ""               # plain statement: indicator types delivered and which of them send traffic
     params: dict = field(default_factory=dict)
 
     def public(self):
         return {"id": self.id, "title": self.title, "group": self.group, "url": self.url,
-                "needs_key": self.needs_key, "key_env": self.key_env, "format": self.fmt, "terms": self.terms}
+                "needs_key": self.needs_key, "key_env": self.key_env, "format": self.fmt, "terms": self.terms,
+                "why": self.why, "gives": self.gives}
 
 
 # ---------------------------------------------------------------- HTTP with SSRF protection
@@ -212,7 +216,7 @@ class _Redirect(urllib.request.HTTPRedirectHandler):
         if nu.scheme.lower() != "https":
             raise urllib.error.URLError("refusing redirect to non-https URL")
         old = urllib.parse.urlsplit(req.full_url)
-        if nu.hostname != old.hostname and any(h.lower() in self._secret for h in req.headers):
+        if nu.hostname != old.hostname and (any(h.lower() in self._secret for h in req.headers) or "key=" in old.query):
             raise urllib.error.URLError("refusing cross-host redirect for a keyed request")
         if self._ssrf:
             try:
@@ -315,9 +319,9 @@ def http_get(url, *, method="GET", headers=None, data=None, ssrf=False, max_byte
 
 
 # ---------------------------------------------------------------- per-feed parsers
-def _list_parser(feed_id, role, why):
+def _list_parser(feed_id, role, why, cap=FETCH_MAX):
     def parse(raw, source=None):
-        text = parsers._to_text(raw, FETCH_MAX)
+        text = parsers._to_text(raw, cap)
         out, seen = [], {}
         for ln in text.splitlines()[:200000]:
             s = ln.strip()
@@ -355,24 +359,6 @@ def _parse_c2intel(role_why):
     return parse
 
 
-def _parse_feodo(raw):
-    d = parsers._json_load(raw, FETCH_MAX)
-    out, seen = [], {}
-    for it in (d if isinstance(d, list) else parsers._lst(d.get("blocklist")) if isinstance(d, dict) else []):
-        if not isinstance(it, dict):
-            continue
-        mal = it.get("malware") or ""
-        ioc = parsers._make(str(it.get("ip_address", "")), "feodo", "", role="c2",
-                            why="Feodo Tracker lists botnet C2 servers",
-                            confidence=90 if it.get("status") == "online" else 60,
-                            tags=[mal] if mal else [], first_seen=it.get("first_seen"),
-                            note="%s C2 port %s %s" % (mal, it.get("port"), it.get("status", "")))
-        if ioc is not None and it.get("port"):
-            ioc["tags"] = model.norm_tags(ioc["tags"] + ["port:%s" % it["port"]])
-        parsers._add(out, seen, ioc)
-    return out
-
-
 def _parse_urlhaus(raw):
     d = parsers._json_load(raw, FETCH_MAX)
     out, seen = [], {}
@@ -386,24 +372,6 @@ def _parse_urlhaus(raw):
                             confidence=80 if it.get("url_status") == "online" else 50, tags=tags,
                             first_seen=it.get("date_added"), note="%s %s" % (it.get("threat", ""), it.get("url_status", "")))
         parsers._add(out, seen, ioc)
-    return out
-
-
-def _parse_bazaar(raw):
-    d = parsers._json_load(raw, FETCH_MAX)
-    out, seen = [], {}
-    items = parsers._lst(d.get("data")) if isinstance(d, dict) else []
-    for it in items:
-        if not isinstance(it, dict):
-            continue
-        tags = [t for t in parsers._lst(it.get("tags")) if isinstance(t, str)]
-        if it.get("signature"):
-            tags.append(it["signature"])
-        for k in ("sha256_hash", "md5_hash"):
-            parsers._add(out, seen, parsers._make(str(it.get(k, "")), "malwarebazaar", "", role="payload",
-                                                  why="MalwareBazaar lists malware samples", confidence=85,
-                                                  tags=tags, first_seen=it.get("first_seen"),
-                                                  note="%s %s" % (it.get("file_name", ""), it.get("file_type", ""))))
     return out
 
 
@@ -460,6 +428,72 @@ def _parse_kev(raw):
     return out
 
 
+def _parse_phishtank(raw):
+    import csv
+    import io
+    out, seen = [], {}
+    for row in csv.DictReader(io.StringIO(parsers._to_text(raw, 32 * 1024 * 1024))):
+        if (row.get("online") or "").lower() != "yes":
+            continue
+        tgt = (row.get("target") or "").strip()
+        parsers._add(out, seen, parsers._make(row.get("url") or "", "phishtank", "", role="phishing",
+                                              why="PhishTank lists verified phishing URLs", confidence=85,
+                                              tags=[tgt] if tgt and tgt != "Other" else [],
+                                              first_seen=row.get("submission_time"), note="PhishTank id %s" % row.get("phish_id", "")))
+    return out
+
+
+def _parse_dshield(raw):
+    d = parsers._json_load(raw, FETCH_MAX)
+    out, seen = [], {}
+    for it in (d if isinstance(d, list) else []):
+        if isinstance(it, dict):
+            parsers._add(out, seen, parsers._make(str(it.get("ipv4", "")), "dshield", "", role="scanner",
+                                                  why="SANS Internet Storm Center lists this address as an attack source",
+                                                  confidence=70, first_seen=it.get("date"),
+                                                  note="last seen %s" % it.get("lastseen", "")))
+    return out
+
+
+def _parse_spamhaus_drop(raw):
+    """DROP lists netblocks, not hosts: one address per block (network + 1) stands in for it, tagged with the block."""
+    out, seen = [], {}
+    for ln in parsers._to_text(raw, FETCH_MAX).splitlines()[:20000]:
+        try:
+            d = json.loads(ln)
+            net = ipaddress.ip_network(str(d["cidr"]), strict=True)
+        except (ValueError, KeyError, TypeError, RecursionError):
+            continue
+        if net.version != 4 or net.prefixlen > 30:
+            continue
+        parsers._add(out, seen, parsers._make(str(net.network_address + 1), "spamhaus-drop", "", role="scanner",
+                                              why="Spamhaus DROP lists this netblock as hijacked or run by criminals; one address stands in for it",
+                                              confidence=60, tags=["sampled-from:%s" % net, "sbl:%s" % d.get("sblid", "")],
+                                              note="Spamhaus DROP netblock %s (%s)" % (net, d.get("rir", ""))))
+    return out
+
+
+def _parse_shodan(raw):
+    """Hosts a Shodan search matched (no role: they are targets, not attackers) and the CVEs Shodan flagged on them."""
+    d = parsers._json_load(raw, FETCH_MAX)
+    out, seen = [], {}
+    for m in (parsers._lst(d.get("matches")) if isinstance(d, dict) else []):
+        if not isinstance(m, dict):
+            continue
+        prod = str(m.get("product") or "")[:60]
+        port = m.get("port")
+        host = parsers._make(str(m.get("ip_str", "")), "shodan", "", confidence=60,
+                             tags=([prod] if prod else []) + (["port:%s" % port] if port else []),
+                             note="Shodan: %s exposed on port %s" % (prod or "a service", port))
+        parsers._add(out, seen, host)
+        vulns = m.get("vulns")
+        for cve in (vulns if isinstance(vulns, list) else list(vulns) if isinstance(vulns, dict) else [])[:20]:
+            parsers._add(out, seen, parsers._make(str(cve), "shodan", "", confidence=60, tags=[prod] if prod else [],
+                                                  note="%s exposed to the internet (Shodan)" % (prod or "a service")))
+    return out
+
+
+
 def _parse_via(fn):
     return lambda raw: fn(raw)
 
@@ -470,10 +504,6 @@ def _reg(*feeds):
 
 
 FEEDS = _reg(
-    Feed("botvrij", "Botvrij.eu OSINT", "MISP feeds", "https://www.botvrij.eu/data/feed-osint/manifest.json",
-         fmt="misp", kind="misp_feed", parse=lambda raw: parsers.parse_misp(raw, "botvrij", FETCH_MAX), ttl=6 * 3600,
-         params={"base": "https://www.botvrij.eu/data/feed-osint/"},
-         terms="Free for any use (botvrij.eu)", notes="verified live 2026-11-19 (manifest + event JSON)"),
     Feed("circl", "CIRCL OSINT", "MISP feeds", "https://www.circl.lu/doc/misp/feed-osint/manifest.json",
          fmt="misp", kind="misp_feed", parse=lambda raw: parsers.parse_misp(raw, "circl", FETCH_MAX), ttl=6 * 3600,
          params={"base": "https://www.circl.lu/doc/misp/feed-osint/"},
@@ -493,21 +523,12 @@ FEEDS = _reg(
          needs_key=True, key_env="ABUSECH_AUTH_KEY", key_header="Auth-Key", fmt="json", kind="simple",
          parse=_parse_urlhaus, ttl=1800, terms="CC0; abuse.ch Auth-Key required",
          notes="needs key; verified live 2026-11-20"),
-    Feed("malwarebazaar", "MalwareBazaar recent (abuse.ch)", "abuse.ch", "https://mb-api.abuse.ch/api/v1/",
-         needs_key=True, key_env="ABUSECH_AUTH_KEY", key_header="Auth-Key", fmt="json", kind="post",
-         parse=_parse_bazaar, ttl=1800, terms="CC0; abuse.ch Auth-Key required",
-         notes="needs key; verified live 2026-11-20"),
-    Feed("feodo", "Feodo Tracker (abuse.ch)", "abuse.ch", "https://feodotracker.abuse.ch/downloads/ipblocklist.json",
-         fmt="json", parse=_parse_feodo, ttl=3600, terms="CC0", notes="verified live 2026-11-19"),
     Feed("c2intel-ip", "C2IntelFeeds addresses (30 day)", "C2", "https://raw.githubusercontent.com/drb-ra/C2IntelFeeds/master/feeds/IPC2s-30day.csv",
          fmt="csv", parse=_parse_c2intel("C2IntelFeeds lists C2 addresses"), ttl=6 * 3600,
          terms="drb-ra/C2IntelFeeds (GitHub) terms", notes="verified live 2026-11-19"),
     Feed("c2intel-domain", "C2IntelFeeds domains (30 day)", "C2", "https://raw.githubusercontent.com/drb-ra/C2IntelFeeds/master/feeds/domainC2s-30day.csv",
          fmt="csv", parse=_parse_c2intel("C2IntelFeeds lists C2 domains"), ttl=6 * 3600,
          terms="drb-ra/C2IntelFeeds (GitHub) terms", notes="verified live 2026-11-19"),
-    Feed("et-compromised", "Emerging Threats compromised hosts", "Reputation", "https://rules.emergingthreats.net/blockrules/compromised-ips.txt",
-         fmt="text", parse=_list_parser("et-compromised", "compromised", "Emerging Threats compromised-host list"),
-         ttl=6 * 3600, terms="Proofpoint ET open rules terms", notes="verified live 2026-11-19"),
     Feed("blocklist-ssh", "blocklist.de SSH attackers", "Brute force", "https://lists.blocklist.de/lists/ssh.txt",
          fmt="text", parse=_list_parser("blocklist-ssh", "brute", "blocklist.de SSH brute-force sources"),
          ttl=3600, terms="blocklist.de terms", notes="verified live 2026-11-19"),
@@ -517,6 +538,58 @@ FEEDS = _reg(
     Feed("blocklist-mail", "blocklist.de mail attackers", "Brute force", "https://lists.blocklist.de/lists/mail.txt",
          fmt="text", parse=_list_parser("blocklist-mail", "brute", "blocklist.de mail brute-force sources"),
          ttl=3600, terms="blocklist.de terms", notes="verified live 2026-11-19"),
+    Feed("cins-army", "CINS Army bad actors", "Reputation", "https://cinsscore.com/list/ci-badguys.txt",
+         fmt="text", parse=_list_parser("cins-army", "scanner", "CINS Army list of addresses attacking other networks"),
+         ttl=6 * 3600, terms="CINS Score terms", notes="verified live 2026-11-23"),
+    Feed("ipsum", "IPsum (listed on 3 or more blocklists)", "Reputation",
+         "https://raw.githubusercontent.com/stamparm/ipsum/master/levels/3.txt",
+         fmt="text", parse=_list_parser("ipsum", "scanner", "IPsum: address appears on at least three public blocklists"),
+         ttl=6 * 3600, terms="stamparm/ipsum (GitHub) terms", notes="verified live 2026-11-23"),
+    Feed("phishing-db-ips", "Phishing.Database addresses", "Phishing",
+         "https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-IPs-ACTIVE.txt",
+         fmt="text", parse=_list_parser("phishing-db-ips", "phishing", "Phishing.Database lists active phishing hosts"),
+         ttl=6 * 3600, terms="Phishing.Database (MIT licence)", notes="checked 2026-11-23"),
+    Feed("phishing-db-domains", "Phishing.Database domains", "Phishing",
+         "https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt",
+         fmt="text", parse=_list_parser("phishing-db-domains", "phishing", "Phishing.Database lists active phishing domains", 32 << 20),
+         ttl=6 * 3600, max_bytes=32 << 20, terms="Phishing.Database (MIT licence)", notes="checked 2026-11-23; large file"),
+    Feed("phishtank", "PhishTank verified online", "Phishing", "https://data.phishtank.com/data/online-valid.csv",
+         fmt="csv", parse=_parse_phishtank, ttl=3600, max_bytes=32 << 20,
+         terms="PhishTank (Cisco Talos): a few downloads per day without an app key", notes="checked 2026-11-23"),
+    Feed("dshield", "SANS ISC attack sources (DShield)", "Reputation", "https://isc.sans.edu/api/threatlist?json",
+         fmt="json", parse=_parse_dshield, ttl=6 * 3600, terms="CC BY-NC-SA 4.0 (SANS ISC); fetch only, do not redistribute",
+         notes="checked 2026-11-23"),
+    Feed("spamhaus-drop", "Spamhaus DROP netblocks", "Reputation", "https://www.spamhaus.org/drop/drop_v4.json",
+         fmt="json", parse=_parse_spamhaus_drop, ttl=24 * 3600, terms="Free for any use; credit Spamhaus; fetch at most daily",
+         notes="checked 2026-11-23"),
+    Feed("shodan", "Shodan search", "Community", "https://api.shodan.io/shodan/host/search",
+         needs_key=True, key_env="SHODAN_API_KEY", kind="shodan", fmt="json", parse=_parse_shodan, ttl=3600,
+         params={"q": "has_vuln:true"}, terms="Shodan account key required; search may use query credits",
+         notes="checked 2026-11-23"),
+    Feed("siberkapan", "SiberKapan daily threat feed", "MISP feeds", "https://siberkapan.org/misp-feed/manifest.json",
+         fmt="misp", kind="misp_feed", parse=_force_role(lambda raw: parsers.parse_misp(raw, "siberkapan", FETCH_MAX), "scanner",
+                          "SiberKapan sensors (honeypot, web server) saw this address attack", types=("ipv4",)), ttl=6 * 3600,
+         params={"base": "https://siberkapan.org/misp-feed/"}, terms="SiberKapan (official MISP default feed); see siberkapan.org",
+         notes="checked 2026-11-23"),
+    Feed("infoblox", "Infoblox threat intelligence", "MISP feeds",
+         "https://raw.githubusercontent.com/infobloxopen/threat-intelligence/main/indicators/misp/manifest.json",
+         fmt="misp", kind="misp_feed", parse=lambda raw: parsers.parse_misp(raw, "infoblox", FETCH_MAX), ttl=6 * 3600,
+         params={"base": "https://raw.githubusercontent.com/infobloxopen/threat-intelligence/main/indicators/misp/"},
+         terms="CC BY 4.0 (Infoblox)", notes="checked 2026-11-23"),
+    Feed("honeynet-ssh", "APNIC honeynet SSH brute force", "Brute force",
+         "https://feeds.honeynet.asia/bruteforce/latest-sshbruteforce-unique.csv", fmt="text",
+         parse=_list_parser("honeynet-ssh", "brute", "APNIC Community Honeynet saw this address guess SSH passwords"),
+         ttl=6 * 3600, terms="APNIC Community Honeynet Project; see feeds.honeynet.asia", notes="checked 2026-11-23"),
+    Feed("honeynet-telnet", "APNIC honeynet Telnet brute force", "Brute force",
+         "https://feeds.honeynet.asia/bruteforce/latest-telnetbruteforce-unique.csv", fmt="text",
+         parse=_list_parser("honeynet-telnet", "brute", "APNIC Community Honeynet saw this address guess Telnet passwords"),
+         ttl=6 * 3600, terms="APNIC Community Honeynet Project; see feeds.honeynet.asia", notes="checked 2026-11-23"),
+    Feed("honeynet-urls", "APNIC honeynet malware URLs", "C2", "https://feeds.honeynet.asia/url/latest-url-unique.csv",
+         fmt="text", parse=_list_parser("honeynet-urls", "payload", "APNIC Community Honeynet saw malware fetched from this URL"),
+         ttl=6 * 3600, terms="APNIC Community Honeynet Project; see feeds.honeynet.asia", notes="checked 2026-11-23"),
+    Feed("cert-pl", "CERT Polska malicious domains", "Phishing", "https://hole.cert.pl/domains/domains.txt",
+         fmt="text", parse=_list_parser("cert-pl", "phishing", "CERT Polska warning list of malicious domains"),
+         ttl=24 * 3600, terms="CERT Polska (hole.cert.pl); see the site for terms", notes="checked 2026-11-23"),
     Feed("tor-exit", "Tor exit nodes", "Anonymisation", "https://check.torproject.org/torbulkexitlist",
          fmt="text", parse=_list_parser("tor-exit", "tor", "Tor Project bulk exit list"), ttl=3600,
          terms="Tor Project", notes="verified live 2026-11-19"),
@@ -527,6 +600,79 @@ FEEDS = _reg(
          "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
          fmt="json", parse=_parse_kev, ttl=12 * 3600, terms="US Government public data", notes="verified live 2026-11-19"),
 )
+
+
+# What each feed delivers and what the campaign sends for it; wording matches the indicator cards
+# (describe.py): addresses, domains and URLs send traffic, other types are hidden as "not on the wire".
+_GIVES = {
+    "circl": "Gives IP addresses, domains and URLs (these send traffic: C2 beacons, payload downloads, phishing visits), plus CVEs, "
+             "hashes, file names and e-mail addresses (hidden). An indicator with no role word sends nothing until you give it a role.",
+    "otx": "Gives IP addresses, domains and URLs (these send traffic), plus IPv6 addresses, CVEs, hashes, file names and e-mail "
+           "addresses (hidden). An indicator with no role word sends nothing until you give it a role.",
+    "url": "Gives whatever the list holds. IP addresses, domains and URLs send traffic; hashes, file names, e-mail addresses and "
+           "CVEs of non-network products are hidden. An indicator with no role word sends nothing until you give it a role.",
+    "threatfox": "Gives IP addresses, domains and URLs (these send traffic: C2 beacons, payload downloads) and file hashes (hidden).",
+    "urlhaus": "Gives URLs only; each one sends an HTTP(S) download of an inert file.",
+    "c2intel-ip": "Gives IP addresses only; each one is a C2 server and sends repeated TLS/HTTPS beacons.",
+    "c2intel-domain": "Gives domains only; each one is a C2 server and sends a DNS lookup then TLS/HTTPS beacons.",
+    "blocklist-ssh": "Gives IP addresses only; each one sends repeated failed logins against an internal service, then one that succeeds. IPv6 entries are hidden.",
+    "blocklist-login": "Gives IP addresses only; each one sends repeated failed logins against an internal service, then one that succeeds. IPv6 entries are hidden.",
+    "blocklist-mail": "Gives IP addresses only; each one sends repeated failed logins against an internal service, then one that succeeds. IPv6 entries are hidden.",
+    "cins-army": "Gives IP addresses only; each one sends inbound connection attempts across many internal addresses and ports (a scanner).",
+    "ipsum": "Gives IP addresses only; each one sends inbound connection attempts across many internal addresses and ports (a scanner).",
+    "phishing-db-ips": "Gives IP addresses only; each one sends a workstation fetching the phishing lure page.",
+    "phishing-db-domains": "Gives domains (a few entries are bare IP addresses); each one sends a DNS lookup then a workstation fetching the phishing lure page.",
+    "phishtank": "Gives URLs only; each one sends a workstation fetching the phishing lure page.",
+    "dshield": "Gives IP addresses only; each one sends inbound connection attempts across many internal addresses and ports (a scanner).",
+    "spamhaus-drop": "Gives netblocks, so one IP address stands in for each block (tagged with it); each sends inbound connection attempts across many internal addresses and ports (a scanner).",
+    "shodan": "Gives IP addresses of exposed services (no role: they send nothing until you give them one) and CVEs; only a CVE for a network-facing product sends an inert probe, the rest are hidden.",
+    "siberkapan": "Gives IP addresses (hosts that hit its honeypot and web-server sensors); each one sends inbound connection attempts across many internal addresses and ports (a scanner). IPv6 entries are hidden.",
+    "infoblox": "Gives IP addresses, domains and URLs (these send traffic), plus CVEs, hashes, file names and e-mail addresses (hidden). An indicator with no role word sends nothing until you give it a role.",
+    "honeynet-ssh": "Gives IP addresses only; each one sends repeated failed logins against an internal service, then one that succeeds.",
+    "honeynet-telnet": "Gives IP addresses only; each one sends repeated failed logins against an internal service, then one that succeeds (the campaign sends SSH or RDP logons, not Telnet).",
+    "honeynet-urls": "Gives URLs only (many point at a bare IP address and port); each one sends an HTTP(S) download of an inert file.",
+    "cert-pl": "Gives domains (a few entries are file names, hidden); each one sends a DNS lookup then a workstation fetching the lure page.",
+    "tor-exit": "Gives IP addresses only; each one sends a Tor-style TLS session from the workstation.",
+    "openphish": "Gives URLs only; each one sends a workstation fetching the phishing lure page.",
+    "cisa-kev": "Gives CVEs only, and no hosts. Only a CVE for a network-facing product sends traffic (an inert probe of the "
+                "product's web path, then the server's refusal); the rest are hidden.",
+}
+for _f in FEEDS.values():
+    _f.gives = _GIVES[_f.id]
+assert set(_GIVES) == set(FEEDS), "every feed must state what it gives"
+
+_WHY = {
+    "circl": "Analyst-curated MISP OSINT events from a national CERT, current to the day.",
+    "otx": "The largest community pulse feed, with campaign context around each indicator.",
+    "url": "Your own list: any https page or file you trust.",
+    "threatfox": "Community-submitted C2 and payload indicators from abuse.ch, tagged by malware family.",
+    "urlhaus": "Live malware-download URLs from abuse.ch.",
+    "c2intel-ip": "Fresh C2 server addresses, including Cobalt Strike, updated daily.",
+    "c2intel-domain": "The same C2 feed as domains, with fronted domains tagged.",
+    "blocklist-ssh": "Real sources of SSH password guessing reported by honeypots and servers.",
+    "blocklist-login": "Real sources of web and service login guessing.",
+    "blocklist-mail": "Real sources of mail-service login guessing.",
+    "cins-army": "Addresses seen attacking other networks, from a long-running sensor network.",
+    "ipsum": "Addresses that appear on at least three public blocklists, so few false alarms.",
+    "dshield": "Attack sources from the SANS Internet Storm Center honeypot network.",
+    "spamhaus-drop": "Netblocks Spamhaus judges hijacked or run by criminals: the most trusted hostile-network list.",
+    "openphish": "Current phishing URLs, refreshed through the day.",
+    "phishtank": "Community-verified phishing URLs (Cisco Talos).",
+    "phishing-db-ips": "Phishing hosts reached by address, from an open, MIT-licensed list.",
+    "phishing-db-domains": "Active phishing domains from an open, MIT-licensed list.",
+    "siberkapan": "A daily own-source feed built on a real honeypot and sensor network; an official MISP default feed.",
+    "infoblox": "Indicators from a major DNS-security vendor's research team, openly licensed.",
+    "honeynet-ssh": "SSH password guessers caught by a regional honeypot network, refreshed daily.",
+    "honeynet-telnet": "Telnet password guessers caught by the same honeypot network.",
+    "honeynet-urls": "Malware download URLs captured by the same honeypots, many served from bare IPs.",
+    "cert-pl": "A national CERT's warning list of malicious domains, refreshed daily.",
+    "tor-exit": "The Tor Project's own exit list: real anonymised-egress addresses.",
+    "cisa-kev": "The US government list of vulnerabilities exploited in the wild.",
+    "shodan": "Search internet-exposed services with your own query, to build exploit-probe scenarios against products found exposed.",
+}
+for _f in FEEDS.values():
+    _f.why = _WHY[_f.id]
+assert set(_WHY) == set(FEEDS), "every feed must say why it is offered"
 
 
 # ---------------------------------------------------------------- fetch
@@ -544,13 +690,17 @@ def _key_for(feed, key):
 
 def _fetch_raw(feed, limit, key, params):
     h = {}
-    if feed.needs_key:
+    if feed.needs_key and feed.key_header:
         h[feed.key_header] = key
     if feed.kind == "user_url":
         url = check_user_url(params.get("url", ""))
         return http_get(url, ssrf=True).decode("utf-8", errors="replace")
     if feed.kind == "misp_feed":
         return _fetch_misp_feed(feed, limit)
+    if feed.kind == "shodan":
+        q = str(params.get("q") or feed.params["q"])[:200]
+        url = "%s?%s" % (feed.url, urllib.parse.urlencode({"key": key, "query": q}))
+        return http_get(url).decode("utf-8", errors="replace")
     if feed.kind == "otx":
         q = str(params.get("q") or feed.params["q"])[:100]
         url = "%s?%s" % (feed.url, urllib.parse.urlencode({"q": q, "limit": max(1, min(int(limit), 20)), "sort": "-modified"}))
@@ -560,12 +710,8 @@ def _fetch_raw(feed, limit, key, params):
         body = json.dumps({"query": "get_iocs", "days": max(1, min(int(params.get("days", 1)), 7))}).encode()
         h["Content-Type"] = "application/json"
         return http_get(feed.url, method="POST", headers=h, data=body).decode("utf-8", errors="replace")
-    if feed.id == "malwarebazaar":
-        body = urllib.parse.urlencode({"query": "get_recent", "selector": "time"}).encode()
-        h["Content-Type"] = "application/x-www-form-urlencoded"
-        return http_get(feed.url, method="POST", headers=h, data=body).decode("utf-8", errors="replace")
     url = feed.url.replace("{limit}", str(max(1, min(int(limit), 1000))))
-    return http_get(url, headers=h).decode("utf-8", errors="replace")
+    return http_get(url, headers=h, max_bytes=feed.max_bytes or FETCH_MAX).decode("utf-8", errors="replace")
 
 
 
@@ -623,7 +769,7 @@ def _fetch_misp_feed(feed, limit):
 
 def _cache_params(feed, limit, params):
     p = {k: v for k, v in params.items() if v not in (None, "")}
-    if feed.kind in ("misp_feed", "otx") or "{limit}" in feed.url:
+    if feed.kind in ("misp_feed", "otx", "shodan") or "{limit}" in feed.url:
         p["limit"] = limit
     return p
 

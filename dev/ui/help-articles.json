@@ -108,11 +108,142 @@
    "related": [
     "build-a-capture",
     "replay-a-capture",
+    "campaign-from-a-threat-report",
+    "campaign-from-a-cve",
+    "start-from-a-goal-or-template",
+    "export-indicators",
     "addressing-and-networks",
-    "generation-report",
-    "scenarios-and-categories"
+    "generation-report"
    ],
-   "body": "Nothing is sent to any real host. The builder only writes packets to a file.\n\n## Steps\n\n1. Open Campaigns. The Campaign builder shows four steps: Type, Indicators, Build and Save & run. On Type, pick Build from indicators and press Choose indicators. The other choices are Open a saved campaign (Open the library) and Start from scratch (Start empty).\n2. On Indicators, either press Fetch next to a feed under Public feeds, or open Paste or load a file, paste text or press Load file, then press Add pasted indicators. Indicators per fetch sets how many to ask for. Some feeds need an API key, typed in the box beside the feed.\n3. Review the table. Each row has a type and a role. Use the Role, Type and Text filters to narrow it. The Dropped fold lists what was removed, such as private addresses and duplicates.\n4. Under Compile a campaign, type a Campaign name. Choose the Compromised host, Lateral movement target, Beacons per C2, Start time, Speed and Beacon look (malware family). Tick the Stages to include. Pick the Address mode. Mapped is the default and moves indicator addresses into a benchmark range, so the capture holds no real third-party address.\n5. Press Compile campaign. When it succeeds, the builder reports how many stages it drafted and opens the Build step.\n6. On Build, read the stages and actions. You can add a stage, move, duplicate or delete stages and actions, and change each action's settings. An estimate appears once the campaign is valid. Fix anything listed under Problems with the campaign.\n7. On Save & run, Check shows whether the campaign is valid. Name and save has Save to library and Download JSON.\n8. Under Run it, tick Use this campaign in the next capture.\n9. Go to Compose and press Generate capture. The capture uses the Compose settings for size, company, networks and scenarios, and adds the campaign on top.\n10. In Captures, the result card has campaign results: what ran, packets per action, the indicators as they appear in the capture and the files written. Open the campaign diagram opens a printable page. See [[generation-report]].\n\n## Real addresses\n\nRun it also offers Real addresses. Type `REAL` to confirm. The file then holds the indicators' own public addresses, and replaying it on a routed network can reach real hosts, so use an isolated lab only. See [[addressing-and-networks]].\n\n## If something goes wrong\n\n- Compile campaign asks for a selection. Select at least one indicator.\n- Feeds show an error. A feed may need a key, or the network may be down. Paste a list or load a file instead.\n- Many indicators show unknown. Add a role word such as `c2` or `scanner` to the line in your file and add it again.\n- The campaign is not added. The Run it panel says it has problems. Open Check and fix them."
+   "body": "Nothing is sent to any real host. The builder only writes packets to a file.\n\n## Steps\n\n1. Open Campaigns. The Campaign builder shows four steps: Type, Indicators, Build and Save & run. On Type, pick Build from indicators and press Choose indicators. The other choices are Open a saved campaign (Open the library) and Start from scratch (Start empty).\n2. On Indicators, either press Fetch next to a feed under Public feeds, or open Paste or load a file, paste text or press Load file, then press Add pasted indicators. Indicators per fetch sets how many to ask for. Some feeds need an API key, typed in the box beside the feed.\n3. Review the table. Each row has a card, a type and a role. See [[indicator-cards]]. Use the Role, Type and Text filters to narrow it. The Dropped fold lists what was removed, such as private addresses and duplicates.\n4. Under Compile a campaign, type a Campaign name. Choose the Compromised host, Lateral movement target, Beacons per C2, Start time, Speed and Beacon look (malware family). Tick the Stages to include, or choose a Goal or a template. See [[start-from-a-goal-or-template]]. Pick the Address mode. Mapped is the default and moves indicator addresses into a benchmark range, so the capture holds no real third-party address.\n5. Press Compile campaign. When it succeeds, the builder reports how many stages it drafted and opens the Build step.\n6. On Build, read the stages and actions. You can add a stage, move, duplicate or delete stages and actions, and change each action's settings. An estimate appears once the campaign is valid. Fix anything listed under Problems with the campaign.\n7. On Save & run, Check shows whether the campaign is valid. Name and save has Save to library and Download JSON.\n8. Under Run it, tick Use this campaign in the next capture.\n9. Go to Compose and press Generate capture. The capture uses the Compose settings for size, company, networks and scenarios, and adds the campaign on top.\n10. In Captures, the result card has campaign results: what ran, packets per action, the indicators as they appear in the capture and the files written. Open the campaign diagram opens a printable page. See [[generation-report]].\n\n## Real addresses\n\nRun it also offers Real addresses. Type `REAL` to confirm. The file then holds the indicators' own public addresses, and replaying it on a routed network can reach real hosts, so use an isolated lab only. See [[addressing-and-networks]].\n\n## If something goes wrong\n\n- Compile campaign asks for a selection. Select at least one indicator.\n- Feeds show an error. A feed may need a key, or the network may be down. Paste a list or load a file instead.\n- Many indicators show unknown. Add a role word such as `c2` or `scanner` to the line in your file and add it again.\n- The campaign is not added. The Run it panel says it has problems. Open Check and fix them."
+  },
+  {
+   "id": "campaign-from-a-threat-report",
+   "kind": "workflow",
+   "title": "Build a campaign from a threat report",
+   "summary": "Paste an advisory or article and see what traffic it would make.",
+   "keywords": [
+    "threat report",
+    "advisory",
+    "paste report",
+    "article",
+    "defanged",
+    "hxxp",
+    "indicators",
+    "campaign",
+    "preview traffic"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "build-a-campaign",
+    "report-pasting-rules",
+    "indicator-cards",
+    "addressing-and-networks"
+   ],
+   "body": "Use this when you have a security advisory or news article and want its addresses and hosts as test traffic. Nothing is sent to any host named in the report. The builder only writes packets to a file.\n\n## Steps\n\n1. Open Campaigns. On Type, pick Build from indicators and press Choose indicators.\n2. On Indicators, open Paste or load a file. Paste the report text and press Add pasted indicators.\n3. Read the status line. If it says the text reads as a report, only addresses and defanged hosts were taken. See [[report-pasting-rules]].\n4. Check the table. Each row has a badge, \"on the wire\" or \"no traffic\". Hover it to see why. If a Role looks wrong, change it.\n5. Press Preview traffic in a row to see the actions, protocols and hosts that indicator would send. Press it again to close it.\n6. Read the plan above Compile campaign. It lists the stages this selection will build.\n7. Compile, review, save and generate as in [[build-a-campaign]].\n\n## If something goes wrong\n\n- Few indicators came in. Reports often hold links, file names and hashes. These are not taken from prose. Paste a plain list, or fetch a feed.\n- A row says no traffic. It has no role, or it is a kind that never sends traffic on its own. Set a role such as `c2` or `scanner`.\n- The addresses in the capture are not the ones in the report. That is the default Mapped mode. See [[addressing-and-networks]]."
+  },
+  {
+   "id": "campaign-from-a-cve",
+   "kind": "workflow",
+   "title": "Build a campaign from a CVE",
+   "summary": "Turn a known-exploited vulnerability into an inert attempt against its product.",
+   "keywords": [
+    "cve",
+    "vulnerability",
+    "kev",
+    "known exploited",
+    "exploit probe",
+    "shodan",
+    "cisa",
+    "initial access",
+    "campaign"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "build-a-campaign",
+    "cve-profiles-and-exploit-probe",
+    "indicator-cards",
+    "campaign-feeds"
+   ],
+   "body": "Use this to test whether a sensor notices an attempt against a product with a known flaw. The capture holds the shape of the attempt and no exploit content.\n\n## Steps\n\n1. Open Campaigns, pick Build from indicators and press Choose indicators.\n2. Under Public feeds, press Fetch next to CISA Known Exploited Vulnerabilities. To find CVEs on exposed hosts instead, use Shodan with your own key. See [[campaign-feeds]].\n3. Only CVEs that name a network-facing product are listed. The rest are in Dropped, with a reason.\n4. Read a card. It shows the CISA description and the required action. Press Preview traffic to see the Exploit-attempt probe it would send.\n5. Under Compile a campaign, tick Initial access in Stages. The Goal named Reconnaissance and initial access ticks it for you.\n6. Press Compile campaign, then continue as in [[build-a-campaign]].\n\n## What to expect\n\n- The probe asks for an endpoint typical of the product, posts a harmless form, and the server refuses. See [[cve-profiles-and-exploit-probe]].\n- A sensor that looks for exploit content will not fire on it. A \"missed\" result tells you something about the sensor, not about the tool.\n\n## If something goes wrong\n\n- The CVE is missing. It was dropped because its product is not network-facing, such as a browser or office program.\n- The row says no traffic. Check that Initial access is ticked."
+  },
+  {
+   "id": "start-from-a-goal-or-template",
+   "kind": "workflow",
+   "title": "Start from a goal or a template",
+   "summary": "Build a campaign from an objective, with no feed and no network.",
+   "keywords": [
+    "goal",
+    "template",
+    "starter",
+    "ransomware",
+    "lateral movement",
+    "credential theft",
+    "data theft",
+    "beaconing",
+    "offline",
+    "campaign"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "build-a-campaign",
+    "scenarios-and-categories",
+    "campaign-from-a-cve",
+    "generation-report"
+   ],
+   "body": "Use this when you know what you want to test but have no indicator list. The templates use documentation addresses and example domains, so nothing is fetched.\n\n## Steps\n\n1. Open Campaigns, pick Build from indicators and press Choose indicators.\n2. Under Compile a campaign, open Start from a template and choose one. It fills the indicator list, the campaign name and the goal.\n3. Or leave the list as it is and choose a Goal. A goal sets only the Stages and Beacons per C2. You can still change both.\n4. Check the plan above Compile campaign.\n5. Press Compile campaign, then continue as in [[build-a-campaign]].\n\n## Goals\n\n- Balanced intrusion\n- Lateral movement\n- Credential theft\n- Data theft\n- Ransomware\n- Command-and-control beaconing\n- Reconnaissance and initial access\n\nHover a template to read what it does. The five are Ransomware precursor, Credential theft chain, Slow data theft, Web-facing product compromise and Beacon-only test.\n\n## If something goes wrong\n\n- A goal changed my stages. That is its job. Tick or untick Stages afterwards.\n- The list shows not available. The templates did not load."
+  },
+  {
+   "id": "export-indicators",
+   "kind": "workflow",
+   "title": "Export indicators to a spreadsheet or MISP",
+   "summary": "Get a CSV or a MISP event from a campaign build.",
+   "keywords": [
+    "export",
+    "csv",
+    "misp",
+    "spreadsheet",
+    "indicators",
+    "event",
+    "stix",
+    "navigator",
+    "campaign files"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "build-a-campaign",
+    "generation-report",
+    "captures-and-files",
+    "indicator-cards"
+   ],
+   "body": "Use this to share a campaign's indicators with a ticket, a spreadsheet or a MISP server.\n\n## Steps\n\n1. Build a capture with a campaign. See [[build-a-campaign]].\n2. Open Captures and find the result card for that build.\n3. In the campaign results, open the list of files. Besides Campaign JSON, STIX indicator bundle, ATT&CK Navigator layer, Report and Report (web page), it now lists Indicators (CSV) and MISP event.\n4. Open the file, or find it beside the pcap. See [[captures-and-files]].\n5. To bring a MISP event back, use Paste or load a file in the builder and load it.\n\n## What each file holds\n\n- **Indicators (CSV).** Every indicator, the address it has in the capture, and whether it is on the wire. Cells that start with `=`, `+`, `-` or `@` are quoted, so a spreadsheet does not run them.\n- **MISP event.** The indicators that are on the wire. It imports into a MISP server, or back into this builder.\n- **STIX indicator bundle.** Only the indicators that appear on the wire, as they appear.\n\n## If something goes wrong\n\n- A file is missing. Only a build with a campaign writes them.\n- An address differs from your list. Mapped mode moved it. See [[addressing-and-networks]]."
+  },
+  {
+   "id": "add-your-own-campaign-action",
+   "kind": "workflow",
+   "title": "Add your own campaign action",
+   "summary": "Describe a web or text conversation in a JSON file and get a new action.",
+   "keywords": [
+    "action",
+    "json",
+    "spec",
+    "custom action",
+    "http",
+    "smtp",
+    "ftp",
+    "banner",
+    "for_role",
+    "environment variable",
+    "campaign"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "build-a-campaign",
+    "indicator-cards",
+    "scenarios-and-categories",
+    "generation-report"
+   ],
+   "body": "Use this to add a web request pattern or a plain-text conversation without writing Python. Other protocols still need a Python action.\n\n## Steps\n\n1. Make a folder for your specs. Set the environment variable `OPENGENERATOR_ACTION_SPECS` to its path before you start the app.\n2. Add a JSON file. Start from the bundled example, `admin_panel_probe`.\n3. For web traffic, give a `token`, `title`, `tactic`, `techniques` and `summary`. Then set `direction`, `port`, `tls` and the list of `requests`. Each request has a `method`, a `path`, a `status` and a `reply`.\n4. For a text conversation such as SMTP, FTP or IRC, add `\"kind\": \"tcp\"`. Use an optional `banner` the server sends first, then `exchanges` of `send` and `reply`. Only the `\\r` and `\\n` escapes are allowed, and there is no TLS.\n5. To have the compiler place the action itself, add `\"for_role\"` with a role such as `scanner` or `c2`. It then adds the action for up to three indicators of that role. The stage must be ticked.\n6. Start the app. In Build, add the action from the editor like any other.\n\n## Safety rules\n\nEvery field is checked. Bodies and replies are short printable ASCII, so a spec cannot carry a payload.\n\n## If something goes wrong\n\n- The action is missing. A spec that fails its checks is skipped. If you run from source, the errors are in `spec_actions.LOAD_ERRORS`.\n- It is not in the compiled campaign. Without `for_role` you add it by hand."
   },
   {
    "id": "lab-import-pcap",
@@ -277,7 +408,7 @@
    "id": "updates",
    "kind": "note",
    "title": "Updates",
-   "summary": "Patches and full releases.",
+   "summary": "Small patches, whole-app updates and what the dialog says.",
    "keywords": [
     "update",
     "upgrade",
@@ -285,9 +416,13 @@
     "patch",
     "install update",
     "release",
-    "download",
     "check for updates",
-    "restart"
+    "restart",
+    "replace the app",
+    "app-previous",
+    "applications folder",
+    "translocated",
+    "reinstall"
    ],
    "where": "",
    "related": [
@@ -295,7 +430,7 @@
     "sessions",
     "captures-and-files"
    ],
-   "body": "The download-arrow icon in the top bar, labelled Check for updates, opens a dialog.\n\n## You are up to date\n\nThe dialog says You are up to date and names your version.\n\n## A patch is available\n\nA patch is a version whose last number is above zero, such as 5.3.1 after 5.3.0. The dialog shows the new version, your version and the release notes. Installing restarts the app, so finish any capture in progress first.\n\nClick Install and restart, or Later. The page reloads when the app is back. If it does not return within a minute, open the app again from Applications.\n\nIf the install fails, the dialog says The update was not installed and nothing is changed.\n\n\n## A full release is available\n\nA new minor or major version, such as 5.4.0 or 6.0.0, is a download. The dialog offers Open releases page.\n\n## A copy that runs from source\n\nThe dialog tells you to update it with git pull.\n\n## If the check fails\n\nThe dialog says Could not check for updates. Try again in a moment."
+   "body": "The download-arrow icon in the top bar, labelled Check for updates, opens a dialog.\n\n## You are up to date\n\nThe dialog says You are up to date and names your version.\n\n## A patch is available\n\nA patch is a version whose last number is above zero, such as 5.5.1 after 5.5.0. It is a small update for the same major and minor version. The dialog shows the new version, your version and the release notes. Installing restarts the app, so finish any capture in progress first.\n\nClick Install and restart, or Later.\n\n## A newer version is available\n\nFrom 5.5.0 on, Update can replace the whole app with the newest full release, from any older version. The dialog says Installing replaces the app and restarts it. Click Install and restart.\n\n- The app downloads the new one, checks it, and swaps it in. It restarts by itself, and the page reloads when it is back.\n- Your old app is kept in `app-previous` in the settings folder. Each new update replaces that copy.\n- After the swap, check again. A patch for the new version may be waiting, so it can take two clicks.\n\n## When the app cannot replace itself\n\nThe app cannot swap itself if it runs from a temporary location or from a folder it cannot write to. The dialog says The update was not installed, and one of these:\n\n- Move the app to your Applications folder, open it from there, then update.\n- The folder holding the app is not writable. Move the app to your Applications folder and update from there.\n\nNothing is changed.\n\n## Versions before 5.5.0\n\nAn older app cannot update itself to a new full release. Its dialog offers Open releases page. Download the app once, then updating works from there.\n\n## Other messages\n\n- The app did not come back on its own. Open it again from Applications.\n- A copy that runs from source says to update it with git pull.\n- Could not check for updates. Try again in a moment."
   },
   {
    "id": "baseline-and-scale",
@@ -462,6 +597,136 @@
     "lab-recipes"
    ],
    "body": "A scenario is network behaviour added on top of the normal day. See [[baseline-and-scale]].\n\n## Starting points\n\nThe Starting point panel in Compose has six buttons: Clean baseline, Security, Performance, Crypto posture, OT / ICS day and Incident replay. Each selects a group of scenarios. Pressing a lit button again removes its scenarios, unless another lit group also covers them. Clean baseline clears everything. OT / ICS day also turns on the OT network.\n\n## Choose scenarios\n\nThe category list on the left has these families: Security, Performance, Crypto posture, Incident replays and Custom recipes. Security has Initial access, Credential access, Discovery, Lateral movement, Command and control, Exfiltration, Impact and Multi-stage campaign. Performance has Slow applications, Packet loss and retransmits, DNS and DHCP faults and Capacity. Crypto posture has Weak TLS and Certificate problems.\n\nSearch scenarios matches title, id, protocol and category. Family chips narrow the list. Select all and the per-category select and clear buttons change many scenarios at once.\n\n## Scenario cards\n\nOpen a card with Details or from the timeline. It shows:\n\n- chips for family, category, OT-only and Fixed size or Grows with size; a Needs verification chip marks a draft description\n- Your sensor should show\n- the protocols and hosts involved\n- When it happens, its place in the 16 hours\n- What happens, step by step\n\nVisualize opens a diagram when one exists. Add to capture or Remove from capture changes your selection.\n\n## The capture day\n\nThe Timeline view has one lane per family, a ruler from start to 16 h, and an always-on Normal day lane. Press a marker to open its card. Map lists scenarios by network zone."
+  },
+  {
+   "id": "indicator-cards",
+   "kind": "note",
+   "title": "Indicator cards",
+   "summary": "What a card says and how to read the traffic badge.",
+   "keywords": [
+    "indicator",
+    "card",
+    "family",
+    "linked to",
+    "malware family",
+    "on the wire",
+    "no traffic",
+    "preview traffic",
+    "plan",
+    "dropped"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "build-a-campaign",
+    "campaign-from-a-threat-report",
+    "cve-profiles-and-exploit-probe",
+    "campaign-feeds"
+   ],
+   "body": "Each row in the indicator table has a card.\n\n- **What it is and what it sends.** The card says what the indicator is, then \"Sends:\" with the traffic the campaign will make for it.\n- **Linked to.** If a tag, note or source names a known malware family or tool, the card adds one sentence about it, such as \"Linked to a name (kind)\". The 40 families come from a catalog inside the app. Nothing is looked up online.\n- **The badge.** \"on the wire\" means the indicator will put packets in the capture. \"no traffic\" means it will not. Hover it to read why.\n- **Preview traffic.** Shows the actions, protocols and hosts that indicator alone would produce. It comes from the same code that builds the capture, so the two agree.\n- **The plan.** Above Compile campaign, a list of the stages the current selection will build.\n- **Dropped.** Indicators that could not appear on the wire sit in the Dropped fold with a reason. These are file hashes, file names, e-mail addresses, IPv6 addresses, address ranges and CVEs for products that are not network-facing.\n\nAn indicator with no role sends nothing until you give it one.\n\nFor CVE cards, see [[cve-profiles-and-exploit-probe]]."
+  },
+  {
+   "id": "cve-profiles-and-exploit-probe",
+   "kind": "note",
+   "title": "CVE profiles and the exploit probe",
+   "summary": "How a CVE becomes an inert attempt against a product class.",
+   "keywords": [
+    "cve",
+    "profile",
+    "exploit probe",
+    "kev",
+    "cisa",
+    "product class",
+    "vpn gateway",
+    "initial access",
+    "inert",
+    "required action"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "campaign-from-a-cve",
+    "indicator-cards",
+    "campaign-feeds",
+    "build-a-campaign"
+   ],
+   "body": "A CVE from the CISA known-exploited list is matched to a product class by its vendor, product and name. The classes are VPN gateway, mail server, file transfer, remote management, web application and network device. Of the 1,790 entries, 683 can be played as traffic.\n\nThe card shows CISA's own description and required action.\n\n## The exploit probe\n\nThe Exploit-attempt probe is a campaign action in the Initial access stage. It does three things.\n\n- An outside host asks for a typical endpoint of the product class.\n- It posts a harmless form to two endpoints.\n- The server refuses with a 403.\n\nThe CVE number travels in a request header so you can trace it. There is no exploit string, shellcode or payload. Every body is filler.\n\nIn Build you can change the product class, the CVE, the Host header, the path and whether TLS is used.\n\n## What it does not do\n\nA sensor that watches for exploit content will not fire. The probe tests whether a sensor notices the pattern of an attempt. A CVE whose product is not network-facing, such as a browser, is hidden. See [[indicator-cards]]."
+  },
+  {
+   "id": "report-pasting-rules",
+   "kind": "note",
+   "title": "What pasting a report keeps",
+   "summary": "Which parts of pasted prose become indicators, and which do not.",
+   "keywords": [
+    "paste",
+    "report",
+    "prose",
+    "defanged",
+    "hxxp",
+    "live links",
+    "citations",
+    "domain",
+    "top-level domain",
+    "rejected"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "campaign-from-a-threat-report",
+    "indicator-cards",
+    "campaign-feeds",
+    "build-a-campaign"
+   ],
+   "body": "When pasted text reads as prose, the builder is careful about what it takes.\n\n## Kept\n\n- IPv4 addresses.\n- Defanged hosts, such as `hxxp://example[.]com`. The builder reads them as the real host.\n\n## Left out\n\n- Live links. In a report they are citations, not threats.\n- Domains that do not end in a real top-level domain. The builder checks a bundled IANA list. This removes file names and method names that look like domains.\n- Government, standards and security-press sites.\n- Hashes, file names and CVEs found in the middle of prose. They cannot be played from prose. Paste them as a list, or fetch a feed.\n\n## Lists\n\nIf you paste a plain list or a CSV, STIX, MISP, OTX or ThreatFox export, the format is detected. Lines it does not recognise are counted in the status line.\n\nDomains, URLs and hashes stay as written in the capture. Public addresses are moved into a benchmark range. See [[campaign-from-a-threat-report]]."
+  },
+  {
+   "id": "campaign-feeds",
+   "kind": "note",
+   "title": "Campaign feeds",
+   "summary": "The 27 feeds, what the info badge says and which need a key.",
+   "keywords": [
+    "feed",
+    "feeds",
+    "shodan",
+    "api key",
+    "info badge",
+    "offline",
+    "cache",
+    "phishtank",
+    "dshield",
+    "spamhaus",
+    "cins",
+    "ipsum"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "build-a-campaign",
+    "campaign-from-a-cve",
+    "indicator-cards",
+    "report-pasting-rules"
+   ],
+   "body": "Under Public feeds there are 27 feeds, plus From a URL for any https list.\n\n**The info badge.** Hover the badge beside a feed. It says which indicator types the feed gives and which of those send traffic. Types that never send traffic by themselves, such as file hashes, file names, e-mail addresses and CVEs for products that are not network-facing, are listed as hidden.\n\n**Keys.** ThreatFox, URLhaus, OTX and Shodan need a key. A key you type stays in the page and goes only to that feed's publisher. On macOS you can choose to keep it in the Keychain. Shodan has a query box. The default is `has_vuln:true`.\n\n**Offline.** Tick Offline (cache only) to read only what was fetched before.\n\n## What changed\n\n- Removed: MalwareBazaar (hashes only), Feodo Tracker (its lists are empty), the Emerging Threats compromised-host list (no campaign traffic) and Botvrij (not updated since February 2026).\n- Added: CINS Army, IPsum, Phishing.Database (addresses and domains), PhishTank, DShield, Spamhaus DROP and Shodan.\n- Added later: SiberKapan and Infoblox (MISP feeds), APNIC honeynet (SSH, Telnet and malware URLs) and CERT Polska domains.\n\n## Good to know\n\n- The APNIC Telnet feed lists real Telnet attackers, but the campaign has no Telnet action. Its addresses send SSH or RDP logon attempts instead.\n- SiberKapan addresses are treated as scanners. The APNIC malware URLs often point at a bare address and port.\n- Spamhaus DROP lists netblocks. One address stands in for each block.\n\nEach feed has its own terms of use. A feed can change its format without notice."
+  },
+  {
+   "id": "search-help",
+   "kind": "note",
+   "title": "Search Help",
+   "summary": "Find an article by typing what you want to do.",
+   "keywords": [
+    "search",
+    "help",
+    "find",
+    "shortcut",
+    "keyboard",
+    "ctrl k",
+    "cmd k",
+    "results",
+    "on this screen"
+   ],
+   "where": "",
+   "related": [
+    "build-a-capture",
+    "build-a-campaign",
+    "scenarios-and-categories"
+   ],
+   "body": "Press the ? icon in the top bar, or press Ctrl or Cmd + K from any screen.\n\n- Type plain words, such as \"replay a capture\" or \"make a pcap\". Every word you type has to match.\n- The status line says how many results there are. If there are none, try fewer words.\n- Titles count most, then keywords, then summaries, then the full text.\n- When you open Help from a screen, the articles for that screen come first, under \"On this screen\".\n- Open an article, then use the back button to return to your results. Related articles are at the bottom."
   }
  ]
 }

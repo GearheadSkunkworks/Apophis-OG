@@ -25,6 +25,12 @@ def _load():
                 if tok in merged:
                     raise ValueError("duplicate metadata for action " + tok)
                 merged[tok] = rec
+        try:
+            from . import spec_actions
+            for tok, rec in spec_actions.meta_records().items():
+                merged.setdefault(tok, rec)
+        except ImportError:
+            pass
         _META = merged
     return _META
 

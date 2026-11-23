@@ -113,7 +113,7 @@ def all_specs():
 def load_all():
     """Import every actions module once so each registers itself. Safe to call repeatedly."""
     import importlib
-    for name in ("c2", "delivery", "exfil", "recon", "access", "lateral", "host", "outside", "exploit", "data"):
+    for name in ("c2", "delivery", "exfil", "recon", "access", "lateral", "host", "outside", "exploit", "spec_actions", "data"):
         try:
             importlib.import_module("." + name, __name__)
         except ModuleNotFoundError as e:           # a module not written yet is fine; a broken one is not

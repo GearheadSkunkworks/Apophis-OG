@@ -1,7 +1,10 @@
-"""In-app update. A patch (X.Y.Z, Z above 0) is fetched from the project's GitHub Releases and installed as an overlay.
+"""In-app update, from the project's GitHub Releases. Two kinds:
+  patch (X.Y.Z, same MAJOR.MINOR as this build): a signed overlay, below.
+  app (a newer minor or major, from ANY older version): the whole .app is replaced by that release's full app zip (see
+  install_app); there is no version window because nothing frozen can be left behind. A newer line without app files
+  is only pointed to on the Releases page.
 
-Check: list releases, find the newest patch on this build's MAJOR.MINOR line (and note a newer minor or major, which is
-a full download from the Releases page, never installed by the app). Install: download the patch's three files
+Check: list releases, prefer the newest full app on a newer line, else the newest patch on this line. Patch install: download the patch's three files
 (og-patch-<v>.json manifest, .sig, .zip), verify the Ed25519 signature on the manifest with the public key below, check
 the zip's sha256 against the manifest, unpack safely, then swap it into <settings dir>/overlay/current (the previous
 one is kept). overlay.py loads it at the next start. Only the manifest, signature and zip are fetched; nothing about the
@@ -12,11 +15,14 @@ import hashlib
 import io
 import json
 import os
+import plistlib
 import re
 import shutil
 import ssl
 import stat
+import subprocess
 import sys
+import tempfile
 import urllib.parse
 import urllib.request
 import zipfile
@@ -24,11 +30,12 @@ import zipfile
 import overlay
 
 REPO = os.environ.get("OG_UPDATE_REPO", "GearheadSkunkworks/Apophis-OG")
-LIST_URL = os.environ.get("OG_UPDATE_URL", "https://api.github.com/repos/%s/releases?per_page=30" % REPO)
+LIST_URL = os.environ.get("OG_UPDATE_URL", "https://api.github.com/repos/%s/releases?per_page=100" % REPO)
 RELEASES_PAGE = "https://github.com/%s/releases" % REPO
 # The Ed25519 public key lives in overlay.py (PUBLIC_KEY); the private half stays with the maintainer.
 HOSTS = ("api.github.com", "github.com")                      # plus *.github.com and *.githubusercontent.com (release downloads redirect there)
 MAX_JSON, MAX_ZIP, MAX_UNPACKED, MAX_FILES = 256 * 1024, 25 * 1024 * 1024, 80 * 1024 * 1024, 4000
+MAX_APP = 200 * 1024 * 1024                                   # a full app zip (about 16 MB today)
 TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 
 
@@ -98,7 +105,7 @@ def check(current, get=_get):
         releases = json.loads(get(LIST_URL, MAX_JSON * 8))
     except (ValueError, UpdateError) as e:
         return {"state": "error", "current": current, "message": str(e) if isinstance(e, UpdateError) else "The update server sent something unexpected."}
-    best, newer = None, None
+    best, newer, app = None, None, None
     for rel in releases if isinstance(releases, list) else []:
         m = TAG.match(str(rel.get("tag_name", "")))
         if not m or rel.get("draft") or rel.get("prerelease"):
@@ -108,8 +115,22 @@ def check(current, get=_get):
             assets = {a.get("name"): a.get("browser_download_url") for a in rel.get("assets", [])}
             if all(("og-patch-%d.%d.%d.%s" % (v + (x,))) in assets for x in ("json", "sig", "zip")):
                 best = (v, rel, assets)
-        elif v[:2] > cur[:2] and (newer is None or v > newer):
-            newer = v
+        elif v[:2] > cur[:2]:
+            assets = {a.get("name"): a.get("browser_download_url") for a in rel.get("assets", [])}
+            names = ("og-app-%d.%d.%d.json" % v, "og-app-%d.%d.%d.sig" % v, "OpenGenerator-%d.%d.%d-app.zip" % v)
+            if all(n in assets for n in names) and (app is None or v > app[0]):
+                app = (v, dict(zip(("json", "sig", "zip"), (assets[n] for n in names))))
+            elif newer is None or v > newer:
+                newer = v
+    if app:                                                       # a newer minor or major: the whole app is swapped, from any older version
+        v = ".".join(map(str, app[0]))
+        try:
+            m = verify_manifest(get(app[1]["json"], MAX_JSON), get(app[1]["sig"], MAX_JSON))
+        except UpdateError as e:
+            return {"state": "error", "current": current, "message": str(e), "page": RELEASES_PAGE}
+        if m.get("version") != v or m.get("kind") != "app":
+            return {"state": "error", "current": current, "message": "The update's details do not match its release; nothing was changed."}
+        return {"state": "app", "current": current, "latest": v, "notes": str(m.get("notes") or "")[:2000], "assets": app[1], "page": RELEASES_PAGE}
     if best:
         v = ".".join(map(str, best[0]))
         assets = {x: best[2]["og-patch-%s.%s" % (v, x)] for x in ("json", "sig", "zip")}
@@ -149,13 +170,15 @@ def unpack(zip_bytes, dest):
 
 def install(info, app_dir, base=None, get=_get):
     """Download, verify and install the patch `check` found. Returns the new version. Nothing changes on any failure."""
+    if info.get("state") == "app":
+        return install_app(info, app_dir, get=get)
     if not getattr(sys, "frozen", False) and base is None:
         raise UpdateError("This copy runs from source; update it with git pull instead.")
     a = info["assets"]
     manifest_bytes, sig = get(a["json"], MAX_JSON), get(a["sig"], MAX_JSON)
     m = verify_manifest(manifest_bytes, sig)
     v, cur = overlay.parse(m.get("version", "")), overlay.parse(current_version(app_dir))
-    if m.get("version") != info["latest"] or v[:2] != cur[:2] or not v > cur or m.get("product") != "opengenerator":
+    if m.get("version") != info["latest"] or v[:2] != cur[:2] or not v > cur or m.get("product") != "opengenerator" or m.get("kind"):
         raise UpdateError("This update is not for this version; nothing was changed.")
     zbytes = get(a["zip"], MAX_ZIP)
     if hashlib.sha256(zbytes).hexdigest() != m.get("sha256"):
@@ -186,6 +209,83 @@ def install(info, app_dir, base=None, get=_get):
     return m["version"]
 
 
+def _run(cmd):
+    subprocess.run(cmd, check=True, capture_output=True, timeout=300)
+
+
+def _plist(app):
+    with open(os.path.join(app, "Contents", "Info.plist"), "rb") as fh:
+        return plistlib.load(fh)
+
+
+def install_app(info, app_dir, bundle=None, get=_get, run=_run, keep=None):
+    """Replace the running .app with the newer full release the check found (any older version, any number of minors).
+    The old app is kept in <settings dir>/app-previous. Same trust as a patch: signed manifest, then the zip's sha256,
+    then the unpacked app's bundle id, version and code signature. Nothing changes on any failure. The caller restarts."""
+    if bundle is None:
+        if not getattr(sys, "frozen", False):
+            raise UpdateError("This copy runs from source; update it with git pull instead.")
+        bundle = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(sys.executable))))
+    parent = os.path.dirname(bundle)
+    if not bundle.endswith(".app"):
+        raise UpdateError("The app's location could not be found; nothing was changed.")
+    if "/AppTranslocation/" in bundle:
+        raise UpdateError("Move the app to your Applications folder, open it from there, then update.")
+    if not os.access(parent, os.W_OK):
+        raise UpdateError("The folder holding the app is not writable; move the app to your Applications folder and update from there.")
+    a = info["assets"]
+    manifest_bytes, sig = get(a["json"], MAX_JSON), get(a["sig"], MAX_JSON)
+    m = verify_manifest(manifest_bytes, sig)
+    v, cur = overlay.parse(m.get("version", "")), overlay.parse(current_version(app_dir))
+    if m.get("version") != info["latest"] or m.get("kind") != "app" or m.get("product") != "opengenerator" or not v[:2] > cur[:2]:
+        raise UpdateError("This update is not for this version; nothing was changed.")
+    zbytes = get(a["zip"], MAX_APP)
+    if hashlib.sha256(zbytes).hexdigest() != m.get("sha256"):
+        raise UpdateError("The download did not match its checksum; nothing was changed.")
+    work = tempfile.mkdtemp(prefix=".og-update-", dir=parent)       # beside the app so the final rename never crosses a volume
+    old = bundle + ".old"
+    try:
+        zpath = os.path.join(work, "app.zip")
+        with open(zpath, "wb") as fh:
+            fh.write(zbytes)
+        out = os.path.join(work, "x")
+        run(["/usr/bin/ditto", "-x", "-k", zpath, out])             # ditto keeps the bundle's links and attributes; zipfile would not
+        apps = [d for d in os.listdir(out) if d.endswith(".app")]
+        if len(apps) != 1:
+            raise UpdateError("The update is incomplete; nothing was changed.")
+        new = os.path.join(out, apps[0])
+        try:
+            pi, pn = _plist(bundle), _plist(new)
+            if pn.get("CFBundleIdentifier") != pi.get("CFBundleIdentifier") or pn.get("CFBundleShortVersionString") != m["version"]:
+                raise UpdateError("The update is for a different app or version; nothing was changed.")
+            run(["/usr/bin/codesign", "--verify", "--deep", "--strict", new])
+        except UpdateError:
+            raise
+        except Exception:                                             # noqa: BLE001 - unreadable plist or a failed signature check
+            raise UpdateError("The new app did not verify; nothing was changed.") from None
+        try:
+            run(["/usr/bin/xattr", "-dr", "com.apple.quarantine", new])
+        except Exception:                                             # noqa: BLE001 - nothing to clear is fine
+            pass
+        shutil.rmtree(old, ignore_errors=True)
+        os.replace(bundle, old)
+        try:
+            os.replace(new, bundle)
+        except BaseException:
+            os.replace(old, bundle)
+            raise
+        prev = keep or os.path.join(os.path.dirname(overlay.base_dir()), "app-previous")
+        shutil.rmtree(prev, ignore_errors=True)
+        try:
+            os.makedirs(prev)
+            shutil.move(old, prev)                                    # kept so the old version can be put back by hand
+        except OSError:
+            shutil.rmtree(old, ignore_errors=True)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return m["version"]
+
+
 # ---- HTTP routes (server.py)
 _LAST = {}
 
@@ -207,7 +307,7 @@ def route_post(path, app_dir, busy, get=_get):
         return None
     def fail(code, msg):
         return code, json.dumps({"ok": False, "error": msg}), "application/json", None
-    if _LAST.get("state") != "patch":
+    if _LAST.get("state") not in ("patch", "app"):
         return fail(409, "Check for updates first.")
     why = busy()
     if why:

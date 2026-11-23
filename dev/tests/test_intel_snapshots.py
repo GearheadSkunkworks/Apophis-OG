@@ -20,15 +20,13 @@ DEV = os.path.dirname(HERE)
 if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
-from intel import filters, sources                     # noqa: E402
+from intel import describe, filters, sources                     # noqa: E402
 from netgen.campaign import compiler, schema           # noqa: E402
 
 SNAP = os.path.join(HERE, "fixtures", "intel", "snapshots")
 
 # feed id -> (file, record count, {type: n}, {role: n})
 EXPECTED = {
-    "botvrij": ("botvrij.json", 12, {"ipv4": 4, "domain": 2, "url": 2, "sha256": 2, "cve": 2},
-                {"c2": 6, "payload": 2, "scanner": 2, "vulnerability": 2}),
     "circl": ("circl.json", 12, {"ipv4": 4, "domain": 2, "url": 2, "sha256": 2, "cve": 2},
               {"c2": 6, "payload": 2, "scanner": 2, "vulnerability": 2}),
     "otx": ("otx.json", 10, {"ipv4": 2, "ipv6": 1, "domain": 2, "url": 1, "sha256": 1, "md5": 1, "cve": 1, "email": 1},
@@ -36,14 +34,26 @@ EXPECTED = {
     "url": ("url.txt", 4, {"url": 1, "domain": 1, "ipv4": 1, "cve": 1}, {"unknown": 2, "c2": 1, "vulnerability": 1}),
     "threatfox": ("threatfox.json", 5, {"ipv4": 1, "domain": 1, "url": 1, "sha256": 1, "md5": 1}, {"c2": 2, "payload": 3}),
     "urlhaus": ("urlhaus.json", 2, {"url": 2}, {"payload": 2}),
-    "malwarebazaar": ("malwarebazaar.json", 4, {"sha256": 2, "md5": 2}, {"payload": 4}),
-    "feodo": ("feodo.json", 2, {"ipv4": 2}, {"c2": 2}),
     "c2intel-ip": ("c2intel-ip.csv", 3, {"ipv4": 3}, {"c2": 3}),
     "c2intel-domain": ("c2intel-domain.csv", 2, {"domain": 2}, {"c2": 2}),
-    "et-compromised": ("et-compromised.txt", 3, {"ipv4": 3}, {"compromised": 3}),
     "blocklist-ssh": ("blocklist-ssh.txt", 4, {"ipv4": 3, "ipv6": 1}, {"brute": 4}),
     "blocklist-login": ("blocklist-login.txt", 2, {"ipv4": 2}, {"brute": 2}),
     "blocklist-mail": ("blocklist-mail.txt", 2, {"ipv4": 2}, {"brute": 2}),
+    "cins-army": ("cins-army.txt", 3, {"ipv4": 3}, {"scanner": 3}),
+    "ipsum": ("ipsum.txt", 3, {"ipv4": 3}, {"scanner": 3}),
+    "phishing-db-ips": ("phishing-db-ips.txt", 3, {"ipv4": 3}, {"phishing": 3}),
+    "phishing-db-domains": ("phishing-db-domains.txt", 2, {"domain": 2}, {"phishing": 2}),
+    "phishtank": ("phishtank.csv", 2, {"url": 2}, {"phishing": 2}),
+    "dshield": ("dshield.json", 2, {"ipv4": 2}, {"scanner": 2}),
+    "spamhaus-drop": ("spamhaus-drop.json", 2, {"ipv4": 2}, {"scanner": 2}),
+    "shodan": ("shodan.json", 4, {"ipv4": 2, "cve": 2}, {"unknown": 2, "vulnerability": 2}),
+    "siberkapan": ("siberkapan.json", 4, {"ipv4": 3, "ipv6": 1}, {"scanner": 3, "unknown": 1}),
+    "infoblox": ("infoblox.json", 12, {"ipv4": 4, "domain": 2, "url": 2, "sha256": 2, "cve": 2},
+                 {"c2": 6, "payload": 2, "scanner": 2, "vulnerability": 2}),
+    "honeynet-ssh": ("honeynet-ssh.txt", 2, {"ipv4": 2}, {"brute": 2}),
+    "honeynet-telnet": ("honeynet-telnet.txt", 2, {"ipv4": 2}, {"brute": 2}),
+    "honeynet-urls": ("honeynet-urls.txt", 2, {"url": 2}, {"payload": 2}),
+    "cert-pl": ("cert-pl.txt", 3, {"domain": 3}, {"phishing": 3}),
     "tor-exit": ("tor-exit.txt", 3, {"ipv4": 3}, {"tor": 3}),
     "openphish": ("openphish.txt", 3, {"url": 3}, {"phishing": 3}),
     "cisa-kev": ("cisa-kev.json", 3, {"cve": 3}, {"vulnerability": 3}),
@@ -58,7 +68,7 @@ def raw_of(fid):
 class SnapshotCoverage(unittest.TestCase):
     def test_one_snapshot_per_feed(self):
         self.assertEqual(sorted(EXPECTED), sorted(sources.FEEDS))
-        self.assertEqual(len(sources.FEEDS), 17)
+        self.assertEqual(len(sources.FEEDS), 27)
         for fid, (fn, *_rest) in EXPECTED.items():
             self.assertTrue(os.path.isfile(os.path.join(SNAP, fn)), fn)
 
@@ -82,6 +92,20 @@ class SnapshotParse(unittest.TestCase):
                                               "first_seen", "note", "why"})
                     self.assertTrue(0 <= r["confidence"] <= 100)
 
+    def test_every_feed_yields_wire_traffic_and_says_what_it_gives(self):
+        """A feed stays only if it delivers indicators the campaign can put on the wire, and its `gives`
+        statement names every type its snapshot holds."""
+        word = {"ipv4": "IP address", "ipv6": "IPv6", "domain": "domain", "url": "URL", "cve": "CVE",
+                "sha256": "hash", "md5": "hash", "email": "e-mail"}
+        for fid, (_fn, _n, types, _roles) in EXPECTED.items():
+            with self.subTest(feed=fid):
+                kept = describe.annotate(sources.FEEDS[fid].parse(raw_of(fid)), [])[0]
+                self.assertTrue(kept, "no indicator of this feed can send traffic")
+                self.assertTrue(sources.FEEDS[fid].why)
+                gives = sources.FEEDS[fid].gives
+                for t in types:
+                    self.assertIn(word[t].lower(), gives.lower(), t)
+
     def test_parse_is_repeatable(self):
         for fid in EXPECTED:
             with self.subTest(feed=fid):
@@ -90,9 +114,6 @@ class SnapshotParse(unittest.TestCase):
                 self.assertEqual(a, b)
 
     def test_feed_specific_facts(self):
-        feodo = sources.FEEDS["feodo"].parse(raw_of("feodo"))
-        self.assertEqual({r["confidence"] for r in feodo}, {90, 60})
-        self.assertTrue(all(any(t.startswith("port:") for t in r["tags"]) for r in feodo))
         kev = {r["value"]: r for r in sources.FEEDS["cisa-kev"].parse(raw_of("cisa-kev"))}
         self.assertIn("ransomware", kev["CVE-2025-1111"]["tags"])
         self.assertIn("T1190", kev["CVE-2025-1111"]["techniques"])
@@ -105,8 +126,6 @@ class SnapshotParse(unittest.TestCase):
         fr = [r for r in sources.FEEDS["c2intel-ip"].parse(raw_of("c2intel-ip")) if "domain-fronting" in r["tags"]]
         self.assertEqual(len(fr), 1)
         self.assertEqual(fr[0]["confidence"], 30)
-        bz = sources.FEEDS["malwarebazaar"].parse(raw_of("malwarebazaar"))
-        self.assertIn("demostealer", bz[0]["tags"])
 
 
 class SnapshotCompile(unittest.TestCase):
@@ -143,7 +162,7 @@ class MultiCallFeeds(unittest.TestCase):
     """The two feeds whose fetch makes several calls, with http_get stubbed."""
 
     def test_misp_feed_fetch_assembles_events(self):
-        events = json.loads(raw_of("botvrij"))
+        events = json.loads(raw_of("circl"))
         by_uuid = {e["Event"]["uuid"]: e for e in events}
         manifest = {u: {"timestamp": str(1769904000 + i)} for i, u in enumerate(by_uuid)}
 
@@ -152,9 +171,9 @@ class MultiCallFeeds(unittest.TestCase):
                 return json.dumps(manifest).encode()
             return json.dumps(by_uuid[url.rsplit("/", 1)[1][:-5]]).encode()
         with mock.patch.object(sources, "http_get", fake):
-            got = sources.fetch("botvrij", limit=500, cache=False)
-        self.assertEqual(len(got), EXPECTED["botvrij"][1])
-        self.assertTrue(all(r["source"] == "botvrij" for r in got))
+            got = sources.fetch("circl", limit=500, cache=False)
+        self.assertEqual(len(got), EXPECTED["circl"][1])
+        self.assertTrue(all(r["source"] == "circl" for r in got))
 
     def test_otx_per_pulse_indicator_calls(self):
         pulses = json.loads(raw_of("otx"))["results"]
@@ -177,7 +196,7 @@ class MultiCallFeeds(unittest.TestCase):
         self.assertEqual(sorted(r["value"] for r in got), sorted(r["value"] for r in direct))
 
     def test_keyed_feeds_via_fetch_stub(self):
-        for fid in ("threatfox", "urlhaus", "malwarebazaar"):
+        for fid in ("threatfox", "urlhaus", "shodan"):
             with self.subTest(feed=fid):
                 data = raw_of(fid).encode()
                 with mock.patch.object(sources, "http_get", lambda *a, **k: data):

@@ -1,6 +1,6 @@
 """python3 -m intel list | parse FILE | fetch FEED [--limit N] [--offline] [--no-cache] [--param k=v]
 
-Prints one JSON object per line. Keys come from OTX_API_KEY / ABUSECH_AUTH_KEY, never from flags.
+Prints one JSON object per line. Keys come from OTX_API_KEY / ABUSECH_AUTH_KEY / SHODAN_API_KEY, never from flags.
 """
 import argparse
 import json

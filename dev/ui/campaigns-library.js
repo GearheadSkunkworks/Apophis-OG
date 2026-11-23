@@ -191,11 +191,12 @@
 
   function exportList(summary) {
     var ex = ((summary && summary.campaign) || {}).exports || {};
-    var labels = { campaign: 'Campaign JSON', stix: 'STIX indicator bundle', navigator: 'ATT&CK Navigator layer', report: 'Report' };
+    var labels = { campaign: 'Campaign JSON', stix: 'STIX indicator bundle', navigator: 'ATT&CK Navigator layer', report: 'Report',
+      html: 'Report (web page)', csv: 'Indicators (CSV)', misp: 'MISP event' };
     var out = [];
     Object.keys(ex).forEach(function (id) {
       var set = ex[id] || {};
-      ['campaign', 'stix', 'navigator', 'report'].forEach(function (k) {
+      ['campaign', 'stix', 'navigator', 'report', 'html', 'csv', 'misp'].forEach(function (k) {
         if (set[k]) out.push({ campaign: id, kind: labels[k], path: String(set[k]) });
       });
     });

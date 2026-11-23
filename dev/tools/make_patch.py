@@ -3,6 +3,8 @@
 
     python3 tools/make_patch.py --notes "What changed" [--out ../prod/patch]
 
+    python3 tools/make_patch.py --app ../prod/OpenGenerator-<v>-app.zip --notes "..."   (X.Y.0: signs the full app zip)
+
 Writes og-patch-<v>.zip, og-patch-<v>.json (manifest) and og-patch-<v>.sig into the output folder. Attach those
 three files to the GitHub Release for tag v<v>; the installed app finds them there (updater.py).
 The zip is the app's source and data tree from release/ (no tests, tools or docs); run promote.py --verify first.
@@ -15,6 +17,7 @@ import getpass
 import hashlib
 import json
 import os
+import re
 import sys
 import tempfile
 import zipfile
@@ -127,9 +130,32 @@ def build(src, out_dir, notes, key_path, require_manifest=False):
     return version, zpath
 
 
+def build_app(zip_path, out_dir, notes, key_path):
+    """Sign a full app zip (OpenGenerator-<v>-app.zip) so the in-app updater can swap the whole app from any older version.
+    Writes og-app-<v>.json and .sig; attach them, with the zip, to the X.Y.0 release."""
+    name = os.path.basename(zip_path)
+    m = re.fullmatch(r"OpenGenerator-(\d+\.\d+\.\d+)-app\.zip", name)
+    if not m:
+        raise SystemExit("The app zip must be named OpenGenerator-<X.Y.Z>-app.zip, not %r." % name)
+    version = m.group(1)
+    with open(zip_path, "rb") as fh:
+        data = fh.read()
+    manifest = json.dumps({"product": "opengenerator", "kind": "app", "version": version, "date": datetime.date.today().isoformat(),
+                           "notes": notes, "sha256": hashlib.sha256(data).hexdigest(), "size": len(data)}, indent=2).encode() + b"\n"
+    key = load_key(key_path)
+    os.makedirs(out_dir, exist_ok=True)
+    base = os.path.join(out_dir, "og-app-%s" % version)
+    with open(base + ".json", "wb") as fh:
+        fh.write(manifest)
+    with open(base + ".sig", "w") as fh:
+        fh.write(key.sign(manifest).hex() + "\n")
+    return version
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--notes")
+    ap.add_argument("--app", metavar="ZIP", help="sign a full app zip (OpenGenerator-<v>-app.zip) instead of building a patch")
     ap.add_argument("--protect-key", action="store_true", help="encrypt the signing key file with a passphrase, then exit")
     ap.add_argument("--src", default=os.path.join(ROOT, "release"))
     ap.add_argument("--out", default=os.path.join(ROOT, "prod", "patch"))
@@ -141,6 +167,9 @@ def main():
         return protect_key(a.key)
     if not a.notes:
         sys.exit("--notes \"what changed\" is required.")
+    if a.app:
+        v = build_app(a.app, a.out, a.notes, a.key)
+        return print("app manifest %s written to %s. Attach og-app-%s.json, .sig and the app zip to GitHub Release v%s." % (v, a.out, v, v))
     v, z = build(a.src, a.out, a.notes, a.key, require_manifest=True)
     print("patch %s written to %s (%d KB). Attach the .zip, .json and .sig to GitHub Release v%s." % (v, a.out, os.path.getsize(z) // 1024, v))
 

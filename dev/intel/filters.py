@@ -43,7 +43,7 @@ ALLOW_DOMAINS = {
     "cisa.gov", "dhs.gov", "usa.gov", "fbi.gov", "nist.gov", "mitre.org", "cve.org", "first.org", "stopransomware.gov",
     "fortinet.com", "trendmicro.com", "sophos.com", "crowdstrike.com", "talosintelligence.com", "paloaltonetworks.com",
     "mandiant.com", "virustotal.com", "bleepingcomputer.com", "securityaffairs.com", "techtarget.com", "krebsonsecurity.com",
-    "thehackernews.com", "arcticwolf.com", "truesec.com", "itsecurityguru.org", "welivesecurity.com", "securelist.com",
+    "thehackernews.com", "mimecast.com", "arcticwolf.com", "truesec.com", "itsecurityguru.org", "welivesecurity.com", "securelist.com",
 }
 _REFERENCE_TLDS = {"gov", "mil", "edu"}          # any host under these is a public institution, not infrastructure to replay
 _RESERVED_NAMES = {"example.com", "example.org", "example.net"}

@@ -151,6 +151,8 @@ test('headline, exportList, errorList tolerate missing keys', () => {
   assert.match(T.headline({ campaign: { error: 'X: y' } }), /could not be added: X: y/);
   assert.strictEqual(T.headline({ campaign: {} }), '0 of 0 actions emitted');
   assert.strictEqual(T.exportList(SUMMARY).length, 4);
+  const more = T.exportList({ campaign: { exports: { t: { html: '/o.report.html', csv: '/o.indicators.csv', misp: '/o.misp-event.json' } } } });
+  assert.deepStrictEqual(more.map(e => e.kind), ['Report (web page)', 'Indicators (CSV)', 'MISP event']);
   assert.deepStrictEqual(T.exportList({}), []);
   assert.deepStrictEqual(T.exportList({ campaign: { exports: { a: null } } }), []);
   assert.deepStrictEqual(T.errorList(SUMMARY), ['stage s2, ldap_recon: missing host DC9', 'plain']);

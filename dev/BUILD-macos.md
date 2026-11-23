@@ -57,6 +57,7 @@ PYTHONPATH="$P" /tmp/og-build-venv/bin/pyinstaller --noconfirm --windowed \
   --add-data "$P/geo:geo"  --collect-submodules diagrams \
   --add-data "$P/netgen/campaign/attack.json:netgen/campaign" \
   --add-data "$P/netgen/campaign/campaign.schema.json:netgen/campaign" \
+  --add-data "$P/netgen/campaign/actions/specs:netgen/campaign/actions/specs" \
   --paths "$P" --collect-submodules netgen --collect-all cryptography --collect-data tzdata \
   "$P/server.py"
 

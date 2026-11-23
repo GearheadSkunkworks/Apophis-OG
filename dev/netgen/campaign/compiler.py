@@ -22,6 +22,7 @@ from urllib.parse import urlsplit
 from . import actions as _actions
 from intel import cve_profiles as _cve_profiles
 from . import addressing, attack, families, schema
+from .actions import spec_actions as _spec_actions
 
 PREFERRED = {
     "reconnaissance": ["web_dir_scan", "subdomain_enum"],
@@ -294,6 +295,22 @@ def _reconnaissance(b):
     return acts
 
 
+MAX_DATA_PER_ROLE = 3
+
+
+def _data_actions(b, tactic):
+    """Data-defined actions (specs with a "for_role") placed once per indicator of their role, in their tactic's stage."""
+    acts = []
+    for tok, role in sorted(_spec_actions.placements().items()):
+        spec = b.reg.get(tok)
+        if spec is None or spec.tactic != tactic:
+            continue
+        for i in b.hosts(role)[:MAX_DATA_PER_ROLE]:
+            pair = (b.ref(i), "web") if spec.src == "external" else (b.comp, b.ref(i))
+            b.add(acts, tok, [pair], {}, [i], "%s: %s (data-defined action)" % (b.label(i), spec.summary.rstrip(".").lower()))
+    return acts
+
+
 def _resource_development(b):
     acts = []
     doms = [i for i in b.hosts("c2", ("domain",)) + b.hosts("payload", ("domain",))]
@@ -516,6 +533,7 @@ def compile_campaign(iocs, options=None, name=None):
         if gate and gate not in opts["include"]:
             continue
         acts = fn(b)
+        acts += _data_actions(b, tactic)
         st = b.stage("s%d" % (len(stages) + 1), tactic, acts, parallel)
         if st:
             stages.append(st)

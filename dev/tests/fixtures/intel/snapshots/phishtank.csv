@@ -1,0 +1,4 @@
+phish_id,url,phish_detail_url,submission_time,verified,verification_time,online,target
+1,https://login.bank-demo.example/verify,http://www.phishtank.com/phish_detail.php?phish_id=1,2026-01-01T00:00:00+00:00,yes,2026-01-01T00:05:00+00:00,yes,DemoBank
+2,http://203.0.113.31/signin.php,http://www.phishtank.com/phish_detail.php?phish_id=2,2026-01-01T00:00:00+00:00,yes,2026-01-01T00:05:00+00:00,yes,Other
+3,https://gone.example/offline,http://www.phishtank.com/phish_detail.php?phish_id=3,2026-01-01T00:00:00+00:00,yes,2026-01-01T00:05:00+00:00,no,Other

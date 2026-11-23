@@ -1,0 +1,1 @@
+{"total":2,"matches":[{"ip_str":"203.0.113.51","port":443,"product":"nginx","vulns":{"CVE-2023-4966":{},"CVE-2024-1111":{}}},{"ip_str":"198.51.100.52","port":8443,"product":"Demo Gateway"}]}

@@ -72,12 +72,14 @@ STATIC_FILES = {                      # exact-name allow-list for GET /ui/<name>
 
 # Which indicator roles each feed is expected to supply (display hint for the feed browser).
 _FEED_ROLES = {
-    "botvrij": ["c2", "payload", "exfil", "phishing"], "circl": ["c2", "payload", "exfil", "phishing"],
+    "circl": ["c2", "payload", "exfil", "phishing"],
     "otx": ["c2", "payload", "exfil", "phishing"], "url": [], "threatfox": ["c2", "payload"],
-    "urlhaus": ["payload"], "malwarebazaar": ["payload"], "feodo": ["c2"],
-    "c2intel-ip": ["c2"], "c2intel-domain": ["c2"], "et-compromised": ["compromised"],
+    "urlhaus": ["payload"],
+    "c2intel-ip": ["c2"], "c2intel-domain": ["c2"], "siberkapan": ["c2", "payload", "exfil", "phishing"], "infoblox": ["c2", "payload", "exfil", "phishing"],
+    "honeynet-ssh": ["brute"],
+    "honeynet-telnet": ["brute"], "honeynet-urls": ["payload"], "cert-pl": ["phishing"],
     "blocklist-ssh": ["brute"], "blocklist-login": ["brute"], "blocklist-mail": ["brute"],
-    "tor-exit": ["tor"], "openphish": ["phishing"], "cisa-kev": ["cve"],
+    "tor-exit": ["tor"], "cins-army": ["scanner"], "ipsum": ["scanner"], "openphish": ["phishing"], "cisa-kev": ["cve"],
 }
 
 _LIB_LOCK = threading.Lock()
@@ -195,7 +197,8 @@ def intel_feeds():
     for f in sources.FEEDS.values():
         feeds.append({"id": f.id, "title": f.title, "group": f.group, "url": f.url,
                       "needs_key": bool(f.needs_key), "key_env": f.key_env,
-                      "roles": list(_FEED_ROLES.get(f.id, [])), "note": f.notes or f.terms or ""})
+                      "roles": list(_FEED_ROLES.get(f.id, [])), "why": f.why, "gives": f.gives,
+                      "note": " ".join(x for x in (f.why, f.gives) if x) or f.notes or f.terms or ""})
     return 200, {"feeds": feeds}
 
 
@@ -204,7 +207,7 @@ def intel_fetch(data):
     data = _need_obj(data)
     feed = data.get("feed")
     if not isinstance(feed, str) or not feed or len(feed) > 64:
-        raise ApiError(400, "'feed' must be a feed id such as 'feodo'")
+        raise ApiError(400, "'feed' must be a feed id such as 'urlhaus'")
     if feed not in sources.FEEDS:
         raise ApiError(400, "unknown feed '%s'" % _plain(feed))
     try:
@@ -328,6 +331,17 @@ def _norm_and_validate(campaign):
     return norm, [str(e) for e in errs[:200]]
 
 
+def _goals():
+    _engine()                                  # reports a broken engine as a clean 503
+    from netgen.campaign import goals
+    return goals
+
+
+def campaign_templates():
+    """Goal modes and starter templates (no feed or network needed)."""
+    return 200, _goals().catalog()
+
+
 def campaign_compile(data):
     _a, _t, schema, compiler, *_ = _engine()
     data = _need_obj(data)
@@ -342,6 +356,12 @@ def campaign_compile(data):
     name = data.get("name") or None
     if name is not None and (not isinstance(name, str) or len(name) > 200):
         raise ApiError(400, "'name' must be a string of at most 200 characters")
+    goal = data.get("goal")
+    if goal:
+        try:
+            options = dict(_goals().goal_options(goal), **(options or {}))     # explicit options win over the goal
+        except (TypeError, ValueError):
+            raise ApiError(400, "unknown goal '%s'" % _plain(goal)) from None
     try:
         camp = compiler.compile_campaign(iocs, options=options, name=name)
         explain = compiler.explain_campaign(camp)
@@ -929,6 +949,7 @@ _POST = {
 _GET = {
     "/api/intel/feeds": lambda q: intel_feeds(),
     "/api/campaign/actions": lambda q: campaign_actions(),
+    "/api/campaign/templates": lambda q: campaign_templates(),
     "/api/campaign/attack": campaign_attack,
     "/api/campaign/library": lambda q: library_list(),
 }

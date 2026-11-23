@@ -256,19 +256,19 @@ class TestFresh(unittest.TestCase):
 
         def fake(url, **k):
             calls.append(url)
-            return b'{"blocklist": [{"ip_address": "198.51.100.5", "port": 443, "status": "online", "malware": "x"}]}'
+            return b"198.51.100.5\n"
         with mock.patch.object(sources, "http_get", fake):
-            s, d = campaign_api.intel_fetch({"feed": "feodo"})
+            s, d = campaign_api.intel_fetch({"feed": "tor-exit"})
             self.assertEqual((s, len(calls)), (200, 1))
-            campaign_api.intel_fetch({"feed": "feodo"})
+            campaign_api.intel_fetch({"feed": "tor-exit"})
             self.assertEqual(len(calls), 1)                         # served from cache
-            campaign_api.intel_fetch({"feed": "feodo", "cache": False})
+            campaign_api.intel_fetch({"feed": "tor-exit", "cache": False})
             self.assertEqual(len(calls), 1)                         # not a supported option: cache still used
-            campaign_api.intel_fetch({"feed": "feodo", "fresh": True})
+            campaign_api.intel_fetch({"feed": "tor-exit", "fresh": True})
             self.assertEqual(len(calls), 2)
         for bad in ({"fresh": "yes"}, {"fresh": 1}, {"fresh": True, "offline": True}, {"offline": "x"}):
             with self.assertRaises(campaign_api.ApiError):
-                campaign_api.intel_fetch(dict(bad, feed="feodo"))
+                campaign_api.intel_fetch(dict(bad, feed="tor-exit"))
 
 
 # ---------------------------------------------------------------- gap 1: sensor addresses

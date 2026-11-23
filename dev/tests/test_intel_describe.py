@@ -38,6 +38,16 @@ class TestProse(unittest.TestCase):
         self.assertIn("http://evil.example.net/a", vals)
         self.assertFalse({v for v in vals if "trendmicro" in v or v in ("ntds.dit", "webclient.downloadstring", "cisa.gov")})
 
+    def test_defanged_forms_from_a_real_advisory(self):
+        """Forms seen in CISA AA23-061A: port suffixes, bracketed octets, a mail-gateway rewrite link."""
+        from intel import filters, parsers
+        text = self.PROSE + ("143[.]244[.]146[.]183:443\n104.21.58[.]219:443\n185.7.214[.]218\n"
+                             "https://protect-us.mimecast[.]com/s/abc?domain=5.181.234.58\n")
+        k, _ = filters.clean(parsers.parse_text(text))
+        vals = {i["value"] for i in k}
+        self.assertTrue({"143.244.146.183", "104.21.58.219", "185.7.214.218"} <= vals)
+        self.assertFalse([v for v in vals if "mimecast" in v])
+
     def test_plain_list_unchanged(self):
         from intel import parsers
         self.assertFalse(parsers.looks_like_report("a.example\nb.example\n"))
@@ -49,6 +59,26 @@ class TestProse(unittest.TestCase):
         k, d = filters.clean([ioc("domain", "www.cisa.gov"), ioc("domain", "agency.fbi.gov"), ioc("domain", "x.mil"),
                               ioc("domain", "news.sophos.com")])
         self.assertEqual((k, len(d)), ([], 4))
+
+
+class TestCatalog(unittest.TestCase):
+    def test_family_matching_is_whole_word(self):
+        from intel import catalog
+        self.assertEqual(catalog.family_for(ioc("ipv4", "198.51.100.7", tags=["Cobalt Strike"])), "cobalt-strike")
+        self.assertEqual(catalog.family_for(ioc("ipv4", "198.51.100.7", note="Akira ransomware staging")), "akira")
+        self.assertEqual(catalog.family_for(ioc("ipv4", "198.51.100.7", tags=["qbot"])), "qakbot")
+        self.assertIsNone(catalog.family_for(ioc("ipv4", "198.51.100.7", note="replay the display of a playbook")))
+
+    def test_card_carries_the_family(self):
+        c = describe.card(ioc("ipv4", "198.51.100.7", tags=["lumma stealer"]))["what"]
+        self.assertIn("Linked to Lumma Stealer (information stealer)", c)
+
+    def test_every_entry_is_complete(self):
+        from intel import catalog
+        for fid, e in catalog.FAMILIES.items():
+            self.assertEqual(len(e), 4, fid)
+            self.assertTrue(e[0] and e[1] and e[2], fid)
+            self.assertEqual(catalog.family_for({"tags": [e[0]]}), fid, fid)
 
 
 if __name__ == "__main__":

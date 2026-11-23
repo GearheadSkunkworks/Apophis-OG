@@ -12,7 +12,7 @@ Short vocabulary:
 
 - **Indicator**: one item from a feed or your own list, such as `203.0.113.7`, `update.example.net` or `CVE-2026-0001`.
 - **Role**: what the indicator is for in an attack: command and control (`c2`), `payload` delivery, `exfil`, `scanner`, `brute`, `phishing`, `tor`, `compromised`, or `vulnerability` for CVEs. Indicators with no clear role stay `unknown` and are never guessed.
-- **Action**: one network behaviour the generator can write, such as a beacon, a port scan or an SMB archive write. There are 50 (see [action-reference.md](action-reference.md)).
+- **Action**: one network behaviour the generator can write, such as a beacon, a port scan or an SMB archive write. There are 52 (see [action-reference.md](action-reference.md)); more can be added as data files, see "Adding to the builder" below.
 - **Stage**: a group of actions under one ATT&CK tactic, ordered in time.
 - **Family profile**: a beacon look-alike for a named malware family, such as its URI paths, user agent, cadence and reply sizes. There are 12.
 
@@ -31,7 +31,7 @@ Short vocabulary:
 2. **Roles.** Review the roles. You can change a role by hand; a role you set is kept. `--campaign-explain` on the command line prints why each indicator became each stage and action.
 3. **Compile.** The compiler turns indicators and roles into stages. For example a `c2` address becomes a beacon, a `scanner` becomes a scan, a `payload` URL becomes a download. A malware family named in an indicator's tags selects a family profile.
 4. **Stage editor.** The Build step shows stages and actions with live validation, a timeline and an ATT&CK tactic strip. Reorder, remove, add and set parameters.
-5. **Options and family.** Choose which stages to include and pick a family profile for beacons, or leave it on automatic.
+5. **Options, goal and family.** Choose which stages to include and pick a family profile for beacons, or leave it on automatic. A **goal** (Lateral movement, Credential theft, Data theft, Ransomware, C2 beaconing, Reconnaissance and initial access) fills in the stages and beacon count for you; you can still change them afterwards. **Start from a template** loads a small indicator set built from documentation addresses and example domains, plus its goal, so a campaign builds with no feed and no network.
 6. **Save and library.** Save the campaign JSON. The library lists saved campaigns for reuse.
 7. **Generate.** The campaign is built into the capture together with the business day. The address mode is chosen here.
 8. **Results.** The results card shows what ran, what was skipped or failed, packet counts and the files written beside the pcap.
@@ -39,7 +39,7 @@ Short vocabulary:
 10. **Sensor check and scoring.** After you replay the capture, the sensor check asks the sensor which detections fired and scores the campaign per technique and per action (`detected`, `related`, `missed`). The query is read-only.
 11. **Board.** A board shows the campaign on a map.
 
-Files written beside the pcap: `<prefix>.campaign.json`, `<prefix>.campaign-iocs.stix.json` (only the indicators that appear on the wire, as they appear), `<prefix>.attack-navigator.json`, `<prefix>.campaign-report.md` and `<prefix>.report.html`.
+Files written beside the pcap: `<prefix>.campaign.json`, `<prefix>.campaign-iocs.stix.json` (only the indicators that appear on the wire, as they appear), `<prefix>.attack-navigator.json`, `<prefix>.campaign-report.md`, `<prefix>.report.html`, `<prefix>.indicators.csv` (every indicator, the address it has in the capture and whether it is on the wire; cells that start with `=`, `+`, `-` or `@` are quoted so a spreadsheet does not run them) and `<prefix>.misp-event.json` (a MISP event of the indicators that are on the wire; it imports into a MISP server or back into this builder).
 
 ## The actions by ATT&CK tactic
 
@@ -61,23 +61,35 @@ Counts per tactic: Command and Control 9, Credential Access 6, Discovery 5, Exfi
 
 | Feed id | Source | Key |
 |---|---|---|
-| `botvrij` | Botvrij.eu OSINT (MISP feed) | no |
 | `circl` | CIRCL OSINT (MISP feed) | no |
 | `otx` | AlienVault OTX pulses | key (`OTX_API_KEY`) |
 | `url` | Any public https URL you give | no |
 | `threatfox` | ThreatFox (abuse.ch) | key (`ABUSECH_AUTH_KEY`) |
 | `urlhaus` | URLhaus (abuse.ch) | key (`ABUSECH_AUTH_KEY`) |
-| `malwarebazaar` | MalwareBazaar recent (abuse.ch) | key (`ABUSECH_AUTH_KEY`) |
-| `feodo` | Feodo Tracker (abuse.ch) | no |
 | `c2intel-ip` | C2IntelFeeds addresses, 30 day | no |
 | `c2intel-domain` | C2IntelFeeds domains, 30 day | no |
-| `et-compromised` | Emerging Threats compromised hosts | no |
 | `blocklist-ssh` | blocklist.de SSH attackers | no |
 | `blocklist-login` | blocklist.de login attackers | no |
 | `blocklist-mail` | blocklist.de mail attackers | no |
+| `cins-army` | CINS Army bad actors | no |
+| `ipsum` | IPsum, listed on 3 or more blocklists | no |
+| `phishing-db-ips` | Phishing.Database active phishing addresses | no |
+| `phishing-db-domains` | Phishing.Database active phishing domains | no |
+| `phishtank` | PhishTank verified online phishing URLs | no |
+| `dshield` | SANS ISC attack sources (DShield) | no |
+| `spamhaus-drop` | Spamhaus DROP netblocks (one address stands in per block) | no |
+| `shodan` | Shodan search (exposed hosts and their CVEs; query box, default `has_vuln:true`) | key (`SHODAN_API_KEY`) |
+| `siberkapan` | SiberKapan daily threat feed (MISP feed) | no |
+| `infoblox` | Infoblox threat intelligence (MISP feed) | no |
+| `honeynet-ssh` | APNIC honeynet SSH brute force | no |
+| `honeynet-telnet` | APNIC honeynet Telnet brute force | no |
+| `honeynet-urls` | APNIC honeynet malware URLs | no |
+| `cert-pl` | CERT Polska malicious domains | no |
 | `tor-exit` | Tor exit nodes | no |
 | `openphish` | OpenPhish community feed | no |
 | `cisa-kev` | CISA Known Exploited Vulnerabilities | no |
+
+Every feed in the builder delivers indicators a campaign can put on the wire. Hover the info badge beside a feed to read which indicator types it gives and which of them send traffic; types that are not seen on the wire by themselves (file hashes, file names, e-mail addresses, CVEs of non-network products) are listed as hidden, and an indicator with no role sends nothing until you give it one. Feeds that could not produce traffic were removed: MalwareBazaar (file hashes only), Feodo Tracker (its datasets are empty after botnet takedowns, per its FAQ, checked 2026-11-23) the Emerging Threats compromised-host list (the compromised role has no campaign traffic) Botvrij (not updated since 2026-02-03) and Dataplane.org (non-commercial use only, no redistribution, which does not suit an open tool).
 
 Each feed has its own terms of use; `--list-feeds` shows them. Feed results are cached, and `--offline` reads only the cache.
 
@@ -109,12 +121,30 @@ python3 opengenerator_build.py --intel-file indicators.txt --save-campaign my.ca
 python3 opengenerator_build.py --campaign my.campaign.json --scale 0.05 --out my.pcap
 ```
 
+## What the indicator list shows
+
+The list shows only indicators that can reasonably appear on the wire. Anything else is moved to the collapsed "Dropped" list with a reason, so nothing disappears silently.
+
+- **Shown:** IPv4 addresses, domains and URLs, and CVEs whose record names a network-facing product (a VPN gateway, mail server, file-transfer or collaboration server, remote-management server, web application or network appliance).
+- **Hidden, with a reason:** file hashes, file names, e-mail addresses, IPv6 addresses, address ranges, and CVEs with no network-facing product (browser, Office, kernel and local-privilege flaws).
+- **Card per indicator:** what it is, what the campaign will send for it, and for a CVE the feed's own description and required action. A family named in the tags (for example a loader, ransomware group or C2 framework) adds a one-sentence description from a catalog bundled with the app, so nothing needs a lookup.
+- **Preview traffic:** each row can show the actions, protocols and hosts that indicator alone would produce, taken from the compiler itself so it cannot disagree with the capture. Above Compile, a plan lists the stages the current selection will build.
+- **Pasting a report:** text that reads as prose (an advisory or article) keeps only addresses and defanged hosts (`hxxp`, `[.]`). Live links in a report are citations, so they are not taken. Domains must end in a real top-level domain from the bundled IANA list, which removes file names and method names that look like domains. Government, standards and security-press sites are allow-listed. Hashes, file names and CVEs found in prose cannot be played; paste a list or fetch a feed for those.
+
+## Adding to the builder
+
+- **A family description:** add an entry to `intel/catalog.py` (name, kind, one sentence, aliases). Matching is whole-word on tags, note and source.
+- **A CVE product class:** add a profile to `intel/cve_profiles.py` (a pattern, endpoints, port, TLS). The profile describes the shape of an attempt only. A regression test lists real catalog headers and the class each should land in.
+- **A new HTTP(S) behaviour as data:** drop a JSON file in `netgen/campaign/actions/specs/` (or in the folder named by the environment variable `OPENGENERATOR_ACTION_SPECS`). It lists the requests a client sends and the replies it gets, plus the ATT&CK tactic and techniques. Every field is validated; bodies and replies are short printable ASCII, so a spec cannot carry a payload. A spec that fails validation is skipped and its errors are kept in `spec_actions.LOAD_ERRORS`. The action appears in the editor like any other and gets its capture filters and plain text generated from the spec. See `specs/admin_panel_probe.json`.
+- **Plain-text protocols as data:** a spec with `"kind": "tcp"` describes an SMTP, FTP, IRC or custom-banner conversation instead: an optional `banner` the server sends first, then `exchanges` of `send` and `reply` text (only the `\r` and `\n` escapes, no TLS). Everything else (validation, generated filters, printable ASCII only) works as for HTTP.
+- **Automatic placement:** add `"for_role": "scanner"` (or `c2`, `payload`, `exfil`, `brute`, `phishing`, `tor`) to a spec and the compiler adds the action, in its tactic's stage, for up to three indicators of that role. The stage must be switched on. Without `for_role` a spec action is added by hand in the editor. The bundled example has no `for_role`, so default campaigns are unchanged.
+
 ## Limits and known gaps
 
 - **Sensor feedback is tested only with fixtures.** The scoring reads detections in the format the platform's API documents. It has not yet been replayed against a live sensor, so treat a score as provisional until it has.
-- **Keyed feeds:** abuse.ch feeds and OTX were verified live on 2026-11-20. Other feeds were verified on 2026-11-19. A feed can change its format or terms without notice.
+- **Keyed feeds:** abuse.ch feeds and OTX were verified live on 2026-11-20. Other feeds were verified on 2026-11-19, and CINS Army and IPsum on 2026-11-23. A feed can change its format or terms without notice.
 - Actions imitate the network behaviour that public reporting documents. A sensor's analytics may or may not flag a given action, which is what the scoring is for. A "missed" result is information, not a failure of the tool.
-- CVE indicators are carried as detection expectations. They are not testable by packets and are counted, not scored.
+- A CVE becomes traffic only when its record names a network-facing product (see "What the indicator list shows"). Even then the capture holds the shape of an attempt against that product class, with no exploit content, so whether a sensor flags it depends on the sensor. Other CVEs are hidden from the list.
 - The mapped address range is deterministic but not a model of your network; hosts inside the capture come from the generator's company model.
 - Family profiles copy documented cadence and size defaults. Real builds are often configurable, so a profile is a look-alike, not a claim about every build.
 

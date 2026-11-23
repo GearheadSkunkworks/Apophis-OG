@@ -56,7 +56,7 @@ function makeEnv(fetchImpl, o) {
   const fold = new Node_('details'); fold.setAttribute('id', 'ogc-fold'); body.appendChild(fold);
   const win = {console};
   const ctx = vm.createContext({window: win, document: doc, fetch: fetchImpl || (() => Promise.reject(new Error('no fetch'))),
-    FileReader: class {}, setTimeout: (fn) => 0, console, JSON, Promise, Math, Date, Object, Array, String, Number, RegExp, Error, isFinite, parseInt});
+    FileReader: class {}, setTimeout: o.realTimers ? setTimeout : (fn) => 0, clearTimeout, console, JSON, Promise, Math, Date, Object, Array, String, Number, RegExp, Error, isFinite, parseInt});
   vm.runInContext(SRC, ctx, {filename: 'campaigns.js'});
   return {OGC: win.OGC, doc, body, root, fold, win};
 }
@@ -276,7 +276,7 @@ test('indicators step: feeds list, key never sent unless typed, parse merge, com
     const body = opts && opts.body ? JSON.parse(opts.body) : null; sent.push([url, body]);
     if (url === '/api/intel/feeds') return reply(200, {feeds: [
       {id: 'otx', title: 'OTX', group: 'Community', needs_key: true, key_env: 'OTX_KEY', note: 'n'},
-      {id: 'feodo', title: 'Feodo', group: 'abuse.ch', needs_key: false, note: ''}]});
+      {id: 'urlhaus', title: 'URLhaus', group: 'abuse.ch', needs_key: false, note: ''}]});
     if (url === '/api/intel/parse') return reply(200, {iocs: [
       {type: 'domain', value: 'x.example', role: 'c2', confidence: 50, source: 'paste', why: 'w'},
       {type: 'ipv4', value: '203.0.113.5', role: 'payload', confidence: 60, source: 'paste', why: 'w'}],
@@ -376,6 +376,32 @@ test('table caps rendering at 500 rows with a show-more control', async () => {
   more.click(); assert.strictEqual(root.find(n => n.tagName === 'TD' && n.className === 'ogc-value').length, 1000);
 });
 
+test('indicator cards, traffic preview toggle and the plan summary', async () => {
+  const ioc = {type: 'ipv4', value: '203.0.113.9', role: 'c2', confidence: 5, source: 's', why: 'w',
+    card: {what: '203.0.113.9 IP address: a command-and-control server', traffic: 'Sends: repeated beacons.'}};
+  const calls = [];
+  const {OGC, root} = makeEnv((url, body) => {
+    calls.push(url);
+    if (url === '/api/intel/feeds') return reply(200, {feeds: []});
+    if (url === '/api/campaign/preview') return reply(200, {observable: true, actions: [{title: 'HTTPS beacon', protocols: ['TLS'], from: 'ws', to: 'c2:0', summary: 'Beacons.'}]});
+    if (url === '/api/campaign/observability') return reply(200, {observability: [], plan: [{name: 'Execution', narrative: 'the payload runs', actions: 1}, {name: 'Discovery', narrative: 'the operator looks around', actions: 3}]});
+    return reply(200, {iocs: [ioc], dropped: []});
+  }, {realTimers: true});
+  await OGC.goto('indicators'); await tick();
+  root.find(n => n.tagName === 'TEXTAREA')[0].value = 'x';
+  root.find(n => n.tagName === 'BUTTON' && n.textContent === 'Add pasted indicators')[0].click(); await tick(); await tick();
+  assert.ok(root.find(n => n.tagName === 'DIV' && n.textContent === ioc.card.what).length >= 1, 'card text is shown');
+  assert.ok(root.find(n => n.tagName === 'DIV' && n.textContent === ioc.card.traffic).length >= 1);
+  const btn = root.find(n => n.tagName === 'BUTTON' && n.textContent === 'Preview traffic')[0];
+  btn.click(); await tick(); await tick();
+  assert.ok(calls.includes('/api/campaign/preview'));
+  assert.ok(root.find(n => n.tagName === 'DIV' && /^HTTPS beacon \(TLS\): ws to c2:0/.test(n.textContent)).length === 1);
+  await new Promise(r => setTimeout(r, 700)); await tick();
+  assert.ok(calls.includes('/api/campaign/observability'));
+  assert.ok(root.find(n => n.tagName === 'DIV' && n.textContent === 'This selection will build 2 stages:').length === 1);
+  assert.ok(root.find(n => n.tagName === 'DIV' && /^Discovery \(3 actions\): the operator looks around/.test(n.textContent)).length === 1);
+});
+
 test('step 1: start from scratch and open a saved campaign', async () => {
   const {OGC, root} = makeEnv(() => reply(200, {}));
   OGC.registerStep({id: 'build', title: 'Build', mount() {}});
@@ -386,4 +412,23 @@ test('step 1: start from scratch and open a saved campaign', async () => {
   root.find(n => n.tagName === 'BUTTON' && n.textContent === 'Start empty')[0].click(); await tick();
   assert.strictEqual(OGC.state.step, 'build'); assert.strictEqual(OGC.state.campaign.schema, 'opengenerator.campaign/1');
   assert.strictEqual(OGC.state.dirty, false);
+});
+
+test('a template loads its indicators and sets the goal options', async () => {
+  const cat = {goals: [{id: 'balanced', title: 'Balanced', plain: 'Default.', options: {}},
+                       {id: 'c2-beaconing', title: 'C2 only', plain: 'Only the command channel.', options: {include: [], beacons_per_c2: 12}}],
+               templates: [{id: 'beacon-only', title: 'Beacon-only test', goal: 'c2-beaconing', plain: 'Two servers.',
+                            iocs: [{type: 'ipv4', value: '203.0.113.13', role: 'c2', confidence: 80, source: 'template', why: 'template command server'}]}]};
+  const {OGC, root} = makeEnv((url) => url === '/api/intel/feeds' ? reply(200, {feeds: []}) :
+    url === '/api/campaign/templates' ? reply(200, cat) : reply(200, {observability: [], plan: []}));
+  await OGC.goto('indicators'); await tick(); await tick();
+  const tpl = root.find(n => n.tagName === 'SELECT' && n.id === 'ogc-tpl')[0];
+  assert.ok(!tpl.disabled);
+  assert.strictEqual(root.find(n => n.tagName === 'SELECT' && n.id === 'ogc-goal')[0].children.length, 2);
+  tpl.value = 'beacon-only'; tpl.fire('change');
+  assert.strictEqual(OGC.state.iocs.length, 1);
+  assert.strictEqual(OGC.state.iocs[0].value, '203.0.113.13');
+  assert.deepStrictEqual(OGC.state.options.include, []);
+  assert.strictEqual(OGC.state.options.beacons_per_c2, 12);
+  assert.strictEqual(OGC.state.name, 'Beacon-only test');
 });

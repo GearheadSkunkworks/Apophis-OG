@@ -291,7 +291,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
       Supplying one activates the 'campaign' scenario, exactly as recipes activate custom-import;
       with none the scenario is inert and the capture is unchanged. After the build the campaign
       exports are written beside the pcap (<out>.campaign.json, .campaign-iocs.stix.json,
-      .attack-navigator.json, .campaign-report.md).
+      .attack-navigator.json, .campaign-report.md, .report.html, .indicators.csv, .misp-event.json).
     address_mode: 'mapped' (default; indicator IPv4 re-addressed into 198.18.0.0/15) or 'real'.
       Real addresses require confirm_real_addresses=True, otherwise ValueError.
 

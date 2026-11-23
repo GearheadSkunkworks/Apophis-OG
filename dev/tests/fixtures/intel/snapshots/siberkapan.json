@@ -1,0 +1,56 @@
+[
+ {
+  "Event": {
+   "uuid": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+   "info": "Synthetic daily sensor feed",
+   "date": "2026-01-01",
+   "timestamp": "1767225600",
+   "Orgc": {
+    "name": "Demo"
+   },
+   "Tag": [
+    {
+     "name": "tlp:white"
+    }
+   ],
+   "Attribute": [
+    {
+     "type": "ip-src",
+     "category": "Network activity",
+     "value": "203.0.113.61",
+     "comment": "score=30 reports=1 country=ZZ",
+     "to_ids": true,
+     "timestamp": "1767225600",
+     "uuid": "bbbbbbbb-bbbb-4bbb-8bbb-000000000061"
+    },
+    {
+     "type": "ip-src",
+     "category": "Network activity",
+     "value": "203.0.113.62",
+     "comment": "score=30 reports=1 country=ZZ",
+     "to_ids": true,
+     "timestamp": "1767225600",
+     "uuid": "bbbbbbbb-bbbb-4bbb-8bbb-000000000062"
+    },
+    {
+     "type": "ip-src",
+     "category": "Network activity",
+     "value": "203.0.113.63",
+     "comment": "score=30 reports=1 country=ZZ",
+     "to_ids": true,
+     "timestamp": "1767225600",
+     "uuid": "bbbbbbbb-bbbb-4bbb-8bbb-000000000063"
+    },
+    {
+     "type": "ip-src",
+     "category": "Network activity",
+     "value": "2001:db8::64",
+     "comment": "score=30",
+     "to_ids": true,
+     "timestamp": "1767225600",
+     "uuid": "bbbbbbbb-bbbb-4bbb-8bbb-000000000064"
+    }
+   ]
+  }
+ }
+]
