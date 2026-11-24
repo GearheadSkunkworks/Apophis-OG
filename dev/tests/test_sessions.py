@@ -115,6 +115,43 @@ class SessionsTest(unittest.TestCase):
         self.assertEqual(st["scenarios"], ["a"])
         self.assertNotIn("evil", st)
 
+    def test_v2_size_and_armed_round_trip_through_last_and_named(self):
+        st = dict(STATE, armed=True)
+        post("/api/session/last", {"state": st})
+        got = get("/api/session/last")[1]["state"]
+        self.assertEqual(got["controls"]["scale"], 0.25)
+        self.assertIs(got["armed"], True)
+        self.assertEqual(got["v"], 2)
+        sid = post("/api/session/save", {"name": "Big", "state": st})[1]["id"]
+        loaded = get("/api/session/load", "id=" + sid)[1]["state"]
+        self.assertEqual(loaded["controls"]["scale"], 0.25)
+        self.assertIs(loaded["armed"], True)
+
+    def test_scale_is_clamped_and_bad_values_dropped_armed_only_true_arms(self):
+        def clean(**kw):
+            return S.clean_state({"controls": dict({"company": "x"}, **kw)})
+        self.assertEqual(clean(scale=50)["controls"]["scale"], 1.0)
+        self.assertEqual(clean(scale="0")["controls"]["scale"], 0.001)
+        self.assertNotIn("scale", clean(scale="big")["controls"])
+        self.assertNotIn("scale", clean(scale=True)["controls"])
+        self.assertNotIn("scale", clean(scale=float("nan"))["controls"])
+        self.assertIs(S.clean_state({"controls": {"a": 1}, "armed": "yes"})["armed"], False)
+        self.assertIs(S.clean_state({"controls": {"a": 1}, "armed": 1})["armed"], False)
+        self.assertIs(S.clean_state({"controls": {"a": 1}, "armed": True})["armed"], True)
+
+    def test_old_v1_session_without_size_or_armed_still_saves_and_loads(self):
+        old = {"v": 1, "controls": {"company": "Acme"}, "otp": {}, "scenarios": ["a"], "recipes": [], "shifts": {}}
+        sid = post("/api/session/save", {"name": "Old", "state": old})[1]["id"]
+        loaded = get("/api/session/load", "id=" + sid)[1]["state"]
+        self.assertEqual(loaded["controls"], {"company": "Acme"})
+        self.assertIs(loaded["armed"], False)
+        self.assertNotIn("scale", loaded["controls"])
+        # a file written by 5.5.3 (no "armed" key at all) is returned as it was; the page treats a missing flag as "leave as is"
+        d = os.environ["OPENGENERATOR_SESSIONS"]
+        with open(os.path.join(d, "s-legacy.json"), "w") as f:
+            json.dump({"name": "Legacy", "saved_at": 1, "state": old}, f)
+        self.assertEqual(get("/api/session/load", "id=legacy")[0], 200)
+
     def test_files_are_private(self):
         post("/api/session/last", {"state": STATE})
         d = os.environ["OPENGENERATOR_SESSIONS"]

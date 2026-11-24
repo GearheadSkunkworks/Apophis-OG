@@ -263,3 +263,84 @@ test('shift helpers: effective window, limits, linked pairs, collect and load', 
   C.loadShifts(mods, null);
   assert.deepStrictEqual(C.collectShifts(mods), {});
 });
+
+// ---- W1 usability: timing summary, setup file validation, changed-from-default lines ----
+const mkm = (name, shift) => ({name, shift});
+
+test('shiftSummary counts moved scenarios including unticked ones', () => {
+  const mods = [mkm('a', 5), mkm('b', 0), mkm('c', -10), mkm('d')];
+  assert.deepStrictEqual(C.shiftSummary(mods, new Set(['a'])), {n: 2, off: 1});
+  assert.deepStrictEqual(C.shiftSummary(mods), {n: 2, off: 0});
+  assert.deepStrictEqual(C.shiftSummary([]), {n: 0, off: 0});
+});
+
+test('timingText says none, a count, and how many are unticked', () => {
+  assert.strictEqual(C.timingText({n: 0, off: 0}), 'Timing: none moved');
+  assert.strictEqual(C.timingText({n: 3, off: 0}), 'Timing: 3 moved');
+  assert.strictEqual(C.timingText({n: 3, off: 1}), 'Timing: 3 moved (1 unticked)');
+});
+
+test('loadShifts with nothing resets every shift (Reset all and Clean baseline)', () => {
+  const mods = [{name: 'a', shift: 7, window: '1h-2h'}, {name: 'b', shift: -3}];
+  C.loadShifts(mods, {});
+  assert.ok(mods.every(m => m.shift === 0));
+});
+
+const good = () => ({kind: C.SETUP_KIND, v: 2, state: {controls: {company: 'Acme', scale: '0.25'}, otp: {modbus: true}, scenarios: ['a'], shifts: {a: 15}, recipes: ['/x.json'], armed: true}});
+
+test('cleanSetup accepts a good file and keeps size, shifts and armed', () => {
+  const r = C.cleanSetup(good());
+  assert.ok(r.state);
+  assert.strictEqual(r.state.controls.scale, 0.25);
+  assert.deepStrictEqual(r.state.shifts, {a: 15});
+  assert.strictEqual(r.state.armed, true);
+});
+
+test('cleanSetup rejects bad shapes with a readable error', () => {
+  [null, 5, 'x', [], {}, {kind: 'other', v: 2, state: {}}, {kind: C.SETUP_KIND, v: 99, state: {}}, {kind: C.SETUP_KIND, v: 2},
+   {kind: C.SETUP_KIND, v: 2, state: {controls: {}}}].forEach(x => {
+    const r = C.cleanSetup(x);
+    assert.ok(r.error && !r.state, JSON.stringify(x));
+  });
+});
+
+test('cleanSetup clamps size and shifts, drops secrets, acks and junk', () => {
+  const f = good();
+  Object.assign(f.state.controls, {scale: 99, apikey: 'k', sensorack: true, 'bad key!': 1, big: 'x'.repeat(5000), nan: NaN});
+  f.state.shifts = {a: 99999, b: -99999, c: 0.2, d: 'x'};
+  f.state.armed = 'yes';
+  const s = C.cleanSetup(f).state;
+  assert.strictEqual(s.controls.scale, 1);
+  assert.ok(!('apikey' in s.controls) && !('sensorack' in s.controls) && !('bad key!' in s.controls) && !('nan' in s.controls));
+  assert.strictEqual(s.controls.big.length, 2000);
+  assert.deepStrictEqual(s.shifts, {a: 960, b: -960});
+  assert.ok(!('armed' in s));
+  f.state.controls.scale = 'big'; assert.ok(!('scale' in C.cleanSetup(f).state.controls));
+  f.state.controls.scale = 0; assert.strictEqual(C.cleanSetup(f).state.controls.scale, 0.001);
+});
+
+test('changeLines lists only what differs, and is empty for the default', () => {
+  const base = {total: 0, ticked: [], moved: 0, size: 0.1, defaultSize: 0.1, company: '', industry: 'x', defaultIndustry: 'x', recipes: 0, armed: ''};
+  assert.deepStrictEqual(C.changeLines(base), []);
+  const l = C.changeLines(Object.assign({}, base, {total: 9, ticked: ['A', 'B'], moved: 2, size: 1, company: 'Acme', industry: 'y', recipes: 1, armed: 'Camp'}));
+  assert.deepStrictEqual(l.map(x => x.split(':')[0]), ['Scenarios', 'Timing', 'Size', 'Company', 'Industry', 'Recipes', 'Campaign in next capture']);
+  assert.ok(C.changeLines(Object.assign({}, base, {total: 9, ticked: ['a', 'b', 'c', 'd']}))[0].indexOf('(') < 0);
+  assert.deepStrictEqual(C.changeLines(Object.assign({}, base, {total: 2, ticked: ['a', 'b']})), []);   // everything ticked is the default
+  assert.strictEqual(C.changeLines(Object.assign({}, base, {total: 5, ticked: []}))[0], 'Scenarios: 0 of 5 ticked');   // long lists show the count only
+});
+
+test('captureDir sends a kept row to its own folder, never the output folder', () => {
+  assert.strictEqual(C.captureDir({name: 'a.pcap', path: '/out/a.pcap'}, '/out'), '/out');
+  assert.strictEqual(C.captureDir({name: 'a.pcap', path: '/out/earlier-builds/b1/a.pcap', kept: true}, '/out'), '/out/earlier-builds/b1');
+  assert.strictEqual(C.captureDir({name: 'a.pcap', path: '/out/earlier-builds/b1/a.pcap', kept: true, out_dir: '/x/k'}, '/out'), '/x/k');
+  assert.strictEqual(C.captureDir({trash_id: 't', name: 'a.pcap', out_dir: '/out/earlier-builds/b1'}, '/out'), '/out/earlier-builds/b1');   // a holding entry
+  assert.strictEqual(C.captureDir({name: 'a.pcap', kept: true}, '/out'), '/out');                                                         // no path to go on: fall back
+  assert.strictEqual(C.captureDir(null, '/out'), '/out');
+});
+
+test('keptFolder reads the build status or its summary, and is empty otherwise', () => {
+  assert.strictEqual(C.keptFolder({kept_previous: '/out/earlier-builds/b1'}), '/out/earlier-builds/b1');
+  assert.strictEqual(C.keptFolder({kept_previous: '', summary: {kept_previous: {dir: '/k', files: []}}}), '/k');
+  assert.strictEqual(C.keptFolder({summary: {}}), '');
+  assert.strictEqual(C.keptFolder(null), '');
+});

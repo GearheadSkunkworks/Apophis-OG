@@ -205,6 +205,72 @@
     mods.forEach(function (m) { var v = saved && saved[m.name]; m.shift = shiftLimits(m) && typeof v === 'number' ? Math.max(shiftLimits(m)[0], Math.min(shiftLimits(m)[1], Math.round(v))) : 0; });
   }
 
+  /* Moved scenarios: n counts every scenario with a shift, off the ones outside `selected`. A shift on an unticked
+     scenario is kept (it returns when re-ticked), so it is counted and shown, never hidden. */
+  function shiftSummary(mods, selected) {
+    var n = 0, off = 0;
+    mods.forEach(function (m) { if (m.shift) { n++; if (selected && !selected.has(m.name)) off++; } });
+    return {n: n, off: off};
+  }
+  function timingText(sum) {
+    return sum.n ? 'Timing: ' + sum.n + ' moved' + (sum.off ? ' (' + sum.off + ' unticked)' : '') : 'Timing: none moved';
+  }
+
+  /* Where a Captures row's files live. An earlier build kept by a newer one sits in its own folder under the output
+     folder with the SAME file name as the current capture, so Remove and Restore must name that folder, never the
+     output folder. A row names it as out_dir, or (a listing item) it is the folder of the row's own path. */
+  function captureDir(it, dir) {
+    if (it && typeof it.out_dir === 'string' && it.out_dir) return it.out_dir;
+    if (it && it.kept && typeof it.path === 'string' && it.path.lastIndexOf('/') > 0) return it.path.slice(0, it.path.lastIndexOf('/'));
+    return dir;
+  }
+  /* The folder an earlier build was kept in, from the build status or its summary ('' when none). */
+  function keptFolder(s) {
+    var k = s && (s.kept_previous || (s.summary && s.summary.kept_previous));
+    return typeof k === 'string' ? k : (k && typeof k.dir === 'string' ? k.dir : '');
+  }
+
+  /* Setup file (the same state a named session holds). Returns {state} or {error}; every value is held to a safe shape. */
+  var SETUP_KIND = 'og-setup', SETUP_SECRET = /(key|pass|secret|token|cred|auth)/i, SETUP_ACK = /ack$/i, SETUP_ID = /^[A-Za-z0-9_.:-]{1,64}$/;
+  function isObj(x) { return !!x && typeof x === 'object' && !Array.isArray(x); }
+  function cleanSetup(raw) {
+    if (!isObj(raw) || raw.kind !== SETUP_KIND) return {error: 'This is not a setup file. Choose a file saved with Export setup.'};
+    if (typeof raw.v !== 'number' || raw.v < 1 || raw.v > 2) return {error: 'This setup file is from a newer version of the app and cannot be read.'};
+    var st = raw.state;
+    if (!isObj(st)) return {error: 'The setup file has no saved state.'};
+    var out = {v: 2, controls: {}, otp: {}, scenarios: null, recipes: [], shifts: {}};
+    if (isObj(st.controls)) Object.keys(st.controls).slice(0, 200).forEach(function (k) {
+      var v = st.controls[k];
+      if (!SETUP_ID.test(k) || SETUP_SECRET.test(k) || SETUP_ACK.test(k)) return;
+      if (k === 'scale') { v = parseFloat(v); if (!isFinite(v)) return; v = Math.min(1, Math.max(0.001, v)); }
+      if (typeof v === 'boolean' || (typeof v === 'number' && isFinite(v))) out.controls[k] = v;
+      else if (typeof v === 'string') out.controls[k] = v.slice(0, 2000);
+    });
+    if (isObj(st.otp)) Object.keys(st.otp).slice(0, 64).forEach(function (k) { if (/^[a-z0-9_-]{1,32}$/.test(k) && typeof st.otp[k] === 'boolean') out.otp[k] = st.otp[k]; });
+    if (Array.isArray(st.scenarios)) out.scenarios = st.scenarios.filter(function (x) { return typeof x === 'string'; }).slice(0, 400).map(function (x) { return x.slice(0, 120); });
+    if (isObj(st.shifts)) Object.keys(st.shifts).slice(0, 400).forEach(function (k) {
+      var v = st.shifts[k]; if (k.length <= 120 && typeof v === 'number' && isFinite(v) && Math.round(v)) out.shifts[k] = Math.max(-960, Math.min(960, Math.round(v)));
+    });
+    if (Array.isArray(st.recipes)) out.recipes = st.recipes.filter(function (x) { return typeof x === 'string'; }).slice(0, 50).map(function (x) { return x.slice(0, 2000); });
+    if (typeof st.armed === 'boolean') out.armed = st.armed;
+    if (!(Object.keys(out.controls).length || Object.keys(out.otp).length || out.scenarios !== null || out.recipes.length)) return {error: 'The setup file holds nothing to load.'};
+    return {state: out};
+  }
+
+  /* "Changed from default": info {ticked: [titles], total (every scenario you can tick; all ticked is the default), moved, size, defaultSize, company, industry, defaultIndustry, recipes, armed: name|''}
+     becomes short lines, empty when nothing differs. */
+  function changeLines(i) {
+    var out = [];
+    if (i.ticked && (i.ticked.length !== i.total)) out.push('Scenarios: ' + i.ticked.length + (i.total ? ' of ' + i.total : '') + ' ticked' + (i.ticked.length && i.ticked.length <= 3 ? ' (' + i.ticked.join(', ') + ')' : ''));
+    if (i.moved) out.push('Timing: ' + i.moved + ' moved');
+    if (i.size != null && i.defaultSize != null && Math.abs(i.size - i.defaultSize) > 0.0005) out.push('Size: ' + i.size + '\u00d7 (default ' + i.defaultSize + '\u00d7)');
+    if (i.company) out.push('Company: ' + i.company);
+    if (i.industry && i.industry !== i.defaultIndustry) out.push('Industry: ' + i.industry);
+    if (i.recipes) out.push('Recipes: ' + i.recipes);
+    if (i.armed) out.push('Campaign in next capture: ' + i.armed);
+    return out;
+  }
+
   /* Tab-trap maths. */
   function wrapIndex(len, idx, shift) {
     if (!len) return -1;
@@ -700,7 +766,7 @@
     familyOf: familyOf, categoryOf: categoryOf, categoryKey: categoryKey, shownModules: shownModules,
     buildModel: buildModel, countsFor: countsFor, coverage: coverage, filterModules: filterModules,
     familyCounts: familyCounts, parseWindow: parseWindow,
-    formatWindow: formatWindow, winOf: winOf, shiftLimits: shiftLimits, setShift: setShift, collectShifts: collectShifts, loadShifts: loadShifts,
+    formatWindow: formatWindow, winOf: winOf, shiftLimits: shiftLimits, setShift: setShift, collectShifts: collectShifts, loadShifts: loadShifts, shiftSummary: shiftSummary, timingText: timingText, cleanSetup: cleanSetup, changeLines: changeLines, SETUP_KIND: SETUP_KIND, captureDir: captureDir, keptFolder: keptFolder,
     wrapIndex: wrapIndex, focusables: focusables, trapTab: trapTab,
     renderRail: renderRail, renderCoverage: renderCoverage, renderTools: renderTools, buildCard: buildCard,
     createController: createController

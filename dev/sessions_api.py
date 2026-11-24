@@ -31,7 +31,7 @@ from urllib.parse import parse_qs
 import campaign_api
 from campaign_api import ApiError
 
-SESSION_VERSION = 1
+SESSION_VERSION = 2          # v2 adds the size (controls.scale) and the armed-campaign flag; v1 files still load
 MAX_NAME = 80
 MAX_CONTROLS = 200
 MAX_STR = 2000
@@ -77,7 +77,7 @@ def clean_state(state):
     """Reduce whatever the page sent to the fixed session shape. Raises ApiError(400) if unusable."""
     if not isinstance(state, dict):
         raise ApiError(400, "'state' must be an object")
-    out = {"v": SESSION_VERSION, "controls": {}, "otp": {}, "scenarios": None, "recipes": [], "shifts": {}}
+    out = {"v": SESSION_VERSION, "controls": {}, "otp": {}, "scenarios": None, "recipes": [], "shifts": {}, "armed": False}
     ctl = state.get("controls")
     if isinstance(ctl, dict):
         for k, v in list(ctl.items())[:MAX_CONTROLS]:
@@ -85,7 +85,14 @@ def clean_state(state):
                 continue
             if _SECRET.search(k) or _ACK.search(k):
                 continue
-            if isinstance(v, bool) or isinstance(v, (int, float)):
+            if k == "scale":                          # the size: a number held to the slider's range, else dropped
+                try:
+                    f = float(v)
+                except (TypeError, ValueError):
+                    continue
+                if f == f and not isinstance(v, bool):    # f == f: not NaN
+                    out["controls"][k] = min(1.0, max(0.001, f))
+            elif isinstance(v, bool) or isinstance(v, (int, float)):
                 out["controls"][k] = v
             elif isinstance(v, str):
                 out["controls"][k] = v[:MAX_STR]
@@ -102,6 +109,7 @@ def clean_state(state):
         for k, v in list(sh.items())[:MAX_LIST]:
             if isinstance(k, str) and len(k) <= 120 and isinstance(v, int) and not isinstance(v, bool) and v:
                 out["shifts"][k] = v
+    out["armed"] = state.get("armed") is True      # only a real true arms; anything else is off
     rc = state.get("recipes")
     if isinstance(rc, list):
         out["recipes"] = [x[:MAX_STR] for x in rc[:50] if isinstance(x, str)]

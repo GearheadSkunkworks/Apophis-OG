@@ -27,7 +27,7 @@ The scenario count goes from 71 to 79 registry entries (77 ordinary scenarios). 
 
 ## Docs
 
-The Help gains a note, The incident replays, and updates its Update article and the CVE profile note. The README scenario count and the scenario-metadata and redesign records show the new totals. `docs/release.md` describes the frozen-module check and when to refresh its list.
+The Help gains a note, The incident replays, and updates its Update article and the CVE profile note. The public README scenario count and the scenario-metadata and redesign records show the new totals. The repository README, the release-versioning page and the build page were brought up to date after this release. `docs/release.md` describes the frozen-module check and when to refresh its list.
 
 ## The macOS app
 

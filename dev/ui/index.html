@@ -127,6 +127,7 @@
 
       <section class="panel" id="timeline-panel" aria-labelledby="h-timeline">
         <div class="panel-h"><h2 id="h-timeline">The capture day</h2>
+          <div class="tmbox" id="tmbox"><span id="tmtext" role="status"></span><button type="button" class="btn secondary sm" id="tmreset" disabled>Reset all</button></div>
           <div class="covbox" id="covbox"></div>
           <div class="seg" role="group" aria-label="How to choose scenarios">
             <button type="button" id="tl-mode-tl" aria-pressed="true">Timeline</button>
@@ -769,7 +770,7 @@
         </div>
         <div class="setrow">
           <div><div class="st"><label for="setsize" style="margin:0;font-size:inherit;color:inherit;font-weight:inherit">Default size</label></div>
-            <div class="sd">The size Build starts at. Changing it here resets Build&rsquo;s size.</div></div>
+            <div class="sd">The size Build starts at on a fresh start. Changing it here resets Build&rsquo;s size.</div></div>
           <select id="setsize" aria-label="Default size">
             <option value="quick">Quick sample</option>
             <option value="standard">Standard</option>
@@ -810,7 +811,11 @@
             <input type="text" id="sessname" placeholder="Save current state as&hellip;" maxlength="80" aria-label="Session name" autocomplete="off">
             <button type="button" class="btn md" id="sesssave">Save</button>
           </div>
-          <div class="sess-foot"><button type="button" class="btn secondary sm" id="sessfresh">Start fresh</button></div>
+          <div class="sess-chg"><b id="chghead">Changed from default</b><ul id="chglist" aria-labelledby="chghead"></ul></div>
+          <div class="sess-foot"><button type="button" class="btn secondary sm" id="sessfresh">Start fresh</button>
+            <button type="button" class="btn secondary sm" id="setupexp">Export setup</button>
+            <button type="button" class="btn secondary sm" id="setupimp">Import setup</button>
+            <input type="file" id="setupfile" accept="application/json,.json" hidden></div>
         </div>
       </div>
       <div class="panel" id="set-checks">
@@ -1386,7 +1391,8 @@ async function impRecent(){
       meta.textContent = libSize(it.size) + ' · ' + new Date(it.mtime * 1000).toLocaleDateString([], {month: 'short', day: 'numeric'});
       const b = document.createElement('button'); b.type = 'button'; b.className = 'btn secondary sm'; b.textContent = 'Choose';
       b.setAttribute('aria-label', 'Choose ' + it.name); b.onclick = () => impChoose(it.path);
-      li.append(nm, meta, b); ul.appendChild(li);
+      const tag = document.createElement('span'); tag.className = 'lib-tag'; tag.textContent = 'Kept'; tag.hidden = !it.kept;
+      li.append(nm, tag, meta, b); ul.appendChild(li);
     });
   }catch(e){ /* the list is a convenience; the path field always works */ }
 }
@@ -1427,7 +1433,7 @@ $('otnotebtn').onclick = (e) => {
 };
 
 // One button: nothing selected -> Select all; everything -> Select none; a part -> Clear selection.
-$('sel-all').onclick  = () => setAll(liveBoxes().every(cb => !cb.checked));
+$('sel-all').onclick  = () => { const all = liveBoxes().every(cb => !cb.checked); undoable(all ? 'Selected all scenarios.' : 'Cleared the selection.', () => setAll(all)); };
 
 // Generate capture is enabled only when the generator's own dependencies are present, all
 // four required settings carry a value, and no run is already in flight. This is the SINGLE
@@ -1508,7 +1514,7 @@ window.ogAnnounce = ogAnnounce;
 window.ogSettingsReady = fetch('/api/settings').then(r => r.json()).then(j => j.settings || {}).catch(() => ({}));
 // the build has no exact percentage, so progress is packets against the same size estimate the form shows
 function genPercent(packets){
-  const sc = parseFloat($('scale').value) || 1, est = (0.37 + 10.0 * sc) * 1e6;
+  const sc = parseFloat($('scale').value) || 1, est = Math.max(1, estNumbers(sc).pk) * 1e6;   // the same estimate the form shows
   return Math.min(99, Math.floor(100 * packets / est));
 }
 let _annStep = 0;
@@ -1675,6 +1681,7 @@ async function statusTick(){
            <div class="tile"><b>${s.seconds} s</b><span>to build</span></div>
            <div class="tile"><b>16 hours</b><span>of traffic</span></div></div>
          <p>Written to <code>${esc(s.out_dir)}</code></p>
+         ${OGCards.keptFolder(s) ? `<p class="hint">Earlier build kept in <code>${esc(OGCards.keptFolder(s))}</code></p>` : ''}
          ${sm && sm.date ? `<p class="hint">Capture day <b>${esc(sm.date)}</b>${sm.scale ? ` &middot; size setting <b>${esc(sm.scale)}&times;</b>` : ''}.</p>` : ''}${netline}
          <table><thead><tr><th>File</th><th>Size</th></tr></thead><tbody>${rows}</tbody></table>`;
       nextActions(true);
@@ -2533,6 +2540,7 @@ async function loadLibrary(){
     items.forEach(it => {
       const li = document.createElement('li'); li.className = 'lib-row';
       const nm = document.createElement('span'); nm.className = 'lib-name'; nm.textContent = it.name; nm.title = it.path;
+      const tag = document.createElement('span'); tag.className = 'lib-tag'; tag.textContent = 'Kept'; tag.hidden = !it.kept;   // an earlier build a newer one displaced
       const meta = document.createElement('span'); meta.className = 'lib-meta';
       meta.textContent = libSize(it.size) + ' \u00b7 ' + new Date(it.mtime * 1000).toLocaleString([], {dateStyle: 'medium', timeStyle: 'short'});
       const rep = document.createElement('button'); rep.type = 'button'; rep.className = 'btn secondary sm'; rep.textContent = 'Open report';
@@ -2544,13 +2552,13 @@ async function loadLibrary(){
       const del = document.createElement('button'); del.type = 'button'; del.className = 'btn secondary sm'; del.textContent = 'Remove';
       del.setAttribute('aria-label', 'Remove ' + it.name + ' from the list. It moves to a holding folder and can be restored.');
       del.onclick = async () => {
-        const r = await fetch('/api/captures/trash', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({out_dir: j.dir, name: it.name})});
+        const r = await fetch('/api/captures/trash', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({out_dir: OGCards.captureDir(it, j.dir), name: it.name})});
         const d = await r.json().catch(() => ({}));
         await loadLibrary();
         $('lib-hint').textContent = r.ok ? it.name + ' moved to the holding folder.' : (d.error || 'Could not remove it.');
         if(r.ok) ogAnnounce(it.name + ' removed. It can be restored below.');
       };
-      li.append(nm, meta, rep, use, del); ul.appendChild(li);
+      li.append(nm, tag, meta, rep, use, del); ul.appendChild(li);
       // what the capture holds, from its build manifest (captures built before manifests existed, or outside the served folders, show nothing)
       fetch('/api/manifest?path=' + encodeURIComponent(it.path)).then(r => r.ok ? r.json() : null).then(m => {
         if(!m || !m.scenarios) return;
@@ -2566,15 +2574,16 @@ async function loadLibrary(){
     ti.forEach(t => {
       const li = document.createElement('li'); li.className = 'lib-row';
       const nm = document.createElement('span'); nm.className = 'lib-name'; nm.textContent = t.name;
+      const tag = document.createElement('span'); tag.className = 'lib-tag'; tag.textContent = 'Kept'; tag.hidden = !t.out_dir;
       const meta = document.createElement('span'); meta.className = 'lib-meta'; meta.textContent = libSize(t.size);
       const rs = document.createElement('button'); rs.type = 'button'; rs.className = 'btn secondary sm'; rs.textContent = 'Restore';
       rs.setAttribute('aria-label', 'Restore ' + t.name);
       rs.onclick = async () => {
-        const r = await fetch('/api/captures/restore', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({out_dir: j.dir, trash_id: t.trash_id})});
+        const r = await fetch('/api/captures/restore', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({out_dir: t.out_dir || j.dir, trash_id: t.trash_id})});
         const d = await r.json().catch(() => ({}));
         await loadLibrary(); $('lib-hint').textContent = r.ok ? t.name + ' restored.' : (d.error || 'Could not restore it.');
       };
-      li.append(nm, meta, rs); tl.appendChild(li);
+      li.append(nm, tag, meta, rs); tl.appendChild(li);
     });
   }catch(e){ $('lib-hint').textContent = 'Could not read the output folder.'; }
 }
@@ -2761,9 +2770,9 @@ otUpdate();
   window.presetSync = function(){
     document.querySelectorAll('.preset').forEach(b => b.setAttribute('aria-pressed', isOn(b.dataset.preset) ? 'true' : 'false'));
   };
-  document.querySelectorAll('.preset').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.preset').forEach(b => b.onclick = () => undoable('Changed the starting point.', () => {
     const k = b.dataset.preset; let turnedOff = false;
-    if(k === 'baseline'){ setAll(false); enableOT(false); }
+    if(k === 'baseline'){ setAll(false); enableOT(false); OGCards.loadShifts(ALL_MODULES, {}); onScenarioMoved(); if(cardsHooks.render) cardsHooks.render(); }   // a clean start also puts every moved scenario back
     else if(isOn(k)){
       const keep = new Set();
       Object.keys(GROUPS).forEach(o => { if(o !== k && isOn(o)) GROUPS[o]().forEach(n => keep.add(n)); });
@@ -2776,7 +2785,7 @@ otUpdate();
     }
     updateSelCount();
     if(!turnedOff && typeof cardsCtl !== 'undefined' && cardsCtl) cardsCtl.setFamily(FAMILY_OF[k] || 'ALL');
-  });
+  }));
 })();
 
 // Scale slider (Tesler) -- maps a log range onto the hidden #scale (the value generate() reads) and
@@ -2889,6 +2898,7 @@ function updateReadyBar(){
   // The dock under the timeline is the one place that shows the estimate and Generate; this keeps its readouts current.
   try{ engineChip(); }catch(e){}
   if(window.presetSync) window.presetSync();
+  try{ updateTiming(); updateChanges(); }catch(e){}
   const sc = parseFloat($('scale').value) || 1.0;
   const _e = $('scaleest'); if(_e) _e.innerHTML = estLabel(sc);      // the estimate follows the selection too
   const _n = $('scalenote'); if(_n){ const n = sizeNote(sc); _n.textContent = ''; const b = document.createElement('b'); b.textContent = n.head + '. '; _n.append(b, n.text); }
@@ -2927,7 +2937,7 @@ updateReadyBar();
   const post = o => fetch('/api/settings', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(o)}).then(r => r.json()).catch(() => ({}));
   let cur = {};
   function applySize(){
-    const hid = $('scale'); if(!hid) return;
+    const hid = $('scale'); if(!hid || window.__ogSizeKept) return;   // a restored or loaded size wins until the Default size setting is changed
     hid.value = String(SIZES[cur.default_size] || 0.1);
     if(window.ogEstRefresh) window.ogEstRefresh();
     hid.dispatchEvent(new Event('input'));
@@ -2949,7 +2959,7 @@ updateReadyBar();
     if(v) { applyFolder(); } else { await window.ogApplyDefaults(); }
     try{ loadSuggestions(); }catch(e){}
   });
-  $('setsize').addEventListener('change', async () => { cur.default_size = $('setsize').value; applySize(); await post({default_size: cur.default_size}); });
+  $('setsize').addEventListener('change', async () => { cur.default_size = $('setsize').value; window.__ogSizeKept = false; applySize(); await post({default_size: cur.default_size}); });
   $('restoresw').addEventListener('change', () => post({restore_last_session: $('restoresw').checked}));
   document.querySelectorAll('#setnav [data-jump]').forEach(b => b.addEventListener('click', () => { const t = $(b.dataset.jump); if(t) t.scrollIntoView({behavior: 'smooth', block: 'start'}); }));
   // stored keys: what is in the keychain, and one button to forget them all
@@ -3072,7 +3082,7 @@ window.ogThemeHtml = async function(html){
 // scenarios, the OT protocols and the recipe list. It is autosaved to the server as it changes and
 // restored on launch; named copies can be saved and loaded from the header's Session panel.
 const SESS = {ready: false, last: '', timer: null};
-const SESS_SKIP = /^(themesel|palsel|labtools|scalerange|scale|outdir|setoutdir|setsize|restoresw|rpcap|riface|recipepath)$|^sess|key$|ack$|pass|token|secret/i;
+const SESS_SKIP = /^(themesel|palsel|labtools|scalerange|outdir|setoutdir|setsize|restoresw|rpcap|riface|recipepath)$|^sess|key$|ack$|pass|token|secret/i;
 const isoToday = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
 
 function sessCollect(){
@@ -3087,7 +3097,7 @@ function sessCollect(){
   const otp = {};
   document.querySelectorAll('.otp[data-p]').forEach(cb => { otp[cb.dataset.p] = cb.checked; });
   const boxes = (typeof liveBoxes === 'function') ? liveBoxes() : [];
-  return {v: 1, controls, otp, recipes: recipeFiles.slice(), shifts: OGCards.collectShifts(ALL_MODULES),
+  return {v: 2, controls, otp, recipes: recipeFiles.slice(), shifts: OGCards.collectShifts(ALL_MODULES), armed: armedNow(),
           scenarios: boxes.length ? boxes.filter(cb => cb.checked).map(cb => cb.value) : null};
 }
 
@@ -3099,7 +3109,8 @@ function sessApply(st){
   const ids = Object.keys(ctl).sort((a, b) => ['oten', 'industry'].indexOf(b) - ['oten', 'industry'].indexOf(a));
   ids.forEach(id => {
     const el = $(id); if(!el || SESS_SKIP.test(id)) return;
-    const v = ctl[id];
+    let v = ctl[id];
+    if(id === 'scale'){ v = parseFloat(v); if(!(v > 0)) return; v = Math.min(1, Math.max(0.001, v)); window.__ogSizeKept = true; }   // an older session has no size: the Settings default stays
     if(el.type === 'checkbox' || el.type === 'radio'){ el.checked = !!v; }
     else if(el.tagName === 'SELECT'){ if(![...el.options].some(o => o.value === String(v))) return; el.value = String(v); }
     else { el.value = String(v); }
@@ -3115,6 +3126,7 @@ function sessApply(st){
     allBoxes().forEach(cb => { if(!cb.disabled) cb.checked = on.has(cb.value); });
   }
   if(st.shifts && typeof st.shifts === 'object'){ OGCards.loadShifts(ALL_MODULES, st.shifts); onScenarioMoved(); if(cardsHooks.render) cardsHooks.render(); }
+  if(typeof st.armed === 'boolean'){ if(window.OGC && OGC.setArmed) OGC.setArmed(st.armed); else window.__ogPendingArmed = st.armed; }
   if(Array.isArray(st.recipes)){ recipeFiles.length = 0; st.recipes.forEach(p => recipeFiles.push(p)); renderRecipes(); }
   try{ updateSelCount(); }catch(e){}
   try{ genGate(); }catch(e){}
@@ -3137,14 +3149,14 @@ function sessSaveLast(){
 }
 function sessSchedule(){ if(!SESS.ready) return; clearTimeout(SESS.timer); SESS.timer = setTimeout(sessSaveLast, 700); }
 
-let _toastTimer = null;
-function ogToast(msg, actionLabel, action){
+let _toastTimer = null, _undoFn = null;
+function ogToast(msg, actionLabel, action, ms){
   let t = $('og-toast');
   if(!t){ t = document.createElement('div'); t.id = 'og-toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
   t.textContent = '';
   const sp = document.createElement('span'); sp.textContent = msg; t.appendChild(sp);
   if(actionLabel){ const b = document.createElement('button'); b.type = 'button'; b.textContent = actionLabel; b.onclick = () => { t.hidden = true; action(); }; t.appendChild(b); }
-  t.hidden = false; clearTimeout(_toastTimer); _toastTimer = setTimeout(() => { t.hidden = true; }, 7000);
+  t.hidden = false; clearTimeout(_toastTimer); _toastTimer = setTimeout(() => { t.hidden = true; _undoFn = null; }, ms || 7000);
 }
 
 function sessAgo(ts){
@@ -3155,7 +3167,69 @@ function sessAgo(ts){
   return new Date(ts * 1000).toLocaleDateString();
 }
 
+// One-step undo. The state before the action is kept (the same shape a saved session holds) and put back by Undo or Ctrl/Cmd+Z.
+// The toast is fixed at the top right, so showing it never moves the page.
+function undoToast(msg, snap){
+  const run = () => { _undoFn = null; sessApply(snap); sessSchedule(); ogAnnounce('Undone.'); };
+  _undoFn = run;
+  ogToast(msg, 'Undo', run, 10000);
+  const b = $('og-toast').querySelector('button'); if(b){ b.setAttribute('aria-keyshortcuts', 'Control+Z Meta+Z'); b.title = 'Undo (Ctrl+Z)'; }
+}
+function undoable(msg, fn){ const snap = sessCollect(); fn(); undoToast(msg, snap); }
+document.addEventListener('keydown', e => {
+  if(!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || String(e.key).toLowerCase() !== 'z' || !_undoFn || $('og-toast').hidden) return;
+  const t = e.target; if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && t.type !== 'checkbox' && t.type !== 'radio' && t.type !== 'button')) return;
+  e.preventDefault(); _undoFn();
+});
+const armedNow = () => (window.OGC && OGC.getArmed) ? !!OGC.getArmed() : !!window.__ogPendingArmed;
+
+// "Timing: N moved" beside the timeline. Every moved scenario counts, ticked or not: an unticked one keeps its move and
+// shows it again when ticked. Reset all puts every move back (Undo returns them).
+function updateTiming(){
+  const sum = OGCards.shiftSummary(ALL_MODULES, new Set(selectedModules()));
+  $('tmtext').textContent = OGCards.timingText(sum);
+  $('tmreset').disabled = !sum.n;
+}
+$('tmreset').onclick = () => undoable('Timing reset: every scenario is back at its own time.', () => {
+  OGCards.loadShifts(ALL_MODULES, {}); onScenarioMoved(); if(cardsHooks.render) cardsHooks.render();
+});
+
+// "Changed from default": a short list in Settings, Sessions. Empty when the form is as a fresh start leaves it.
+function updateChanges(){
+  const ul = $('chglist'); if(!ul) return;
+  const sel = new Set(selectedModules()), ind = $('industry'), dflt = ind && ([...ind.options].find(o => o.defaultSelected) || ind.options[0]);
+  const sz = $('setsize') ? ({quick: 0.02, standard: 0.1, full: 1}[$('setsize').value] || 0.1) : 0.1;
+  let armed = ''; try{ if(armedNow() && OGC.state && OGC.state.campaign){ armed = (OGC.state.campaign.meta && OGC.state.campaign.meta.name) || 'campaign'; } }catch(e){}
+  const lines = OGCards.changeLines({total: liveBoxes().length, ticked: ALL_MODULES.filter(m => sel.has(m.name)).map(m => m.title || m.name), moved: OGCards.shiftSummary(ALL_MODULES).n,
+    size: parseFloat($('scale').value), defaultSize: sz, company: ($('company').value || '').trim(), industry: ind ? ind.value : '', defaultIndustry: dflt ? dflt.value : '',
+    recipes: recipeFiles.length, armed});
+  ul.textContent = '';
+  (lines.length ? lines : ['Nothing: this is the default setup.']).forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+}
+
+// Setup file: the same state a named session holds, in one JSON file. Import checks the shape and clamps every value before
+// anything reaches the form; a bad file changes nothing.
+(function(){
+  $('setupexp').onclick = () => {
+    const blob = new Blob([JSON.stringify({kind: OGCards.SETUP_KIND, v: 2, state: sessCollect()}, null, 1)], {type: 'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'apophis-setup.json';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    $('sessnote').textContent = 'Exported the current setup.';
+  };
+  $('setupimp').onclick = () => $('setupfile').click();
+  $('setupfile').onchange = async () => {
+    const f = $('setupfile').files[0]; $('setupfile').value = ''; if(!f) return;
+    const bad = m => { $('sessnote').textContent = 'Could not import: ' + m; };
+    if(f.size > 512 * 1024) return bad('the file is too large for a setup file.');
+    let raw; try{ raw = JSON.parse(await f.text()); }catch(e){ return bad('the file is not valid JSON.'); }
+    const r = OGCards.cleanSetup(raw); if(r.error) return bad(r.error);
+    undoable('Imported the setup.', () => { sessApply(r.state); sessSchedule(); });
+    $('sessnote').textContent = 'Imported “' + f.name + '”.';
+  };
+})();
+
 async function sessStartFresh(){
+  try{ sessionStorage.setItem('og-undo', JSON.stringify(sessCollect())); }catch(e){}   // so Undo still works after the reload
   window.__ogNoSave = true;
   try{ await sessApi('/api/session/clear', {}); }catch(e){}
   location.reload();
@@ -3171,7 +3245,9 @@ async function sessInit(){
       ogToast('Restored your last session' + (d.saved_at ? ' (' + sessAgo(d.saved_at) + ')' : '') + '.', 'Start fresh', sessStartFresh);
     }
   }catch(e){ /* no saved session, or the server is older: start with the defaults */ }
-  if(window.ogApplyDefaults) window.ogApplyDefaults();   // Settings wins over anything a session restored
+  if(window.ogApplyDefaults) window.ogApplyDefaults();   // Settings wins over anything a session restored (except the size, which stays as it was)
+  try{ const u = sessionStorage.getItem('og-undo'); sessionStorage.removeItem('og-undo');
+    if(u){ const snap = JSON.parse(u); if(snap && typeof snap === 'object') undoToast('Started fresh.', snap); } }catch(e){}
   SESS.last = JSON.stringify(sessCollect());      // what is on screen now is the baseline; only changes are saved
   SESS.ready = true;
 }
@@ -3209,8 +3285,8 @@ async function sessInit(){
   $('sesslist').addEventListener('click', async e => {
     const l = e.target.closest('[data-load]'), x = e.target.closest('[data-del]');
     if(l){
-      try{ const d = await sessApi('/api/session/load?id=' + encodeURIComponent(l.dataset.load)); sessApply(d.state); sessSchedule();
-        ogToast('Loaded “' + d.name + '”.'); }
+      try{ const d = await sessApi('/api/session/load?id=' + encodeURIComponent(l.dataset.load)); const snap = sessCollect(); sessApply(d.state); sessSchedule();
+        undoToast('Loaded “' + d.name + '”.', snap); }
       catch(err){ $('sessnote').textContent = 'Could not load: ' + err.message; }
     } else if(x){
       // two clicks: the first arms the button, the second deletes (no browser dialogs in this app)

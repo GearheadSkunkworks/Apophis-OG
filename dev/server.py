@@ -156,7 +156,7 @@ except Exception as _e:                               # noqa: BLE001
 STATE = {
     "running": False, "done": False, "error": None, "cancelled": False,
     "packets": 0, "mb": 0.0, "seconds": 0, "clock": "",
-    "log": [], "outputs": [], "out_dir": "", "pcap": "", "stix": "", "summary": None, "started": 0.0,
+    "log": [], "outputs": [], "out_dir": "", "pcap": "", "kept_previous": "", "stix": "", "summary": None, "started": 0.0,
     # path to the stats of the most recent baseline-only run, if there has been one
     "baseline_stats": "",
     # packets-by-protocol for the most recent completed run; empty until one finishes, which is
@@ -317,7 +317,8 @@ def human(n):
 def list_outputs(out_dir):
     items = []
     for root, _dirs, files in os.walk(out_dir):
-        _dirs[:] = [d for d in _dirs if not d.startswith(".")]      # the holding folder and other hidden folders are not results
+        _dirs[:] = [d for d in _dirs if not d.startswith(".")          # the holding folder and other hidden folders are not results
+                    and not (root == out_dir and d == captures_store.KEPT)]   # nor are earlier builds
         for fn in files:
             p = os.path.join(root, fn)
             try:
@@ -359,7 +360,7 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
     CANCEL.clear()                               # never start a run holding a stale stop
     with LOCK:
         STATE.update(running=True, done=False, error=None, cancelled=False, packets=0, mb=0.0,
-                     seconds=0, clock="", log=[], outputs=[], out_dir=out_dir, pcap="",
+                     seconds=0, clock="", log=[], outputs=[], out_dir=out_dir, pcap="", kept_previous="",
                      summary=None, started=time.time())
         STATE.pop("campaign", None)              # present in /api/status only while a campaign result exists
     os.makedirs(out_dir, exist_ok=True)
@@ -454,6 +455,11 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
             # build() names the pcap (and the threat collection) after the company; point the
             # replay/collection panels at what was actually written, not a fixed name.
             STATE["pcap"] = os.path.join(out_dir, os.path.basename(summary["pcap"]))
+            if summary.get("kept_previous"):         # a different earlier build was moved aside, not overwritten
+                STATE["kept_previous"] = summary["kept_previous"]["dir"]
+                STATE["summary"]["kept_previous"] = summary["kept_previous"]
+                STATE["log"].append("an earlier build in this folder was kept, not overwritten: "
+                                    + summary["kept_previous"]["dir"])
             _iocs = summary.get("iocs") or {}
             STATE["stix"] = (os.path.join(out_dir, os.path.basename(_iocs["stix"]))
                              if _iocs.get("stix") else "")
@@ -1060,7 +1066,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def _manifest(self, q):
         """Read-only: the build manifest for a capture path (or the manifest path itself). Only a plain
-        *.manifest.json file directly inside the default output folder or the folder of the last build is served."""
+        *.manifest.json file directly inside the default output folder, the folder of the last build, or one of their
+        earlier-builds/ folders is served."""
         p = os.path.expanduser((q.get("path") or [""])[0].strip())
         if p.lower().endswith((".pcap", ".pcapng")):
             p = os.path.splitext(p)[0] + ".manifest.json"
@@ -1069,7 +1076,9 @@ class Handler(BaseHTTPRequestHandler):
         roots = [os.path.realpath(r) for r in roots if r]
         d, n = os.path.split(p)
         if (not os.path.isabs(p) or not n.endswith(".manifest.json") or n.startswith(".") or "\x00" in p
-                or os.path.realpath(d) not in roots or os.path.islink(p) or not os.path.isfile(p)):
+                or (os.path.realpath(d) not in roots
+                    and os.path.realpath(d) not in [k for r in roots for k in captures_store.kept_dirs(r)])   # kept builds count
+                or os.path.islink(p) or not os.path.isfile(p)):
             return self._send(400, json.dumps({"error": "not a build manifest: %s" % os.path.basename(p)}))
         try:
             with open(p, encoding="utf-8") as f:
@@ -1086,6 +1095,13 @@ class Handler(BaseHTTPRequestHandler):
             entries = [e for e in os.scandir(d) if e.is_file()] if os.path.isdir(d) else []
         except OSError:
             entries = []
+        kept = set()
+        for kd in (captures_store.kept_dirs(os.path.realpath(d)) if os.path.isdir(d) else []):   # earlier builds
+            try:
+                entries += [e for e in os.scandir(kd) if e.is_file() and not e.is_symlink()]
+                kept.add(kd)
+            except OSError:
+                pass
         entries.sort(key=lambda e: -e.stat().st_mtime)
         for e in entries:
             low = e.name.lower()
@@ -1093,7 +1109,11 @@ class Handler(BaseHTTPRequestHandler):
                 caps.append(e.path)
                 try:                                     # additive: size and date for the Captures library
                     st = e.stat()
-                    items.append({"path": e.path, "name": e.name, "size": st.st_size, "mtime": int(st.st_mtime)})
+                    it = {"path": e.path, "name": e.name, "size": st.st_size, "mtime": int(st.st_mtime)}
+                    it.update(captures_store.info(e.path))       # scenarios, capture_date (when a manifest sits beside it)
+                    if os.path.dirname(e.path) in kept:
+                        it["kept"] = True                         # an earlier build that a newer one displaced
+                    items.append(it)
                 except OSError:
                     pass
             elif low.endswith("-recipe.json") or low.endswith(".recipe.json"):
@@ -1418,7 +1438,8 @@ class Handler(BaseHTTPRequestHandler):
                              daemon=True).start()
             return self._send(200, json.dumps({"ok": True, "out_dir": out_dir,
                                                "modules": modules,
-                                               "user_net": user_net, "server_net": server_net}))
+                                               "user_net": user_net, "server_net": server_net,
+                                               "earlier_builds_dir": os.path.join(out_dir, captures_store.KEPT)}))
         if self.path == "/api/generate/stop":
             with LOCK:
                 if not STATE["running"]:

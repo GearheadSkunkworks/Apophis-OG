@@ -45,6 +45,7 @@ import netgen
 from netgen import identity                    # emulated-company identity (v5.0)
 from netgen.model import build_hosts, Day, set_capture_day, local
 import build_manifest as BM
+import captures_store as CS
 import scenario_meta
 
 # Sentinel for build(iocs_prefix=...): distinguishes "caller said nothing, derive the name from
@@ -410,21 +411,64 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
     hosts, link, sites, resolvers = build_hosts(inventory, user_net=user_net,
                                                 server_net=server_net, ot_nets=ot_nets,
                                                 with_ot=bool(ot_nets))
+    # Named legs, never list position: link.fw_extra is ordered differently by the two inventory
+    # layouts (the dual-firewall one carries the IDMZ legs first), so a positional zip mislabels.
+    nets = {"user": link.fw_a.ip.rsplit(".", 1)[0] + ".0/24",
+            "server": link.fw_b.ip.rsplit(".", 1)[0] + ".0/24"}
+    for key, nm in (("ot", "FW-OT"), ("ops", "FW-OPS"), ("idmz", "FW-IDMZ")):
+        if nm in hosts:
+            nets[key] = hosts[nm].subnet
+    _id2 = identity.get_current()
+    _params = {"scale": scale, "date": "%04d-%02d-%02d" % cap_day, "company": _id2.name, "industry": _id2.industry,
+               "user_net": nets["user"], "server_net": nets["server"], "ot": "ot" in nets,
+               "ot_nets": {k: v for k, v in nets.items() if k not in ("user", "server")},
+               "ot_protocols": sorted(ot_protocols) if ot_protocols else [],
+               "recipes": len(recipe_list), "campaigns": len(campaign_list),
+               "address_mode": address_mode, "scenarios": list(selected), "shifts": dict(shifts)}
+    if recipe_list or campaign_list:                 # same counts, different content must not look like the same build
+        import hashlib
+        import json as _jh
+        _params["inputs_sha256"] = hashlib.sha256(_jh.dumps([recipe_list, campaign_list], sort_keys=True,
+                                                            default=str).encode()).hexdigest()
     pki = PKI(day=cap_day)
-    kl = open(keylog, "w")  # noqa: SIM115 handle outlives this scope
-    ctx = F.Ctx(hosts, link, ArpModel(link), pki, kl, scale=scale)
-    ctx.sites = sites
-    ctx.isp_resolvers = resolvers
-    ctx.recipe = recipe_data              # single-recipe fallback (None = inert)
-    ctx.recipes = recipe_list             # one CUSTOM scenario per recipe (read by custom-import)
-    ctx.campaigns = campaign_list         # read by the 'campaign' scenario (empty = inert)
-    # The account directory. Derived from the inventory, so who is disabled/expired/locked is
-    # the same on every run — a demo that tells a different story each build is not a demo.
-    ctx.dir = Directory(hosts, P.username_for)
+    # Before the first write: a build already in this folder is moved aside (captures_store.hold_previous),
+    # so a rebuild with different settings cannot destroy the earlier capture, key log, certs or manifest.
+    import json as _jk
+    held = CS.hold_previous(out, keylog, certs_dir, {"generator": _ver(), "parameters": _jk.loads(_jk.dumps(_params))})
+    kl = writer = None
 
-    writer = PcapWriter(out)
-    eng = Engine(writer)
-    day = Day(ctx, eng, scale, ot_protocols=ot_protocols)
+    def _abort():
+        # discard what this run began, then give the earlier build back
+        for _h in (writer, kl):
+            try:
+                _h.close()
+            except Exception:                    # noqa: BLE001
+                pass
+        for _p in (out, keylog):
+            try:
+                os.remove(_p)
+            except OSError:
+                pass
+        if held:
+            held.rollback()
+    try:
+        kl = open(keylog, "w")  # noqa: SIM115 handle outlives this scope
+        ctx = F.Ctx(hosts, link, ArpModel(link), pki, kl, scale=scale)
+        ctx.sites = sites
+        ctx.isp_resolvers = resolvers
+        ctx.recipe = recipe_data              # single-recipe fallback (None = inert)
+        ctx.recipes = recipe_list             # one CUSTOM scenario per recipe (read by custom-import)
+        ctx.campaigns = campaign_list         # read by the 'campaign' scenario (empty = inert)
+        # The account directory. Derived from the inventory, so who is disabled/expired/locked is
+        # the same on every run — a demo that tells a different story each build is not a demo.
+        ctx.dir = Directory(hosts, P.username_for)
+
+        writer = PcapWriter(out)
+        eng = Engine(writer)
+        day = Day(ctx, eng, scale, ot_protocols=ot_protocols)
+    except BaseException:
+        _abort()
+        raise
 
     t0 = time.time()
 
@@ -453,13 +497,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
         # A partial pcap is a valid file full of an incomplete business day — exactly the kind
         # of thing that gets replayed by accident six months later. Discard it (Cancelled or any
         # engine failure alike), then re-raise unchanged.
-        writer.close()
-        kl.close()
-        for path in (out, keylog):
-            try:
-                os.remove(path)
-            except OSError:
-                pass
+        _abort()
         raise
     finally:
         INC.set_shifts({})                  # build state is process-global: never leak a shift into the next run
@@ -477,13 +515,6 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
     for n in selected:
         by_cat[INC.REGISTRY[n].prefix] = by_cat.get(INC.REGISTRY[n].prefix, 0) + 1
     cats = ", ".join(f"{v} {k}" for k, v in sorted(by_cat.items())) or "none"
-    # Named legs, never list position: link.fw_extra is ordered differently by the two inventory
-    # layouts (the dual-firewall one carries the IDMZ legs first), so a positional zip mislabels.
-    nets = {"user": link.fw_a.ip.rsplit(".", 1)[0] + ".0/24",
-            "server": link.fw_b.ip.rsplit(".", 1)[0] + ".0/24"}
-    for key, nm in (("ot", "FW-OT"), ("ops", "FW-OPS"), ("idmz", "FW-IDMZ")):
-        if nm in hosts:
-            nets[key] = hosts[nm].subnet
     # Run the registered post-build exporters (built-in: server certs, threat collection,
     # generation report). Each merges its keys into the summary; an exporter failing never
     # discards a finished capture.
@@ -501,6 +532,8 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
     protocols = _exports.get("protocols") or sorted(writer.protocols.items(), key=lambda kv: -kv[1])
     report_csv = _exports.get("report_csv")
 
+    if held:
+        held.commit()
     summary = {"pcap": out, "packets": writer.n, "bytes": writer.bytes, "keylog": keylog,
                "protocols": protocols, "report_csv": report_csv,
                "modules": len(selected), "module_names": selected, "by_category": by_cat,
@@ -516,6 +549,10 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
     # contract true for module-provided exporters.
     for _k, _v in _exports.items():
         summary.setdefault(_k, _v)
+    if held and not held.same:
+        summary["kept_previous"] = {"dir": held.dir, "files": held.files}
+    elif held:
+        summary["replaced_previous"] = True
     # the custom-import reconstruction report: what was rebuilt and what could not be
     cr = getattr(ctx, "custom_report", None)
     if cr:
@@ -582,13 +619,6 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
             _extra += list(_w.values()) if isinstance(_w, dict) else []
         _first = min((b["first_ts"] for b in _bk.values() if b["first_ts"] is not None), default=None)
         _last = max((b["last_ts"] for b in _bk.values() if b["last_ts"] is not None), default=None)
-        _id2 = identity.get_current()
-        _params = {"scale": scale, "date": summary["date"], "company": _id2.name, "industry": _id2.industry,
-                   "user_net": nets["user"], "server_net": nets["server"], "ot": "ot" in nets,
-                   "ot_nets": {k: v for k, v in nets.items() if k not in ("user", "server")},
-                   "ot_protocols": sorted(ot_protocols) if ot_protocols else [],
-                   "recipes": len(recipe_list), "campaigns": len(campaign_list),
-                   "address_mode": address_mode, "scenarios": list(selected), "shifts": dict(shifts)}
         _mp = BM.write(out, _ver(), _params, selected, INC.REGISTRY, INC.resolve_window, local(5), _bk, _cons,
                        {"packets": writer.n, "bytes": writer.bytes, "first_ts": _first, "last_ts": _last,
                         "duration_s": round(_last - _first, 3) if _first is not None else 0.0},
@@ -600,6 +630,8 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
     if progress:
         print(f"\ndone: {writer.n:,} packets, {writer.bytes/1e6:.1f} MB -> {out}")
         print(f"  modules included: {len(selected)} ({cats}), plus the normal day")
+        if held and not held.same:
+            print(f"  kept the earlier build ({len(held.files)} file(s)) -> {held.dir}")
         print(f"  networks:         user {nets['user']}, server {nets['server']}")
         print(f"  capture day:      {summary['date']} (05:00-21:00 America/New_York)")
         if keylog:

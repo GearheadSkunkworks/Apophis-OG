@@ -1213,6 +1213,11 @@
     return pure;
   }
 
+  /* Leaving the page with unsaved campaign edits asks first (the browser shows its own wording). */
+  if (root.addEventListener) root.addEventListener('beforeunload', function (e) {
+    if (root.OGC && root.OGC.state && root.OGC.state.dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+
   /* Register when the shell exists; wait for it if this script loaded first. */
   function boot(tries) {
     if (root.OGC && typeof root.OGC.registerStep === 'function') { attach(root.OGC); return; }

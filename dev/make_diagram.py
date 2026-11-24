@@ -5243,7 +5243,7 @@ def generation_report(protocols, meta):
 # name can never disagree. _FALLBACK_VERSION is used only when that file is absent or unreadable;
 # a test fails if it drifts from dev/VERSION. REVISIONS below is the narrative history and its
 # letter-series labels (5d, ...) are history entries, not the current version.
-_FALLBACK_VERSION = "5.5.3"
+_FALLBACK_VERSION = "5.5.4"
 
 
 def _read_version(app_dir=None):

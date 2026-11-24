@@ -216,7 +216,7 @@
 
   OGC._test = Object.assign(OGC._test || {}, {
     slugify: slugify, safeFilename: safeFilename, relativeTime: relativeTime, realConfirmed: realConfirmed,
-    buildExtras: buildExtras, applyMeta: applyMeta, campaignSummary: campaignSummary, parseConsole: parseConsole,
+    buildExtras: buildExtras, armedAfterCampaign: armedAfterCampaign, applyMeta: applyMeta, campaignSummary: campaignSummary, parseConsole: parseConsole,
     actionRows: actionRows, iocRows: iocRows, coverage: coverage, headline: headline, exportList: exportList,
     errorList: errorList, fmtBytes: fmtBytes
   });
@@ -378,7 +378,7 @@
 
   /* ------------------------------------------------------------------ step 4 state */
 
-  var S = { armed: false, mode: 'mapped', confirmed: false, check: null, checkFor: '', est: null,
+  var S = { armed: false, restored: false, mode: 'mapped', confirmed: false, check: null, checkFor: '', est: null,
             library: null, libError: '', busy: false, mounted: false, timer: null, seq: 0 };
   var ui = {};
 
@@ -396,6 +396,20 @@
     var check = (S.check && S.checkFor === key) ? S.check : null;
     return buildExtras({ armed: S.armed, check: check, campaign: c, mode: S.mode, confirmed: S.confirmed });
   };
+
+  /* The armed flag is part of the saved session: the page reads and sets it here (a campaign itself is not saved). */
+  OGC.getArmed = function () { return S.armed; };
+  /* A flag restored with a session, before any campaign is open, is dropped when the first campaign appears, so a
+     campaign you load is never armed by surprise. Returns the new {armed, restored}. */
+  function armedAfterCampaign(armed, restored, hasCampaign) {
+    return restored && hasCampaign ? { armed: false, restored: false } : { armed: armed, restored: restored };
+  }
+  OGC.setArmed = function (on) {
+    S.armed = !!on; S.restored = S.armed && !stateCampaign();
+    var tg = document.getElementById('ogcl-arm'); if (tg) tg.checked = S.armed && !tg.disabled;
+    try { renderRun(); updateBadge(); refreshCaptureEstimate(); } catch (e) { /* the step is not drawn yet */ }
+  };
+  if (typeof window !== 'undefined' && typeof window.__ogPendingArmed === 'boolean') { S.armed = window.__ogPendingArmed; S.restored = S.armed; window.__ogPendingArmed = undefined; }
 
   function updateBadge() {
     var sum = document.querySelector('#ogc-card > summary') || document.querySelector('#ogc-card summary');
@@ -662,7 +676,7 @@
     box.appendChild(h('p', { class: 'ogcl-note', text: 'Mapped mode re-addresses every indicator IP into 198.18.0.0/15, a range reserved for network benchmarking that is not routed on the internet. The sensor still sees the same behaviour, and a replay cannot reach the real indicator hosts.' }));
     if (S.mode === 'real') box.appendChild(h('div', { class: 'ogcl-warn', role: 'note', text: 'Real addresses are on. Replaying the capture on a routed network can send packets to real hosts. Use an isolated lab only.' }));
 
-    var tg = h('input', { type: 'checkbox', id: 'ogcl-arm', onchange: function () { S.armed = this.checked; renderRun(); updateBadge(); refreshCaptureEstimate(); } });
+    var tg = h('input', { type: 'checkbox', id: 'ogcl-arm', onchange: function () { S.armed = this.checked; S.restored = false; renderRun(); updateBadge(); refreshCaptureEstimate(); } });
     tg.checked = S.armed;
     var c = stateCampaign();
     if (!c) tg.disabled = true;
@@ -895,7 +909,11 @@
         canLeave: function () { return true; } });
     }
     if (OGC.on) {
-      OGC.on('campaign', function () { if (S.mounted) { syncFields(); renderCheck(); scheduleCheck(); } updateBadge(); });
+      OGC.on('campaign', function () {
+        var r = armedAfterCampaign(S.armed, S.restored, !!stateCampaign());
+        if (S.armed && !r.armed) { S.armed = false; var tg = document.getElementById('ogcl-arm'); if (tg) tg.checked = false; try { renderRun(); } catch (e) { /* step not drawn */ } refreshCaptureEstimate(); }
+        S.restored = r.restored;
+        if (S.mounted) { syncFields(); renderCheck(); scheduleCheck(); } updateBadge(); });
     }
   }
   register();

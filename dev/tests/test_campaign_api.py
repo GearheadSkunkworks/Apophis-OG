@@ -460,7 +460,7 @@ class TestGenerate(ApiCase):
         self.assertEqual(len(a), 13)                     # exactly the historical positional arguments
         self.assertEqual(kw, {})
         self.assertEqual(d["modules"], [])
-        self.assertEqual(set(d), {"ok", "out_dir", "modules", "user_net", "server_net"})
+        self.assertEqual(set(d), {"ok", "out_dir", "modules", "user_net", "server_net", "earlier_builds_dir"})
 
     def test_invalid_campaign_400(self):
         for camps in ([{"schema": "x"}], ["str"], "nope", {"a": 1}, [None]):

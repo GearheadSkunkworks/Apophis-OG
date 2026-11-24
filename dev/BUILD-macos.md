@@ -62,7 +62,7 @@ PYTHONPATH="$P" /tmp/og-build-venv/bin/pyinstaller --noconfirm --windowed \
   "$P/server.py"
 
 # 2b. verify the bundle before going on: launch it with `--no-browser --no-autoquit`, then
-#     curl http://127.0.0.1:<port>/api/campaign/actions  must list every action (50 at 5.1.0), not a handful.
+#     curl http://127.0.0.1:<port>/api/campaign/actions  must list every action (the count in `docs/action-reference.md`; 52 at 5.5.x), not a handful.
 
 # 3. PyInstaller's --name sets CFBundleName too, and macOS truncates that in the menu bar
 #    past ~16 characters. Give the menu bar the short form; Finder keeps the full name.

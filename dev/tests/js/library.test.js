@@ -165,3 +165,10 @@ test('script registers nothing without a DOM and does not throw', () => {
   assert.strictEqual(typeof o._test.slugify, 'function');
   assert.strictEqual(o.registered.length, 0);
 });
+
+test('a restored armed flag is dropped when the first campaign appears, and only then', () => {
+  assert.deepStrictEqual(T.armedAfterCampaign(true, true, false), { armed: true, restored: true });    // still no campaign: keep waiting
+  assert.deepStrictEqual(T.armedAfterCampaign(true, true, true), { armed: false, restored: false });   // a campaign was loaded: not armed by surprise
+  assert.deepStrictEqual(T.armedAfterCampaign(true, false, true), { armed: true, restored: false });   // armed by the user: stays
+  assert.deepStrictEqual(T.armedAfterCampaign(false, false, true), { armed: false, restored: false });
+});

@@ -574,3 +574,12 @@ body:has(#og-toast:not([hidden])) .ogc-toasts{top:calc(var(--tb-h) + 12px + 64px
 /* denser scenario rows: window and actions on one line so more of the list fits the screen */
 .mside{flex-direction:row;align-items:center;gap:10px;}
 .mod{align-items:center;padding:6px 6px;}
+
+/* Timing indicator beside the timeline (fixed width, so the header never reflows when the count changes) and the changed-from-default list. */
+#timeline-panel .panel-h .tmbox{display:flex;align-items:center;gap:10px;font-size:0.8125rem;color:var(--ink);}
+#timeline-panel .panel-h .tmbox #tmtext{display:inline-block;min-width:190px;}
+.sess-chg{margin-top:12px;font-size:0.8125rem;}
+.sess-chg ul{margin:6px 0 0;padding-left:18px;color:var(--mu);}
+.sess-foot{flex-wrap:wrap;}
+.lib-tag{font-size:0.7188rem;font-weight:600;padding:1px 7px;border:1px solid var(--ln2);border-radius:var(--r-ctl);color:var(--mu);}
+.lib-tag[hidden]{display:none;}
