@@ -77,7 +77,7 @@ def clean_state(state):
     """Reduce whatever the page sent to the fixed session shape. Raises ApiError(400) if unusable."""
     if not isinstance(state, dict):
         raise ApiError(400, "'state' must be an object")
-    out = {"v": SESSION_VERSION, "controls": {}, "otp": {}, "scenarios": None, "recipes": []}
+    out = {"v": SESSION_VERSION, "controls": {}, "otp": {}, "scenarios": None, "recipes": [], "shifts": {}}
     ctl = state.get("controls")
     if isinstance(ctl, dict):
         for k, v in list(ctl.items())[:MAX_CONTROLS]:
@@ -97,6 +97,11 @@ def clean_state(state):
     sc = state.get("scenarios")
     if isinstance(sc, list):
         out["scenarios"] = [x[:120] for x in sc[:MAX_LIST] if isinstance(x, str)]
+    sh = state.get("shifts")                       # timeline slider: {scenario: whole minutes}, checked again at build time
+    if isinstance(sh, dict):
+        for k, v in list(sh.items())[:MAX_LIST]:
+            if isinstance(k, str) and len(k) <= 120 and isinstance(v, int) and not isinstance(v, bool) and v:
+                out["shifts"][k] = v
     rc = state.get("recipes")
     if isinstance(rc, list):
         out["recipes"] = [x[:MAX_STR] for x in rc[:50] if isinstance(x, str)]

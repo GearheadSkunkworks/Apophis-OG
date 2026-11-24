@@ -190,7 +190,11 @@ class Api(unittest.TestCase):
             expected.append({"name": n, "prefix": i.prefix, "title": i.title, "note": i.note,
                              "window": rel(h1 * 60 + m1, h2 * 60 + m2), "pinned": False,
                              "recipe_driven": i.prefix in ("CUSTOM", "CAMPAIGN"),
-                             "ot_only": n in ot, "requires": deps.get(n)})
+                             "ot_only": n in ot, "requires": deps.get(n),
+                             # the timeline slider's additive fields (JSON turns the limits tuple into a list)
+                             "start_min": h1 * 60 + m1 - 300, "end_min": h2 * 60 + m2 - 300,
+                             "shift_limits": list(INC.shift_limits(n)) if INC.shift_limits(n) else None,
+                             "shift_partner": INC.shift_partner(n)})
         expected += INC.baseline_modules()
         got = [{k: v for k, v in m.items() if k != "meta"} for m in self.body["modules"]]
         self.assertEqual(got, expected)

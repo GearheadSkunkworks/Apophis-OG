@@ -31,3 +31,12 @@ test('blocks that end and start together get different rows, so they never touch
   const far = T.layout([{name: 'a', left: 0, width: 10}, {name: 'b', left: 11, width: 10}]);
   assert.strictEqual(far.items[1].row, 0);      // a clear gap lets them share a row
 });
+
+test('dragging moves a marker by its share of the 16 hours, in whole minutes, held to its limits', () => {
+  assert.strictEqual(T.dragShift(0, 100, 960, [-60, 60]), 60);        // 100 px of 960 = 100 min, held to +60
+  assert.strictEqual(T.dragShift(0, 30, 960, [-60, 60]), 30);
+  assert.strictEqual(T.dragShift(10, -45, 960, [-60, 60]), -35);
+  assert.strictEqual(T.dragShift(0, 1, 1920, [-60, 60]), 1);          // 1 px of 1920 = 0.5 min rounds to 1: one-minute steps
+  assert.strictEqual(T.dragShift(5, 40, 0, [-60, 60]), 5);            // no width, no move
+  assert.strictEqual(T.dragShift(5, 40, 960, null), 5);               // locked scenarios never move
+});

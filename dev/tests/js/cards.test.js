@@ -240,3 +240,26 @@ test('keepAnchored scrolls by exactly how far the acted-on item moved, and not a
   C.keepAnchored(doc, at(340), null);                // nothing was focused before the rebuild
   assert.deepStrictEqual(scrolls, [40]);
 });
+
+test('shift helpers: effective window, limits, linked pairs, collect and load', () => {
+  const C = require(path.join(__dirname, '..', '..', 'ui', 'scenario-cards.js'));
+  const a = {name: 'a', start_min: 60, end_min: 120, shift_limits: [-60, 30], shift_partner: 'b', window: 'Start +1h → +2h'};
+  const b = {name: 'b', start_min: 90, end_min: 150, shift_limits: [-20, 100], shift_partner: 'a', window: 'Start +1:30 → +2:30'};
+  const lock = {name: 'c', start_min: 10, end_min: 20, shift_limits: null, window: 'Start +10m → +20m'};
+  const mods = [a, b, lock];
+  assert.strictEqual(C.winOf(a).text, 'Start +1h → +2h');
+  assert.strictEqual(C.formatWindow(45, 125), 'Start +45m → +2:05');
+  assert.strictEqual(C.setShift(mods, 'a', 500, new Set(['a', 'b'])), 30);           // held to a's own limit
+  assert.strictEqual(b.shift, 30);                                                   // the partner moves with it
+  assert.strictEqual(C.setShift(mods, 'b', -50, new Set(['a', 'b'])), -20);          // the pair's shared range
+  assert.strictEqual(a.shift, -20);
+  assert.strictEqual(C.winOf(a).text, 'Start +40m → +1:40');
+  assert.strictEqual(C.setShift(mods, 'a', 10, new Set(['a'])), 10);                 // partner not in the capture: alone
+  assert.strictEqual(b.shift, -20);
+  assert.strictEqual(C.setShift(mods, 'c', 5, null), 0);                             // locked
+  assert.deepStrictEqual(C.collectShifts(mods, new Set(['a'])), {a: 10});
+  C.loadShifts(mods, {a: -999, b: 7, c: 3});
+  assert.deepStrictEqual([a.shift, b.shift, lock.shift], [-60, 7, 0]);
+  C.loadShifts(mods, null);
+  assert.deepStrictEqual(C.collectShifts(mods), {});
+});

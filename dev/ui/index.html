@@ -940,7 +940,7 @@ function renderGroups(){
             </span>
           </label>
           <div class="mside">
-            <span class="mwin">${esc(m.window || '')}</span>
+            <span class="mwin" data-mod="${esc(m.name)}">${esc(m.window || '')}</span>
             <button type="button" class="vizbtn" data-mod="${esc(m.name)}"
                     title="">Visualize</button>
           </div>
@@ -975,7 +975,7 @@ function visualizeScenario(name){
   if($('oten') && $('oten').checked){ p.set('ot','1');
     const on = $('otnet').value.trim(); if(on) p.set('ot_net', on); }
   if(sv) p.set('server_net', sv);
-  addIdentityParams(p);
+  addIdentityParams(p); addShiftParam(p);
   ogThemeParams().forEach((v, k) => p.set(k, v));
   window.open('/diagram?' + p.toString(), '_blank');
 }
@@ -1037,6 +1037,7 @@ function initCards(){
     metaStatus: SCENARIO_META_STATUS,
     getModules: () => ALL_MODULES,
     getTaxonomy: () => SCENARIO_TAXONOMY,
+    setShift: (name, d) => { OGCards.setShift(ALL_MODULES, name, d, new Set(selectedModules())); onScenarioMoved(); cardsHooks.render && cardsHooks.render(); },
     getSelected: () => new Set(selectedModules()),
     otLive: () => otLive(),
     customRecipes: () => { try{ return recipeFiles.length; }catch(e){ return 0; } },
@@ -1056,7 +1057,7 @@ function initCards(){
   if(window.OGTimeline){
     const tl = OGTimeline.create({doc: document, host: $('tl-host'), cards: OGCards,
       getModules: () => ALL_MODULES.filter(m => !m.pinned), getSelected: () => new Set(selectedModules()),   // every scenario fixes the layout; only selected ones are drawn
-      open: (name, opener) => cardsCtl.openCard(name, opener)});
+      open: (name, opener) => cardsCtl.openCard(name, opener), onShift: () => onScenarioMoved()});
     cardsHooks.render = () => tl.render();
     let mapZone = null;
     const renderMap = () => {
@@ -1278,13 +1279,22 @@ function diagramURL(){
   const sel = selectedModules();
   // compare against the SELECTABLE count; pinned baseline rows are never in `sel`
   if(sel.length !== ALL_MODULES.filter(m => !m.pinned && (!m.ot_only || otLive())).length) p.set('modules', sel.join(','));
-  addIdentityParams(p);
+  addIdentityParams(p); addShiftParam(p);
   ogThemeParams().forEach((v, k) => p.set(k, v));
   return '/diagram?' + p.toString();
 }
 
 // The diagram previews whatever company the Settings fields currently name, so the picture
 // matches what a build with those fields would put on the wire.
+// Timeline slider: the moved scenarios that are in the capture, as the minutes the server expects.
+const activeShifts = () => OGCards.collectShifts(ALL_MODULES, new Set(selectedModules()));
+function addShiftParam(p){ const sh = activeShifts(); if(Object.keys(sh).length) p.set('shifts', JSON.stringify(sh)); }
+// A scenario moved (drag, keys, card): refresh the list text, save the session, and keep the open card and timeline in step.
+function onScenarioMoved(){
+  document.querySelectorAll('.mwin[data-mod]').forEach(e => { const m = ALL_MODULES.find(x => x.name === e.dataset.mod); const w = m && OGCards.winOf(m); if(w) e.textContent = w.text; });
+  if(typeof sessSchedule === 'function') sessSchedule();
+  try{ updateReadyBar(); }catch(e){}
+}
 function addIdentityParams(p){
   const co = $('company') && $('company').value.trim();
   const ind = $('industry') && $('industry').value;
@@ -1512,7 +1522,7 @@ function clockMinutes(clock){
 function showNow(t){
   const box = $('nowadding'); if(t == null || !window.OGCards || !window.OGExplainer){ box.hidden = true; return; }
   const sel = new Set(selectedModules());
-  const act = ALL_MODULES.filter(m => sel.has(m.name)).filter(m => { const w = OGCards.parseWindow(m.window); return w && w.startMin <= t && t < w.endMin; });
+  const act = ALL_MODULES.filter(m => sel.has(m.name)).filter(m => { const w = OGCards.winOf(m); return w && w.startMin <= t && t < w.endMin; });
   const ul = $('now-list'); ul.textContent = '';
   const zones = [];
   act.slice(0, 4).forEach(m => { const li = document.createElement('li'); li.textContent = m.title || m.name; ul.appendChild(li);
@@ -1545,7 +1555,7 @@ async function generate(){
                 company: $('company').value.trim(),
                 industry: ($('industry') && $('industry').value) || '',
                 certs: $('certs').checked, iocs: $('iocs').checked,
-                modules: selectedModules(),
+                modules: selectedModules(), shifts: activeShifts(),
                 user_net: $('usernet').value.trim(), server_net: $('servernet').value.trim(),
                 ot: $('oten').checked, ot_net: $('otnet').value.trim(),
                 ot_protocols: Array.from(document.querySelectorAll('.otp'))
@@ -3077,7 +3087,7 @@ function sessCollect(){
   const otp = {};
   document.querySelectorAll('.otp[data-p]').forEach(cb => { otp[cb.dataset.p] = cb.checked; });
   const boxes = (typeof liveBoxes === 'function') ? liveBoxes() : [];
-  return {v: 1, controls, otp, recipes: recipeFiles.slice(),
+  return {v: 1, controls, otp, recipes: recipeFiles.slice(), shifts: OGCards.collectShifts(ALL_MODULES),
           scenarios: boxes.length ? boxes.filter(cb => cb.checked).map(cb => cb.value) : null};
 }
 
@@ -3104,6 +3114,7 @@ function sessApply(st){
     const on = new Set(st.scenarios);
     allBoxes().forEach(cb => { if(!cb.disabled) cb.checked = on.has(cb.value); });
   }
+  if(st.shifts && typeof st.shifts === 'object'){ OGCards.loadShifts(ALL_MODULES, st.shifts); onScenarioMoved(); if(cardsHooks.render) cardsHooks.render(); }
   if(Array.isArray(st.recipes)){ recipeFiles.length = 0; st.recipes.forEach(p => recipeFiles.push(p)); renderRecipes(); }
   try{ updateSelCount(); }catch(e){}
   try{ genGate(); }catch(e){}

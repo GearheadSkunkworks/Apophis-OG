@@ -28,9 +28,10 @@ def _options(campaign):
 def _start_ts(options):
     try:
         hh, mm = str(options.get("start", "10:00")).split(":")[:2]
-        return model.local(int(hh), int(mm))
+        t = model.local(int(hh), int(mm))
     except (ValueError, TypeError):
-        return model.local(10, 0)
+        t = model.local(10, 0)
+    return t
 
 
 def _stage_len(stage, options):

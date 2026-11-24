@@ -142,6 +142,21 @@ class DiagramContext:
                      if h["hostname"] == name), None)
 
 
+SHIFTS = {}        # {scenario: whole minutes} for the render in progress (render(shifts=)); {} is the default day
+
+
+def _win_hm(name, inc):
+    """The scenario's ((h, m), (h, m)) window with the timeline shift applied."""
+    (h1, m1), (h2, m2) = inc.window
+    d = SHIFTS.get(name, 0)
+    return divmod(h1 * 60 + m1 + d, 60), divmod(h2 * 60 + m2 + d, 60)
+
+
+def _shift_clock(text, d):
+    """Move every HH:MM in a label by d minutes (the SQL1 phase labels carry clock times)."""
+    return re.sub(r"(\d\d):(\d\d)", lambda m: "%02d:%02d" % divmod(int(m.group(1)) * 60 + int(m.group(2)) + d, 60), text)
+
+
 def load_modules(selection=None):
     """Read the incident registry. Returns (all_modules, selected_names)."""
     try:
@@ -149,10 +164,11 @@ def load_modules(selection=None):
         from netgen import incidents as INC
         mods = []
         for n, i in INC.REGISTRY.items():
-            (h1, m1), (h2, m2) = i.window
+            (h1, m1), (h2, m2) = _win_hm(n, i)
             mods.append({"name": n, "prefix": i.prefix, "title": i.title, "note": i.note,
                          "start": h1 * 60 + m1, "end": h2 * 60 + m2,
-                         "window": _rel_win(h1 * 60 + m1, h2 * 60 + m2)})
+                         "window": _rel_win(h1 * 60 + m1, h2 * 60 + m2)
+                         + (" \u00b7 moved %+d min" % SHIFTS[n] if SHIFTS.get(n) else "")})
     except Exception:                                # noqa: BLE001 — diagrams still render
         return [], []
     names = [m["name"] for m in mods]
@@ -952,7 +968,8 @@ def timeline(c):
     A(f'<text x="{L - 22}" y="{bot + 14}" text-anchor="end" font-size="9.5" fill="{GRAY}">offset from capture start</text>'
       f'<text x="{L - 22}" y="{bot + 27}" text-anchor="end" font-size="9.5" fill="{GRAY}">clock time (local, 24-hour)</text>')
     A(f'<text x="{(L + R) / 2:.0f}" y="{bot + 46}" text-anchor="middle" font-size="10" fill="{GRAY}">'
-      f'Every scenario window is fixed in the capture clock; Start = 05:00 on the capture day.</text>')
+      + ('Scenarios you moved on the timeline are drawn where they now fire; Start = 05:00 on the capture day.' if SHIFTS
+         else 'Every scenario window is fixed in the capture clock; Start = 05:00 on the capture day.') + '</text>')
 
     # baseline traffic first, in its own style: always present, never selectable
     for i, m in enumerate(base):
@@ -1052,7 +1069,7 @@ def timeline(c):
 def ndr_recon_diagram(c):
     from netgen import incidents as INC
     inc = INC.REGISTRY["ndr-recon"]
-    (h1, m1), (h2, m2) = inc.window
+    (h1, m1), (h2, m2) = _win_hm("ndr-recon", inc)
     w_start, w_end = h1 * 60 + m1, h2 * 60 + m2
     span = (w_end - w_start) * 60                      # window length in seconds
     d = c.data
@@ -1290,7 +1307,7 @@ def _scn(c, module):
     """Window and actor facts shared by every scenario diagram."""
     from netgen import incidents as INC
     inc = INC.REGISTRY[module]
-    (h1, m1), (h2, m2) = inc.window
+    (h1, m1), (h2, m2) = _win_hm(module, inc)
     start, end = h1 * 60 + m1, h2 * 60 + m2
     atk = c.host(INC.ATTACKER_WS)
     return {"INC": INC, "inc": inc, "start": start, "end": end, "span": (end - start) * 60,
@@ -1835,7 +1852,7 @@ def _w3_flow(A, x0, y0, w, edges, accent, pitch=54):
 def _w3_campaign(c, module, spec):
     from netgen import incidents as INC
     inc = INC.REGISTRY[module]
-    (h1, m1), (h2, m2) = inc.window
+    (h1, m1), (h2, m2) = _win_hm(module, inc)
     start, end = h1 * 60 + m1, h2 * 60 + m2
     span = (end - start) * 60
     rstart, rwin, dur = _rel_start(start), _rel_win(start, end), _dur(end - start)
@@ -3638,6 +3655,12 @@ def _w5_phase_curve(A, x0, y0, w, h, start_min, span_sec, phases):
 
 def _npm_diagram(c, module):
     spec = NPM_SPEC[module]
+    d = SHIFTS.get(module, 0)
+    if d:                                          # phases and steps are written in clock minutes / HH:MM
+        spec = dict(spec)
+        if spec.get("phases"):
+            spec["phases"] = [(a + d, b + d, lv, _shift_clock(lab, d)) for a, b, lv, lab in spec["phases"]]
+        spec["steps"] = [tuple(_shift_clock(x, d) for x in st) for st in spec["steps"]]
     k = _scn(c, module); INC = k["INC"]
 
     def resolve(text):
@@ -4553,7 +4576,10 @@ def generation_report(protocols, meta):
         "sections": [("Packets by protocol",
                       '<table><thead><tr><th>Protocol</th><th>Packets</th><th>% of capture</th>'
                       '</tr></thead><tbody>' + trows + '</tbody></table>')],
-        "notes": [
+        "notes": ([("", "Scenarios moved on the timeline",
+                    "These scenarios were slid along the day for this capture: " + ", ".join(
+                        "%s (%+d min)" % (esc(n), m) for n, m in sorted(meta["shifts"].items())) + ".")]
+                  if meta.get("shifts") else []) + [
             ("", "Counted at write time",
              "Every frame is classified as it is written to the capture, so these are exact "
              "counts of what was produced \u2014 not a sample, and not a second pass with an "
@@ -4583,7 +4609,7 @@ def generation_report(protocols, meta):
 # name can never disagree. _FALLBACK_VERSION is used only when that file is absent or unreadable;
 # a test fails if it drifts from dev/VERSION. REVISIONS below is the narrative history and its
 # letter-series labels (5d, ...) are history entries, not the current version.
-_FALLBACK_VERSION = "5.5.1"
+_FALLBACK_VERSION = "5.5.2"
 
 
 def _read_version(app_dir=None):
@@ -5067,12 +5093,28 @@ def _relabel_identity(page, company=None, industry=None):
 
 
 def render(name="topology", inventory=None, user_net=None, server_net=None, modules=None,
-           measured=None, ot_nets=None, company=None, industry=None):
+           measured=None, ot_nets=None, company=None, industry=None, shifts=None):
     """Render one registered diagram to an HTML string. The single entry point for the CLI,
     the local server and anything else that wants a diagram. company/industry re-brand the
-    diagram to the emulated company (default: Example Logistics)."""
+    diagram to the emulated company (default: Example Logistics).
+
+    shifts: {scenario: whole minutes} the timeline slider moved; the diagram then shows those
+    scenarios at their new times. Validated like a build's (ValueError on a bad value), none = default."""
+    global SHIFTS
     if name not in DIAGRAMS:
         raise ValueError(f"unknown diagram '{name}'. Known: {', '.join(sorted(DIAGRAMS))}")
+    if shifts:
+        _app_path()
+        from netgen import incidents as INC
+        shifts = INC.normalize_shifts(shifts, modules if modules is not None else list(INC.REGISTRY))
+    SHIFTS = dict(shifts or {})
+    try:
+        return _render(name, inventory, user_net, server_net, modules, measured, ot_nets, company, industry)
+    finally:
+        SHIFTS = {}
+
+
+def _render(name, inventory, user_net, server_net, modules, measured, ot_nets, company, industry):
     inventory = inventory or os.path.join(APP_DIR, "inventory.json")
     data = gather(inventory, user_net, server_net, ot_nets)
     mods, selected = load_modules(modules)

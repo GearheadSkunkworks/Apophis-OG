@@ -68,13 +68,13 @@ def _outputs(base_dir, paths):
 
 
 def write(out, version, parameters, selected, registry, resolve_window, day_start, buckets, consistency,
-          totals, extra_paths, meta_get):
+          totals, extra_paths, meta_get, windows=None, shifts=None):
     """Write <stem>.manifest.json atomically beside `out`; returns its path."""
     base_dir = os.path.dirname(os.path.abspath(out))
     scenarios = []
     for n in selected:
         inc = registry[n]
-        w0, w1 = resolve_window(inc.window)
+        w0, w1 = (windows or {}).get(n) or resolve_window(inc.window)     # the shifted window when one was set
         pw = {"start_min": round((w0 - day_start) / 60), "end_min": round((w1 - day_start) / 60)}
         ob = buckets.get(n) or {"packets": 0, "bytes": 0, "first_ts": None, "last_ts": None}
         inside = (ob["first_ts"] is not None and ob["first_ts"] >= w0 - SLACK_BEFORE_S
@@ -86,7 +86,8 @@ def write(out, version, parameters, selected, registry, resolve_window, day_star
         scenarios.append({"id": n, "family": inc.prefix, "title": inc.title, "planned_window": pw,
                           "observed": dict(ob), "declared_protocols": list(meta.get("protocols") or []),
                           "size_behaviour": (meta.get("scale") or {}).get("behaviour"),
-                          "emitted_in_window": bool(inside)})
+                          "emitted_in_window": bool(inside),
+                          **({"shift_min": shifts[n]} if shifts and shifts.get(n) else {})})
     m = {"schema_version": SCHEMA_VERSION, "generator": version,
          "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
          "parameters": parameters, "window_slack_s": {"before": SLACK_BEFORE_S, "after": SLACK_AFTER_S},

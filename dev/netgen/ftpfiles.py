@@ -22,6 +22,7 @@ are "protected" with a Caesar shift, which is the point — it is trivially reve
 exactly the kind of thing that turns up on a forgotten anonymous FTP share.
 """
 import binascii
+from datetime import datetime
 from .identity import get_current, H
 import gzip
 import io as _io
@@ -155,12 +156,23 @@ def device_inventory_csv() -> bytes:
     return _txt(rows)
 
 
+_FIRST_LOGIN = "08:17:00"          # the board's first anonymous login, in the capture clock
+
+
+def set_first_login(ts=None):
+    """Make the log's first anonymous login read as the capture clock time of `ts` (the scenario's
+    first session), so a scenario moved on the timeline still matches the packets. None = 08:17:00."""
+    global _FIRST_LOGIN
+    from .model import TZ
+    _FIRST_LOGIN = "08:17:00" if ts is None else datetime.fromtimestamp(ts, TZ).strftime("%H:%M:%S")
+
+
 def syslog_latest_log() -> bytes:
     return _txt([
         f"Mar  2 07:12:04 {H('SB-03')} systemd[1]: Started LuminaBoard display agent.",
         f"Mar  2 07:12:06 {H('SB-03')} vsftpd[812]: starting, listening on 0.0.0.0:21",
         f"Mar  2 07:12:06 {H('SB-03')} vsftpd[812]: anonymous_enable=YES write_enable=YES",
-        f"Mar  2 08:17:00 {H('SB-03')} vsftpd[844]: [anonymous] OK LOGIN: Client " + place("10.10.10.118"),
+        f"Mar  2 {_FIRST_LOGIN} {H('SB-03')} vsftpd[844]: [anonymous] OK LOGIN: Client " + place("10.10.10.118"),
         f"Mar  2 09:01:14 {H('SB-03')} vsftpd[861]: [anonymous] OK LOGIN: Client 203.0.113.47",
         f"Mar  2 09:01:22 {H('SB-03')} vsftpd[861]: [anonymous] OK DOWNLOAD: /pub/exp0101.txt",
         f"Mar  2 10:44:51 {H('SB-03')} displayd[903]: calendar sync ok (boardroom@{get_current().domain})",

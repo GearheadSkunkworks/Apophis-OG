@@ -289,7 +289,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
           user_net=None, server_net=None, should_cancel=None, date=None,
           ot_net=None, ot_nets=None, recipe=None, recipes=None,
           company=None, industry=None, ot_protocols=None,
-          campaigns=None, address_mode=None, confirm_real_addresses=False):
+          campaigns=None, address_mode=None, confirm_real_addresses=False, shifts=None):
     """Generate the capture. Returns a summary dict.
 
     campaigns: a list of campaign dicts (see netgen.campaign / dev/docs/campaign-m1-contracts.md).
@@ -299,6 +299,11 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
       .attack-navigator.json, .campaign-report.md, .report.html, .indicators.csv, .misp-event.json).
     address_mode: 'mapped' (default; indicator IPv4 re-addressed into 198.18.0.0/15) or 'real'.
       Real addresses require confirm_real_addresses=True, otherwise ValueError.
+
+    shifts: {scenario: whole minutes} slides scenarios along the capture day (positive is later).
+      Validated against the selected scenarios and each one's limits (INC.normalize_shifts), so an
+      out-of-range, locked or unselected name raises ValueError. Linked scenarios move together.
+      Empty or None builds the default day, byte-for-byte unchanged.
 
     modules/exclude/only: incident selection (see select_modules); the default builds every
     module, which is the historical behaviour.
@@ -345,6 +350,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
                          "pass confirm_real_addresses=True (CLI: --confirm-real-addresses) to allow it")
     if campaign_list and "campaign" not in selected:
         selected = list(selected) + ["campaign"]
+    shifts = INC.normalize_shifts(shifts, selected)         # after the recipe/campaign scenarios are in the set
     # ot_net is the switch: absent means no OT subnet at all, and the capture is
     # packet-identical to one built before the feature existed. ot_nets overrides the
     # individual /24s when given.
@@ -431,6 +437,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
         if progress:
             print(f"  {w.n:>10,} pkts  {w.bytes/1e6:>8.1f} MB  clock {time.strftime('%H:%M:%S', time.localtime(w.last_ts))}  ({time.time()-t0:.0f}s)", flush=True)
 
+    INC.set_shifts(shifts)
     try:
         # stage 1 (the only stage): schedule the normal day, then the selected incident modules
         day.build()
@@ -454,6 +461,8 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
             except OSError:
                 pass
         raise
+    finally:
+        INC.set_shifts({})                  # build state is process-global: never leak a shift into the next run
     writer.close()
     kl.close()
     if os.path.getsize(keylog) == 0:
@@ -564,6 +573,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
     # Neither may ever discard a finished capture, so failures are recorded, not raised.
     try:
         _bk, _cons = BM.by_scenario(eng.stats, selected, writer.n, writer.bytes)
+        summary["shifts"] = dict(shifts)
         summary["by_scenario"] = _bk
         summary.update(_cons)
         _extra = [keylog, summary.get("report_csv"), (summary.get("iocs") or {}).get("stix"),
@@ -578,11 +588,12 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
                    "ot_nets": {k: v for k, v in nets.items() if k not in ("user", "server")},
                    "ot_protocols": sorted(ot_protocols) if ot_protocols else [],
                    "recipes": len(recipe_list), "campaigns": len(campaign_list),
-                   "address_mode": address_mode, "scenarios": list(selected)}
+                   "address_mode": address_mode, "scenarios": list(selected), "shifts": dict(shifts)}
         _mp = BM.write(out, _ver(), _params, selected, INC.REGISTRY, INC.resolve_window, local(5), _bk, _cons,
                        {"packets": writer.n, "bytes": writer.bytes, "first_ts": _first, "last_ts": _last,
                         "duration_s": round(_last - _first, 3) if _first is not None else 0.0},
-                       _extra, scenario_meta.get)
+                       _extra, scenario_meta.get,
+                       windows={n: INC.window_for(n, shifts) for n in selected}, shifts=shifts)
         summary["manifest"] = os.path.basename(_mp)
     except Exception as _me:                                # noqa: BLE001
         summary["manifest_error"] = "%s: %s" % (type(_me).__name__, _me)

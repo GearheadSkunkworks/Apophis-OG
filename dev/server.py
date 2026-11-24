@@ -344,12 +344,15 @@ def default_nets():
 def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, server_net=None,
                   date=None, ot_nets=None, recipes=None, company=None, industry=None,
                   ot_protocols=None, campaigns=None, address_mode=None,
-                  confirm_real_addresses=False):
+                  confirm_real_addresses=False, shifts=None):
     """Run the generator in-process (packaging-safe: no reliance on a python interpreter path).
     Everything is written into out_dir; a bundled inventory.json is seeded so no subprocess runs.
 
     `modules` is the incident selection: None builds every module, a list builds exactly those
     (an empty list is a legitimate choice — the baseline business day with no incidents).
+
+    `shifts` ({scenario: whole minutes}, already validated) slides scenarios along the capture day;
+    it is passed on only when non-empty, so a run without it is exactly the run it always was.
 
     `campaigns` (a list of validated campaign dicts), `address_mode` ('mapped'|'real') and
     `confirm_real_addresses` are passed to build() only when a campaign is present, so a run
@@ -394,6 +397,8 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
         campaign_kw = ({"campaigns": campaigns, "address_mode": address_mode,
                         "confirm_real_addresses": bool(confirm_real_addresses)}
                        if campaigns else {})
+        if shifts:
+            campaign_kw["shifts"] = shifts
         stats_path = os.path.join(out_dir, "baseline-mix-stats.json") if modules == [] else None
         # out/iocs_prefix default to None/_DERIVE so build() names the files after the emulated
         # company (example-all-in-one.pcap by default, acme-all-in-one.pcap for Acme, etc.). The
@@ -509,6 +514,10 @@ def get_modules():
             (h1, m1), (h2, m2) = i.window
             out.append({"name": n, "prefix": i.prefix, "title": i.title, "note": i.note,
                         "window": _rel_window(h1 * 60 + m1, h2 * 60 + m2), "pinned": False,
+                        # the numbers behind that text, offsets from the 05:00 capture start, and the
+                        # minutes the timeline slider may move it (null when it cannot be moved)
+                        "start_min": h1 * 60 + m1 - 300, "end_min": h2 * 60 + m2 - 300,
+                        "shift_limits": INC.shift_limits(n), "shift_partner": INC.shift_partner(n),
                         # custom-import is not a default scenario: it is built once per imported
                         # recipe file, so the UI keeps it out of the grid and counts and drives the
                         # CUSTOM total from the recipe list instead. 0 recipes = no custom at all. The CAMPAIGN
@@ -760,7 +769,8 @@ class Handler(BaseHTTPRequestHandler):
                 protos = list(STATE.get("protocols") or [])
                 meta = {"bytes": int(STATE.get("mb", 0) * 1e6),
                         "scale": STATE.get("report_scale") or "-",
-                        "modules": (STATE.get("summary") or {}).get("modules", "-")}
+                        "modules": (STATE.get("summary") or {}).get("modules", "-"),
+                        "shifts": (STATE.get("summary") or {}).get("shifts") or {}}
             if not protos:
                 # Same page chrome as every other static page, so it follows ?theme= and ?palette=.
                 if make_diagram is None:
@@ -937,10 +947,16 @@ class Handler(BaseHTTPRequestHandler):
                 measured = STATE.get("baseline_stats") or ""
             company = (q.get("company") or [None])[0] or None
             industry = (q.get("industry") or [None])[0] or None
+            # shifts: URL-encoded JSON {scenario: whole minutes} from the timeline slider; a bad value is a 400
+            raw = (q.get("shifts") or [None])[0]
+            try:
+                shifts = json.loads(raw) if raw else None
+            except ValueError:
+                raise ValueError("'shifts' must be a JSON object of scenario name to whole minutes") from None
             page = make_diagram.render(name, user_net=user_net, server_net=server_net,
                                        ot_nets=ot_nets,
                                        modules=modules, measured=measured or None,
-                                       company=company, industry=industry)
+                                       company=company, industry=industry, shifts=shifts)
         except ValueError as e:
             return self._send(400, _msg_page("Diagram error", "Cannot render this diagram", str(e), q),
                               "text/html; charset=utf-8")
@@ -1383,6 +1399,14 @@ class Handler(BaseHTTPRequestHandler):
                 campaigns, address_mode, confirm_real = campaign_api.parse_generate_extras(data)
             except campaign_api.ApiError as e:
                 return self._send(e.status, json.dumps(dict(e.extra, error=e.message)))
+            # shifts: {scenario: whole minutes}; checked here so a bad slider value is a 400, not a failed run
+            try:
+                from netgen import incidents as _INC
+                shifts = _INC.normalize_shifts(
+                    data.get("shifts"), list(modules if modules is not None else opengenerator_build.select_modules(None))
+                    + (["campaign"] if campaigns else []))
+            except ValueError as e:
+                return self._send(400, json.dumps({"error": str(e)}))
             gen_args = (scale, out_dir, certs, iocs, modules, user_net, server_net,
                         cap_date, ot_nets, recipe_paths or None, company, industry, ot_protocols)
             if campaigns:
@@ -1391,7 +1415,8 @@ class Handler(BaseHTTPRequestHandler):
                 if STATE["running"]:
                     return self._send(409, json.dumps({"error": "a run is already in progress"}))
                 STATE["running"] = True
-            threading.Thread(target=run_generator, args=gen_args, daemon=True).start()
+            threading.Thread(target=run_generator, args=gen_args, kwargs={"shifts": shifts} if shifts else {},
+                             daemon=True).start()
             return self._send(200, json.dumps({"ok": True, "out_dir": out_dir,
                                                "modules": modules,
                                                "user_net": user_net, "server_net": server_net}))

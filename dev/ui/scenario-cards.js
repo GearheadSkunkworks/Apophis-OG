@@ -158,6 +158,53 @@
     return {startMin: v[0], endMin: v[1], left: 100 * start / TRACK_MIN, width: Math.max(1.2, 100 * (end - start) / TRACK_MIN)};
   }
 
+
+  /* ---- timeline slider: a scenario's shift is whole minutes on the module record (m.shift). The server sends the
+     default window as numbers (start_min/end_min, offsets from the 05:00 start) and how far it may move (shift_limits). ---- */
+  function fmtOffset(m) {
+    if (m < 60) return '+' + m + 'm';
+    var h = Math.floor(m / 60), mm = m % 60;
+    return mm === 0 ? '+' + h + 'h' : '+' + h + ':' + (mm < 10 ? '0' : '') + mm;
+  }
+  function formatWindow(startMin, endMin) { return 'Start ' + fmtOffset(startMin) + ' \u2192 ' + fmtOffset(endMin); }
+  function shiftLimits(m) { var l = m && m.shift_limits; return l && l.length === 2 ? l : null; }
+  /* The window the capture will use: default plus shift, as {startMin, endMin, left, width, text}; null without a window. */
+  function winOf(m) {
+    if (!m) return null;
+    var d = m.shift || 0;
+    if (typeof m.start_min === 'number' && typeof m.end_min === 'number' && m.end_min > m.start_min) {
+      var s = m.start_min + d, e = m.end_min + d, a = Math.max(0, Math.min(s, TRACK_MIN)), b = Math.max(0, Math.min(e, TRACK_MIN));
+      return {startMin: s, endMin: e, left: 100 * a / TRACK_MIN, width: Math.max(1.2, 100 * (b - a) / TRACK_MIN), text: formatWindow(s, e)};
+    }
+    var w = parseWindow(m.window);
+    if (w) w.text = m.window;
+    return w;
+  }
+  /* Move `name` by `d` minutes, held to its limits and, for a linked pair that is also in the capture, to the pair's shared range.
+     Returns the shift that was applied (0 when it cannot move). */
+  function setShift(mods, name, d, selected) {
+    var m = null, partner = null;
+    mods.forEach(function (x) { if (x.name === name) m = x; });
+    var lim = shiftLimits(m);
+    if (!lim) return 0;
+    mods.forEach(function (x) { if (m.shift_partner && x.name === m.shift_partner && (!selected || selected.has(x.name)) && shiftLimits(x)) partner = x; });
+    var lo = lim[0], hi = lim[1];
+    if (partner) { var pl = shiftLimits(partner); lo = Math.max(lo, pl[0]); hi = Math.min(hi, pl[1]); }
+    var v = Math.max(lo, Math.min(hi, Math.round(Number(d) || 0)));
+    m.shift = v; if (partner) partner.shift = v;
+    return v;
+  }
+  /* {name: minutes} for the scenarios in `selected` (all when omitted) that have moved. */
+  function collectShifts(mods, selected) {
+    var out = {};
+    mods.forEach(function (m) { if (m.shift && (!selected || selected.has(m.name))) out[m.name] = m.shift; });
+    return out;
+  }
+  /* Put a saved {name: minutes} back, every value held to its limits; scenarios not named return to their default. */
+  function loadShifts(mods, saved) {
+    mods.forEach(function (m) { var v = saved && saved[m.name]; m.shift = shiftLimits(m) && typeof v === 'number' ? Math.max(shiftLimits(m)[0], Math.min(shiftLimits(m)[1], Math.round(v))) : 0; });
+  }
+
   /* Tab-trap maths. */
   function wrapIndex(len, idx, shift) {
     if (!len) return -1;
@@ -400,15 +447,26 @@
     if (meta && meta.hosts && meta.hosts.length) {
       body.appendChild(el(doc, 'p', {cls: 'scard-hosts'}, [el(doc, 'b', {text: 'Hosts: '}), doc.createTextNode(meta.hosts.join(', '))]));
     }
-    if (mod.window) {
-      var w = parseWindow(mod.window);
-      var win = el(doc, 'div', {cls: 'scard-win'}, [el(doc, 'b', {text: 'When it happens: '}), doc.createTextNode(mod.window)]);
-      if (w) {
-        var bar = el(doc, 'i'); if (bar.style) { bar.style.left = w.left + '%'; bar.style.width = w.width + '%'; }
-        win.appendChild(el(doc, 'div', {cls: 'wstrip', attrs: {role: 'img', 'aria-label': 'Position within the 16 hours of traffic: ' + mod.window}}, [bar]));
-        win.appendChild(el(doc, 'div', {cls: 'wstrip-ends', attrs: {'aria-hidden': 'true'}}, [el(doc, 'span', {text: 'start'}), el(doc, 'span', {text: '16 h'})]));
+    var w = winOf(mod);
+    if (w) {
+      var win = el(doc, 'div', {cls: 'scard-win'}, [el(doc, 'b', {text: 'When it happens: '}), doc.createTextNode(w.text)]);
+      var bar = el(doc, 'i'); if (bar.style) { bar.style.left = w.left + '%'; bar.style.width = w.width + '%'; }
+      win.appendChild(el(doc, 'div', {cls: 'wstrip', attrs: {role: 'img', 'aria-label': 'Position within the 16 hours of traffic: ' + w.text}}, [bar]));
+      win.appendChild(el(doc, 'div', {cls: 'wstrip-ends', attrs: {'aria-hidden': 'true'}}, [el(doc, 'span', {text: 'start'}), el(doc, 'span', {text: '16 h'})]));
+      var lim = shiftLimits(mod);
+      if (lim && cbs.onShift) {
+        var inp = el(doc, 'input', {cls: 'scard-shift', attrs: {type: 'number', step: '1', min: String(lim[0]), max: String(lim[1]),
+          value: String(mod.shift || 0), 'aria-label': 'Minutes to move this scenario (' + lim[0] + ' to ' + lim[1] + '), later is positive'}, data: {act: 'shift'}});
+        var apply = function () { cbs.onShift(inp.value === '' ? 0 : Number(inp.value)); };
+        inp.addEventListener('change', apply);
+        var reset = el(doc, 'button', {cls: 'btn secondary sm', attrs: {type: 'button'}, text: 'Reset', data: {act: 'shift-reset'},
+          on: {click: function () { cbs.onShift(0); }}});
+        if (!mod.shift) reset.disabled = true;
+        win.appendChild(el(doc, 'div', {cls: 'scard-shiftrow'}, [el(doc, 'label', {text: 'Move by (min) '}, [inp]), reset]));
       }
       body.appendChild(win);
+    } else if (mod.window) {
+      body.appendChild(el(doc, 'div', {cls: 'scard-win'}, [el(doc, 'b', {text: 'When it happens: '}), doc.createTextNode(mod.window)]));
     }
     if (meta && meta.steps && meta.steps.length) {
       var stepList = el(doc, 'ol', {cls: 'scard-steps'}, meta.steps.map(function (s, i) {
@@ -598,7 +656,8 @@
         onPrev: function () { open.idx--; show('prev'); },
         onNext: function () { open.idx++; show('next'); },
         onVisualize: function () { cfg.visualize(m.name); },
-        onToggle: function () { cfg.setSelected(m.name, !cfg.getSelected().has(m.name)); show('toggle'); }
+        onToggle: function () { cfg.setSelected(m.name, !cfg.getSelected().has(m.name)); show('toggle'); },
+        onShift: cfg.setShift ? function (d) { cfg.setShift(m.name, d); show(d ? 'shift' : 'shift-reset'); } : null
       });
       if (open.dlg && open.dlg.parentNode) open.dlg.parentNode.removeChild(open.dlg);
       open.dlg = dlg;
@@ -641,6 +700,7 @@
     familyOf: familyOf, categoryOf: categoryOf, categoryKey: categoryKey, shownModules: shownModules,
     buildModel: buildModel, countsFor: countsFor, coverage: coverage, filterModules: filterModules,
     familyCounts: familyCounts, parseWindow: parseWindow,
+    formatWindow: formatWindow, winOf: winOf, shiftLimits: shiftLimits, setShift: setShift, collectShifts: collectShifts, loadShifts: loadShifts,
     wrapIndex: wrapIndex, focusables: focusables, trapTab: trapTab,
     renderRail: renderRail, renderCoverage: renderCoverage, renderTools: renderTools, buildCard: buildCard,
     createController: createController

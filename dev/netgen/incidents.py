@@ -2283,7 +2283,11 @@ def npm_sql1(ctx, eng, tag, win):
     admin can log in to restart it. Inlined from the former netgen/incident.py; the dedicated
     _sql1_rng reseeded here reproduces that module's stream byte-for-byte."""
     _sql1_rng.seed(31337)
-    from .model import local as L
+    from .model import local as L0
+    D = win[0] - L0(10, 0)                       # a shift moves its whole timeline; 0 in the default day
+
+    def L(h, m=0, s=0):
+        return L0(h, m, s) + D
     win = (L(10, 0), L(11, 5))
 
     def sched(ts, fn, *a, **kw):
@@ -3497,7 +3501,9 @@ def crp_anonymous_ftp(ctx, eng, tag, win):
             items.append(("STOR", ul[cursor["u"] % len(ul)])); cursor["u"] += 1
         return tuple(items)
 
-    # Internal: the first session is pinned to 08:17 exactly, the rest spread over the day.
+    # Internal: the first session is pinned to the window start (08:17 by default), the rest spread over the day.
+    from . import ftpfiles as FF
+    FF.set_first_login(lo)                    # the board's syslog shows that same first login
     t = lo
     for i, (ng, npu) in enumerate(FTP_INTERNAL_SHAPE[:FTP_INTERNAL_SESSIONS]):
         s(t, F.anon_ftp_session, ws, board, ops=plan(ng, npu, i % 2 == 0),
@@ -4606,12 +4612,13 @@ def npm_fw_update(ctx, eng, tag, win):
     from .model import local
     lo, hi = win
     # leg 1: download early, pre-positioned before the business day
-    dl = local(*FW_DOWNLOAD_AT)
+    D = lo - local(*REGISTRY["npm-fw-update"].window[0])      # the legs move with the window
+    dl = local(*FW_DOWNLOAD_AT) + D
     if not (lo <= dl <= hi):
         dl = lo + 900
     s(dl, fw_update_download, mgmt)
     # leg 2: push; the ~90 s commit lands just past edge-exploit's 09:30 pivot hard-stop
-    pu = local(*FW_PUSH_AT)
+    pu = local(*FW_PUSH_AT) + D
     if not (lo <= pu <= hi):
         pu = hi - 3600
     s(pu, fw_update_push, mgmt)
@@ -6082,14 +6089,139 @@ def resolve_window(win_hm):
     return (local(h1, m1), local(h2, m2))
 
 
+# --------------------------------------------------------------- timing shifts
+# The owner can slide a scenario along the capture day. A shift is whole minutes added to the
+# scenario's window; every builder takes its times from `win`, so the scenario moves as a block and
+# its content is unchanged. SHIFTS is set for the duration of one build (opengenerator_build) and
+# is empty otherwise, which keeps the default build byte-for-byte what it was.
+SHIFTS = {}
+CAPTURE_MIN = (5 * 60, 21 * 60)            # the 16 hours of traffic, minutes after midnight
+SHIFT_LEAD_MIN, SHIFT_TAIL_MIN = 2, 5      # a scenario's lead-in events and tail flows stay inside the capture
+SHIFT_LOCKED = {                           # meaning tied to the baseline clock, or no window of its own
+    "ndr-ot-sanctioned-writes": "tied to the baseline's shift changes",
+    "custom-import": "driven by its recipe, not a window",
+    "campaign": "its start time is set in the campaign's own Start option",
+}
+SHIFT_LIMITS = {                           # tighter than the capture bounds: these only read right near their hours
+    "npm-nightly-backup": (-90, 10),
+    "crp-weak-tls": (-30, 60),
+    "crp-expired-cert": (-30, 60),
+    "crp-plaintext-creds": (-30, 60),
+}
+SHIFT_PAIRS = (                            # one story across two scenarios: they always move together
+    ("npm-fw-update", "ndr-edge-exploit"),
+    ("npm-tcp-loss-storm", "ndr-salt-typhoon"),
+)
+
+
+def _window_min(name):
+    (h1, m1), (h2, m2) = REGISTRY[name].window
+    return h1 * 60 + m1, h2 * 60 + m2
+
+
+def shift_limits(name):
+    """(min, max) whole minutes a scenario may move, or None when it is locked."""
+    if name in SHIFT_LOCKED:
+        return None
+    lo, hi = _window_min(name)
+    dmin = CAPTURE_MIN[0] + SHIFT_LEAD_MIN - lo
+    dmax = CAPTURE_MIN[1] - SHIFT_TAIL_MIN - hi
+    if name in SHIFT_LIMITS:
+        dmin, dmax = max(dmin, SHIFT_LIMITS[name][0]), min(dmax, SHIFT_LIMITS[name][1])
+    return min(dmin, 0), max(dmax, 0)
+
+
+def shift_partner(name):
+    for a, b in SHIFT_PAIRS:
+        if name == a:
+            return b
+        if name == b:
+            return a
+    return None
+
+
+def normalize_shifts(raw, selected):
+    """Validate a {scenario: minutes} request against the selected scenarios and return the
+    effective shifts (zeros dropped, partners of a linked pair filled in). Raises ValueError with
+    a message fit to show the owner; nothing is silently clamped."""
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise ValueError("'shifts' must be an object of scenario name to whole minutes")
+    sel = set(selected)
+    out = {}
+    for name, d in raw.items():
+        if isinstance(d, bool) or not isinstance(d, int):
+            raise ValueError("shift for %r must be a whole number of minutes" % name)
+        if name not in REGISTRY or name not in sel:
+            raise ValueError("cannot shift %r: it is not a selected scenario" % name)
+        if name in SHIFT_LOCKED:
+            raise ValueError("%r cannot be moved: %s" % (name, SHIFT_LOCKED[name]))
+        if d:
+            out[name] = d
+    for name in list(out):
+        partner = shift_partner(name)
+        if partner and partner in sel and partner not in SHIFT_LOCKED:
+            if out.get(partner, out[name]) != out[name]:
+                raise ValueError("%r and %r always move together; give them the same shift" % (name, partner))
+            out[partner] = out[name]
+    for name, d in out.items():
+        lim = shift_limits(name)
+        if not lim[0] <= d <= lim[1]:
+            raise ValueError("%r can move between %+d and %+d minutes, not %+d" % (name, lim[0], lim[1], d))
+    return out
+
+
+def set_shifts(shifts):
+    """Install the effective shifts for the build in progress ({} restores the default day)."""
+    SHIFTS.clear()
+    SHIFTS.update(shifts or {})
+
+
+def window_for(name, shifts=None):
+    """The scenario's absolute (lo, hi) with its shift applied."""
+    lo, hi = resolve_window(REGISTRY[name].window)
+    d = (SHIFTS if shifts is None else shifts).get(name, 0) * 60
+    return lo + d, hi + d
+
+
+def _isolate_scheduling(eng, name):
+    """While a shifted build is scheduling `name`, run each of its flows on its own random
+    streams (seeded from the scenario and the flow's position) and put the shared streams back
+    afterwards. Without this a scenario moved in time changes the draws every later flow sees,
+    so the rest of the day would shift in content too. Returns the undo."""
+    import zlib
+    gens = _isolated_rng()[0]
+    seed0, count, orig = zlib.crc32(name.encode()), [0], eng.schedule
+
+    def schedule(ts, factory, tag="misc"):
+        count[0] += 1
+        k = count[0]
+
+        def run():
+            saved = [g.getstate() for g in gens]
+            for i, g in enumerate(gens):
+                g.seed(zlib.crc32(("%d:%d:%d" % (seed0, k, i)).encode()))
+            try:
+                return list(factory())             # draw now, while the streams are ours
+            finally:
+                for g, st in zip(gens, saved, strict=False):
+                    g.setstate(st)
+        orig(ts, run, tag)
+    eng.schedule = schedule
+    return lambda: eng.__dict__.pop("schedule", None)
+
+
 def build(name, day, ctx, eng, tag=None):
     inc = REGISTRY[name]
     tag = tag or f"incident:{name}"
-    win = resolve_window(inc.window)
-    if name == "npm-sql1-service-failure":
-        inc.builder(ctx, eng, tag, win)      # ignores win (uses its own timeline)
-    else:
-        inc.builder(ctx, eng, tag, win)
+    win = window_for(name)
+    undo = _isolate_scheduling(eng, name) if SHIFTS else None
+    try:
+        inc.builder(ctx, eng, tag, win)      # npm-sql1 derives its own timeline from the window start
+    finally:
+        if undo:
+            undo()
 
 
 # --------------------------------------------------------------- identity relabel

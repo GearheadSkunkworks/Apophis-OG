@@ -22,6 +22,15 @@
     return {items: out, rows: Math.max(1, rowEnds.length)};
   }
 
+  /* Dragging a marker by dx pixels along a track `width` pixels wide moves it dx/width of the 16 hours, in whole minutes,
+     held to its limits [min, max]. */
+  function dragShift(base, dx, width, limits) {
+    var d = base + (width > 0 ? Math.round(dx * TRACK_MIN / width) : 0);
+    return limits ? Math.max(limits[0], Math.min(limits[1], d)) : base;
+  }
+  var DRAG_PX = 4;        // a press that moves less than this is a click, not a drag
+  var NUDGE = 1, NUDGE_BIG = 15;
+
   function rulerLabels() {
     var out = [];
     for (var h = 0; h <= 16; h += 2) out.push({text: h === 0 ? 'start' : h + ' h', left: 100 * h / 16});
@@ -74,7 +83,49 @@
       var h = gridNode.querySelector('.tlx-mk.hot'); if (h) h.classList.remove('hot');
       bandNode.hidden = true; tipNode.hidden = true;
     }
+    var marks = {}, suppressClick = false;
+    /* After a move: tell the page (autosave, lists, card) and redraw, which re-packs the lanes. */
+    function commit(name) {
+      if (cfg.onShift) cfg.onShift(name);
+      render();
+      var again = cfg.host.querySelector && cfg.host.querySelector('[data-mod="' + name + '"]');
+      if (again && again.focus) again.focus();
+    }
+    /* Press and drag a marker along its track. The lanes stay as they are while the pointer is down and re-pack on release;
+       Escape puts everything back. */
+    function wireDrag(b, m, trk) {
+      b.addEventListener('pointerdown', function (ev) {
+        if (ev.button !== undefined && ev.button !== 0) return;
+        var x0 = ev.clientX, base = m.shift || 0, dragging = false, before = C.collectShifts(cfg.getModules());
+        var width = trk.getBoundingClientRect ? trk.getBoundingClientRect().width : 0;
+        var lim = C.shiftLimits(m);
+        function place(name) {
+          var mm = cfg.getModules().filter(function (x) { return x.name === name; })[0], mk = marks[name];
+          if (!mm || !mk) return;
+          var cw = C.winOf(mm); setPct(mk, 'left', cw.left); setPct(mk, 'width', cw.width);
+        }
+        function move(e) {
+          var dx = e.clientX - x0;
+          if (!dragging && Math.abs(dx) < DRAG_PX) return;
+          if (!dragging) { dragging = true; if (b.setPointerCapture && e.pointerId !== undefined) { try { b.setPointerCapture(e.pointerId); } catch (x) { /* no capture: the window listeners still follow */ } } }
+          C.setShift(cfg.getModules(), m.name, dragShift(base, dx, width, lim), cfg.getSelected());
+          place(m.name); if (m.shift_partner) place(m.shift_partner);
+          showTip(b, (m.title || m.name) + ' ' + C.winOf(m).text, C.winOf(m).left, C.winOf(m).width);
+        }
+        function end(e, cancel) {
+          root.removeEventListener('pointermove', move); root.removeEventListener('pointerup', up); root.removeEventListener('keydown', esc, true);
+          if (!dragging) return;
+          suppressClick = true; setTimeout(function () { suppressClick = false; }, 0);
+          if (cancel) { C.loadShifts(cfg.getModules(), before); render(); return; }
+          commit(m.name);
+        }
+        function up(e) { end(e, false); }
+        function esc(e) { if (e.key === 'Escape') { e.stopPropagation(); end(e, true); } }
+        root.addEventListener('pointermove', move); root.addEventListener('pointerup', up); root.addEventListener('keydown', esc, true);
+      });
+    }
     function render() {
+      marks = {};
       while (cfg.host.firstChild) cfg.host.removeChild(cfg.host.firstChild);
       var mods = cfg.getModules(), sel = cfg.getSelected();
       var grid = el(doc, 'div', 'tlx', null, {role: 'group', 'aria-label': 'Scenarios placed on the 16 hours of traffic. Press Enter on a marker to open its card.'});
@@ -88,7 +139,7 @@
         if (!inLane.length) return;
         var pos = [], byName = {};
         inLane.forEach(function (m) {
-          var w = C.parseWindow(m.window);
+          var w = C.winOf(m);
           byName[m.name] = m;
           if (w) pos.push({name: m.name, left: w.left, width: w.width}); else unplaced++;
         });
@@ -104,16 +155,33 @@
         lay.items.forEach(function (it) {
           var m = byName[it.name], on = sel.has(it.name);
           if (!on) return;                                  // drawn only when in the capture
-          var b = el(doc, 'button', 'tlx-mk' + (on ? ' on' : '') + (k++ % 2 ? ' alt' : ''), '', {type: 'button', 'aria-pressed': on ? 'true' : 'false',
-            'aria-label': (m.title || m.name) + ', ' + (on ? 'in capture' : 'not in capture') + ', ' + m.window});
+          var w = C.winOf(m), canMove = !!C.shiftLimits(m);
+          if (m.shift && canMove) {                         // a faint tick where it would be without the move
+            var g = el(doc, 'span', 'tlx-ghost', null, {'aria-hidden': 'true'});
+            var w0 = C.winOf(Object.assign({}, m, {shift: 0}));
+            setPct(g, 'left', w0.left); setPct(g, 'width', w0.width);
+            if (g.style) g.style.top = 'calc(3px + ' + it.row + ' * var(--tlrow, 10px))';
+            trk.appendChild(g);
+          }
+          var b = el(doc, 'button', 'tlx-mk' + (on ? ' on' : '') + (k++ % 2 ? ' alt' : '') + (m.shift ? ' moved' : ''), '', {type: 'button', 'aria-pressed': on ? 'true' : 'false',
+            'aria-label': (m.title || m.name) + ', ' + (on ? 'in capture' : 'not in capture') + ', ' + w.text + (m.shift ? ', moved ' + (m.shift > 0 ? 'later' : 'earlier') + ' by ' + Math.abs(m.shift) + ' minutes' : '')});
           b.dataset.mod = m.name;
           setPct(b, 'left', it.left); setPct(b, 'width', it.width);
           if (b.style) b.style.top = 'calc(3px + ' + it.row + ' * var(--tlrow, 10px))';
-          var say = function () { showTip(b, m.title || m.name, it.left, it.width); };
+          marks[m.name] = b;
+          var say = function () { var cw = C.winOf(m); showTip(b, (m.title || m.name) + (canMove ? ' ' + cw.text : ''), cw.left, cw.width); };
           b.addEventListener('mouseenter', say); b.addEventListener('focus', say);
           b.addEventListener('mouseleave', hideTip); b.addEventListener('blur', hideTip);
-          b.addEventListener('click', function () { cfg.open(m.name, b); });
+          b.addEventListener('click', function () { if (suppressClick) { suppressClick = false; return; } cfg.open(m.name, b); });
+          if (canMove) wireDrag(b, m, trk);
           b.addEventListener('keydown', function (ev) {
+            if (ev.altKey && canMove && (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft')) {   // Alt+Arrow moves the scenario, bare Arrow moves focus
+              if (ev.preventDefault) ev.preventDefault();
+              var step = (ev.shiftKey ? NUDGE_BIG : NUDGE) * (ev.key === 'ArrowRight' ? 1 : -1);
+              C.setShift(cfg.getModules(), m.name, (m.shift || 0) + step, cfg.getSelected());
+              commit(m.name);
+              return;
+            }
             var i = btns.indexOf(b), j = -1;
             if (ev.key === 'ArrowRight') j = Math.min(btns.length - 1, i + 1);
             else if (ev.key === 'ArrowLeft') j = Math.max(0, i - 1);
@@ -141,7 +209,7 @@
     return {render: render, setPlayhead: setPlayhead};
   }
 
-  var api = {layout: layout, rulerLabels: rulerLabels, create: create, LANES: LANES, TRACK_MIN: TRACK_MIN};
+  var api = {layout: layout, dragShift: dragShift, rulerLabels: rulerLabels, create: create, LANES: LANES, TRACK_MIN: TRACK_MIN};
   root.OGTimeline = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : this);

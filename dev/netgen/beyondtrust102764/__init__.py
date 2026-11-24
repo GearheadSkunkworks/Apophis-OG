@@ -91,14 +91,17 @@ _WEBSHELL_LOG = [
 ]
 
 
+_ROW_HOUR = 9                        # the session-store rows' hour: the scenario's window start (09:00 by default)
+
+
 def _session_rows(ctx, n):
     """Plain-text session rows (estate users and targets) for the session-store reads."""
     hosts = [h for h in (H("WEB1"), H("WEB2"), H("FILE1"), H("MGMT1"), H("SQL1")) if h in ctx.h]
     out = ""
     i = 0
     while len(out) < n:
-        out += "%d|%s|%s|rdp|2026-11-06T09:%02d:%02d\n" % (
-            1000 + i, P.username_for(H("WS-%03d" % (3 + (i * 7) % 60))), hosts[i % len(hosts)], (i * 3) % 60, (i * 17) % 60)
+        out += "%d|%s|%s|rdp|2026-11-06T%02d:%02d:%02d\n" % (
+            1000 + i, P.username_for(H("WS-%03d" % (3 + (i * 7) % 60))), hosts[i % len(hosts)], _ROW_HOUR, (i * 3) % 60, (i * 17) % 60)
         i += 1
     return out
 
@@ -160,6 +163,10 @@ def build(ctx, eng, tag, win):
     from netgen import incidents as INC
     s = INC.sched_factory(eng, ctx, tag, win)
     lo, hi = win
+    global _ROW_HOUR
+    from datetime import datetime
+    from ..model import TZ
+    _ROW_HOUR = datetime.fromtimestamp(lo, TZ).hour           # follows the window when the scenario is moved
     scale = max(0.01, min(1.0, getattr(ctx, "scale", 1.0)))
 
     def at(offset):

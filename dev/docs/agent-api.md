@@ -30,6 +30,8 @@ status and the argument names; secret values are never written). A token is refu
 Request and reply bodies are the same JSON the app uses (see the Campaign guide). A build runs in the background:
 call `build/submit`, then `build/status` until it stops running.
 
+`build/submit` takes the same fields as the app's Generate, including `shifts`: an object of scenario name to whole minutes that moves a scenario in time, for example `{"npm-nightly-backup": -30}`. A scenario that is not selected, cannot move or is out of its range gets a 400 error with the allowed range. Linked scenarios move together, so give both the same value or leave the partner out. `catalog/modules` lists each scenario's `start_min` and `end_min` (minutes after 05:00), `shift_limits` and `shift_partner`. `campaign/run` has no `shifts`; a campaign's start has its own option.
+
 ## Sensors
 
 Send the sensor address only. The app uses the key saved for that sensor in Settings; a request that carries a key is
