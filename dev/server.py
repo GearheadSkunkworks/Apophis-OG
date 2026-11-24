@@ -22,7 +22,6 @@ import datetime
 import json
 import os
 import re
-import secrets
 import shutil
 import subprocess
 import sys
@@ -177,7 +176,7 @@ LOCK = threading.Lock()
 BUILD_LOCK = threading.Lock()
 # Browser-session secret: handed to the app's own page as an HttpOnly cookie. Replay and sensor-push routes require it,
 # so a client that merely omits the agent token cannot reach them (see agent_api.HUMAN_ONLY).
-UI_SECRET = secrets.token_hex(16)
+UI_SECRET = os.urandom(16).hex()
 
 
 # Preview a campaign for the UI (the board and the capture-size estimate) WITHOUT a full generate:

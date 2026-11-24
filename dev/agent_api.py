@@ -17,10 +17,10 @@ Stdlib only. The control is SCOPE, not a hidden endpoint:
 
 The token lives in the Keychain on macOS (account ``agent:token``), else in a 0600 file beside the settings.
 """
+import base64
 import hmac
 import json
 import os
-import secrets
 import threading
 import time
 
@@ -119,7 +119,7 @@ def enabled():
 
 def create_token():
     """Make (or replace) the token; the old one stops working at once. Returns the new token."""
-    tok = "ogagent_" + secrets.token_urlsafe(32)
+    tok = "ogagent_" + base64.urlsafe_b64encode(os.urandom(32)).rstrip(b"=").decode()
     _write_token(tok)
     return tok
 
@@ -243,7 +243,7 @@ def stage(data):
         _expire(now)
         if len(_PENDING) >= STAGE_MAX:
             raise AgentError(429, "too many staged pushes are waiting for review")
-        sid = secrets.token_hex(6)
+        sid = os.urandom(6).hex()
         _PENDING[sid] = {"id": sid, "sensor": sensor, "certs_dir": certs_dir,
                          "protocol": str(data.get("protocol") or "http").lower()[:5], "port": port,
                          "note": str(data.get("note") or "")[:200], "staged": now, "expires": now + STAGE_TTL}

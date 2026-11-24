@@ -2649,7 +2649,8 @@ def _actor_facts(c, module, INC):
     c2_style, impact_ext, _adv = INC.ACTORS.get(module, (None, None, None))
     wipe = module == "ndr-handala"
     own = {"ndr-black-basta": (INC.BLACKBASTA_C2_NAME, INC.BLACKBASTA_C2_IP),
-           "ndr-play": (INC.PLAY_C2_NAME, INC.PLAY_C2_IP)}.get(module)
+           "ndr-play": (INC.PLAY_C2_NAME, INC.PLAY_C2_IP),
+           "ndr-gentlemen": (INC.GENTLEMEN_C2_NAME, INC.GENTLEMEN_C2_IP)}.get(module)
     ext_keys = []
     try:
         ext_keys = [k for k in {"ndr-akira": ["rmm", "cloudflared", "c2", "ngrok"],
@@ -2706,6 +2707,19 @@ def _actor_facts(c, module, INC):
                         ("Named-pipe beacons", 'smb2.filename matches "msagent_[0-9a-f]+"', 'peer-to-peer pipes between servers'),
                         ("Ransom note", 'smb2.filename == "%s"' % ("readme.txt" if bb else "ReadMe.txt"), 'share root and Archive'),
                         ("Note text", 'frame contains "%s"' % ("Your data are stolen" if bb else "pl4y-recovery"), 'the note body, in cleartext SMB')]
+    elif module == "ndr-gentlemen":
+        f["plain"] = ("A ransomware crew with a Cobalt Strike team server of its own (a throwaway documentation-range "
+                      "address). Control traffic is a jittered HTTPS beacon plus long-lived SMB named-pipe sessions "
+                      "between servers; data leaves through an rclone upload before two shares are encrypted with a "
+                      ".gentlemen extension. Its note offers to settle quietly within five days.")
+        f["tells"] = ["HTTPS beacon to its own team server (" + str(INC.GENTLEMEN_C2_NAME) + ")",
+                      "2\u20133 servers each hold one long-lived named-pipe session open",
+                      "The exfil upload announces rclone/v1.68.1 (Akira's announces v1.67.0)",
+                      "Note README-GENTLEMEN.txt carries a Session ID contact and a five-day window"]
+        f["filters"] = [("Team-server SNI", 'tls.handshake.extensions_server_name contains "relay160"', 'the C2 name'),
+                        ("rclone upload", 'http.user_agent contains "rclone/v1.68.1"', 'the exfil names its tool'),
+                        ("Ransom note", 'smb2.filename == "README-GENTLEMEN.txt"', 'share root and Archive'),
+                        ("Note text", 'frame contains "gentlemen-support"', 'the contact address, in cleartext SMB')]
     elif module == "ndr-handala":
         f["plain"] = ("A destructive intrusion that talks to its operator through a chat-app bot instead of a conventional "
                       "C2 host, steals data, then overwrites share contents in place and leaves a defacement note "
@@ -2782,7 +2796,8 @@ def _chain_diagram(c, module, phases, c2_style, impact_ext, advisory, blurb, net
              ("REF", CYAN, advisory, blurb, "")]
     _rows(A, 640, 212, W - 660, facts, pitch=38)
     own_c2 = {"ndr-black-basta": (INC.BLACKBASTA_C2_NAME, INC.BLACKBASTA_C2_IP),
-              "ndr-play": (INC.PLAY_C2_NAME, INC.PLAY_C2_IP)}.get(module)
+              "ndr-play": (INC.PLAY_C2_NAME, INC.PLAY_C2_IP),
+              "ndr-gentlemen": (INC.GENTLEMEN_C2_NAME, INC.GENTLEMEN_C2_IP)}.get(module)
     if own_c2:
         _panel_title(A, 640, 340, "EXTERNAL INFRASTRUCTURE",
                      "this actor's own team server: a throwaway documentation-range address")
@@ -2882,8 +2897,627 @@ def _mk_actor(module):
              order=111, scenario=module)(builder)
 
 
-for _m in ("ndr-akira", "ndr-medusa", "ndr-black-basta", "ndr-play", "ndr-handala"):
+for _m in ("ndr-akira", "ndr-medusa", "ndr-black-basta", "ndr-play", "ndr-handala", "ndr-gentlemen"):
     _mk_actor(_m)
+
+
+# ---- November 2026 incident replays: one spec each, one shared renderer (_w3_campaign) ------------
+# Internal hosts these replays inject sit on the server /24 at a fixed last octet, so the page
+# re-homes them onto the configured server network the same way the engine does.
+def _ir_in(c, last):
+    return c.nets["server"].rsplit(".", 1)[0] + "." + str(last)
+
+
+def _ir_ws(c):
+    return _w3_ip(c, "EXL-WS-001") or _ir_in(c, 0)
+
+
+def _ir_register(module, title, blurb, order, spec_fn):
+    def builder(c, _f=spec_fn, _m=module, _t=title):
+        spec = _f(c)
+        spec.setdefault("title", _t)
+        return _w3_campaign(c, _m, spec)
+    builder.__name__ = "d_" + module.replace("-", "_")
+    register(module, title, blurb, order=order, scenario=module)(builder)
+
+
+def _spec_armorycastle(c):
+    app, vc = _ir_in(c, 129), _w3_ip(c, "EXL-VC1") or _ir_in(c, 0)
+    return {
+        "accent": PLUM,
+        "net": [("203.0.113.123", "external", "EXL-BTRS1", _w3_ip(c, "EXL-BTRS1"), "HTTPS :443 exploit + web shell", "the BeyondTrust request shapes, then shell commands in POST bodies", False),
+                ("EXL-BTRS1", _w3_ip(c, "EXL-BTRS1"), "sync.vsphere-telemetry.example", "192.0.2.124", "HTTPS beacon :443", "every 60–100 s", False),
+                ("EXL-BTRS1", _w3_ip(c, "EXL-BTRS1"), "EXL-LNXAPP1", app, "SSH :22", "an edge appliance reaching an internal Linux host", False),
+                ("EXL-LNXAPP1", app, "EXL-VC1", vc, "LDAP :389", "empty-password bind accepted, ADD user, MODIFY into Administrators, key-sized search", False),
+                ("EXL-LNXAPP1", app, "EXL-VC1", vc, "HTTPS :443 STS + SDK login", "the new account used at once", False),
+                ("EXL-VC1", vc, "cdn-vsphere-updates.example", "192.0.2.125", "HTTP PUT + bulk upload", "the secrets leave", False)],
+        "strip_title": "ATTACK CHAIN", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · edge exploit, SSH pivot, directory takeover, exfiltration",
+        "events": [(14, "edge exploit"), (1500, "SSH pivot"), (2400, "vmdir bypass"), (2700, "secrets out")],
+        "plain": "An attacker breaks into a remote-support appliance at the network edge, hops to a Linux host inside, then talks straight to the vCenter directory service. A login with no password is accepted, a new administrator account is created, and the platform's stored secrets are read and sent out.",
+        "facts": [("Replays", "ARMORY CASTLE chain, vCenter directory bypass CVE-2026-123890 (VMSA-2026-0009)"),
+                  ("Entry", "EXL-BTRS1, the remote-support appliance (BeyondTrust request shapes)"),
+                  ("Pivot", "EXL-LNXAPP1 %s, an internal Linux appliance" % app),
+                  ("Target", "EXL-VC1 vCenter, LDAP :389 (vmdir)"),
+                  ("New account", "svc-backup-admin, added to Administrators"),
+                  ("Exfil", "cdn-vsphere-updates.example 192.0.2.125, never contacted")],
+        "tells_sub": "cleartext LDAP makes the takeover readable",
+        "tells": [("Empty password accepted", "an LDAP simple bind with a DN and a zero-length password that returns success"),
+                  ("Writes to the directory", "an LDAP ADD of a user and a MODIFY adding it to Administrators, from a host that is not a domain controller"),
+                  ("Key-sized search results", "one search returning attribute values the size of keys and certificates"),
+                  ("SSH where there is none", "an edge appliance opening SSH to an internal Linux host"),
+                  ("Immediate use", "the new account logs in over STS and the vSphere SDK within two minutes")],
+        "net_sub": "edge exploit, SSH pivot, LDAP takeover, new-account use, exfiltration",
+        "legend": "Arrow points initiator → responder. vCenter and ESXi management heartbeats and ordinary vSphere Client visits run alongside as the normal pattern.",
+        "kpis": [("LDAP", "Takeover protocol"), ("CVE-2026-123890", "Reference", "mono")],
+        "filters": [("The takeover", 'ldap && ip.dst == %s' % vc, 'binds, ADD, MODIFY and the search'),
+                    ("LDAP writes", 'ldap.protocolOp == 8 || ldap.protocolOp == 6', 'addRequest and modifyRequest'),
+                    ("Pivot SSH", 'tcp.port == 22 && ip.dst == %s' % app, 'edge host to the appliance'),
+                    ("Exfil sink", 'ip.addr == 192.0.2.125', 'the upload')],
+        "notes": [("warn", "Facts and limits", "CVE-2026-123890 and the ARMORY CASTLE name come from vendor and press reports. The traffic is a shape replay: the exact LDAP payloads the real tool used are not published, so the values here are inert stand-ins."),
+                  ("", "Reuse", "The edge stage reuses the BeyondTrust replay's request shapes, so a detection tuned on that scenario fires here too.")]}
+
+
+def _spec_outlook(c):
+    owa = _ir_in(c, 124)
+    ws = "a user workstation"
+    return {
+        "accent": PLUM,
+        "net": [(ws, "WS pool", "share-sync.docfetch-cdn.example", "203.0.113.124", "SMB2 :445 + NTLM", "negotiate, challenge, authenticate, then STATUS_LOGON_FAILURE", False),
+                (ws, "WS pool", "share-sync.docfetch-cdn.example", "203.0.113.124", "HTTP :80 WebDAV", "OPTIONS and PROPFIND, NTLM in the headers", False),
+                ("node124.probe-pool.example", "203.0.113.125", "EXL-OWA1", owa, "HTTPS :443", "short password spray, then a success", False),
+                ("a workstation", "WS pool", "EXL-FILE1", _w3_ip(c, "EXL-FILE1"), "SMB2 :445 + NTLM", "ordinary file-share logons, the benign look-alike", False)],
+        "strip_title": "CREDENTIAL LEAK", "strip_label": "events",
+        "strip_sub": "window {rwin} · {span} minutes · three leaks, a retry, then use of the account",
+        "events": [(95, "leak 1"), (640, "leak 2"), (1480, "leak 3"), (2100, "portal spray")],
+        "plain": "A user opens a crafted message and Outlook quietly tries to open a file share on an internet host. Windows offers the user's password proof to that host, over SMB and then over WebDAV, and the host refuses it after recording it. Minutes later the same account is tried at the company mail portal.",
+        "facts": [("Replays", "Outlook NTLM spoofing zero-day CVE-2026-124194 (Microsoft Update, November 2026)"),
+                  ("Capture server", "share-sync.docfetch-cdn.example 203.0.113.124, never contacted"),
+                  ("WebDAV agent", "Microsoft-WebDAV-MiniRedir/10.0.19045"),
+                  ("Portal", "EXL-OWA1 %s, HTTPS :443" % owa),
+                  ("Account", "tnguyen")],
+        "tells_sub": "an NTLM login to a host that is not in the domain",
+        "tells": [("Outbound SMB to the internet", "TCP 445 from a workstation to a never-seen external address"),
+                  ("NTLM that fails by design", "a full NEGOTIATE/CHALLENGE/AUTHENTICATE exchange ending in STATUS_LOGON_FAILURE"),
+                  ("WebDAV fallback", "the same handshake carried in Authorization headers on port 80, four seconds later"),
+                  ("First-seen name", "a DNS lookup for a name no one has resolved before the SMB attempt"),
+                  ("Portal use of the account", "a short spray then a success from the same external /24")],
+        "net_sub": "the leak over SMB then WebDAV, the later portal sign-in, and the normal NTLM file logons beside it",
+        "legend": "Arrow points client → server. The benign file-share logons use the same NTLM exchange but end in success against a domain host.",
+        "kpis": [("445 + 80", "Leak ports"), ("CVE-2026-124194", "Reference", "mono")],
+        "filters": [("Outbound SMB", 'tcp.dstport == 445 && ip.dst == 203.0.113.124', 'workstation to the capture server'),
+                    ("NTLM failure", 'smb2.nt_status == 0xc000006d', 'STATUS_LOGON_FAILURE'),
+                    ("WebDAV agent", 'http.user_agent contains "WebDAV-MiniRedir"', 'OPTIONS and PROPFIND'),
+                    ("Portal sign-ins", 'ip.src == 203.0.113.125 && ip.dst == %s' % owa, 'spray and success')],
+        "notes": [("warn", "Facts and limits", "CVE-2026-124194 is reported by vendor and press write-ups as an exploited Outlook spoofing flaw added to CISA KEV in November 2026. The exact trigger is not reproduced; only the network behaviour a sensor sees is."),
+                  ("", "Benign twin", "File logons from other workstations to EXL-FILE1 use NTLM too. The difference is the destination: a domain host, and success.")]}
+
+
+def _spec_freeswitch(c):
+    fs = _ir_in(c, 126)
+    return {
+        "accent": PLUM,
+        "net": [("node126.probe-pool.example", "203.0.113.126", "EXL-FSW1", fs, "SIP MESSAGE UDP :5060", "request-URI user is the api handler; text/plain API command", False),
+                ("sip-scan-a / -b", "203.0.113.127 / .128", "EXL-FSW1", fs, "SIP OPTIONS / REGISTER", "scanner user agents, mostly 401 or 404", False),
+                ("EXL-FSW1", fs, "cdn.voip-telemetry.example", "192.0.2.126", "HTTP callback + HTTPS beacon", "first-seen name, then every 55–95 s", False),
+                ("EXL-FSW1", fs, "gw.premium-route.example", "192.0.2.127", "SIP INVITE + RTP", "toll-fraud calls to premium-rate numbers", False),
+                ("EXL-PH handsets", "phones", "EXL-FSW1", fs, "SIP REGISTER", "the normal registrations, the benign look-alike", False)],
+        "strip_title": "TELEPHONY ABUSE", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · scanning throughout, then MESSAGE probes, callback, toll fraud",
+        "events": [(420, "MESSAGE to api"), (600, ""), (1100, "toll fraud")],
+        "plain": "Scanners sweep the company's phone server all day. One sender then mails it a text message addressed to a special internal handler, and the server treats the text as a command. Afterwards the phone server phones home and places calls to premium-rate numbers that no employee dialled.",
+        "facts": [("Replays", "FreeSWITCH SIP MESSAGE command injection, CVE-2026-116779 (affects up to 1.11.2, fixed 1.11.3)"),
+                  ("Server", "EXL-FSW1 %s, mod_sofia, UDP 5060" % fs),
+                  ("Commands", "status, sofia status, show channels, global_getvar domain, inert text only"),
+                  ("Callback", "cdn.voip-telemetry.example 192.0.2.126"),
+                  ("Trunk", "gw.premium-route.example 192.0.2.127")],
+        "tells_sub": "ordinary SIP carrying a request no phone sends",
+        "tells": [("MESSAGE to api", "a SIP MESSAGE whose request-URI user is api and whose body is an API command"),
+                  ("Scanner agents", "friendly-scanner, SIPVicious, sipcli and pplsip in OPTIONS and REGISTER probes"),
+                  ("A phone server that browses", "a first-seen DNS name and HTTP callback from the call server itself"),
+                  ("Calls nobody made", "INVITE bursts to a premium gateway with a few seconds of G.711 each")],
+        "net_sub": "scanning, the MESSAGE exploit shape, the callback and beacon, toll-fraud calls, and normal registrations",
+        "legend": "Arrow points sender → receiver.",
+        "kpis": [("UDP 5060", "Protocol"), ("CVE-2026-116779", "Reference", "mono")],
+        "filters": [("The exploit shape", 'sip.Method == "MESSAGE" && sip.r-uri.user == "api"', 'MESSAGE to the api handler'),
+                    ("Scanner sweeps", 'sip.Method == "OPTIONS" && ip.dst == %s' % fs, 'from three external sources'),
+                    ("Toll-fraud calls", 'sip.Method == "INVITE" && ip.src == %s' % fs, 'outbound from the server'),
+                    ("Media", 'rtp && ip.addr == 192.0.2.127', 'G.711 to the gateway')],
+        "notes": [("warn", "Facts and limits", "CVE-2026-116779 and the 1.11.3 fix are as reported by the vendor advisory and press; CISA KEV listing is reported as 9 November 2026. The commands in the capture are harmless placeholders."),
+                  ("", "Detection", "Inbound ACLs do not look at MESSAGE, so the signal is the request itself plus the server's own new outbound behaviour.")]}
+
+
+def _spec_optimjack(c):
+    ws = "visitors' browsers"
+    return {
+        "accent": PLUM,
+        "net": [(ws, "WS pool", "www.brightcart-store.example", "198.51.100.144", "HTTPS :443", "ordinary page views", False),
+                (ws, "WS pool", "cdn.exp-platform.example", "198.51.100.145", "HTTPS :443 project script", "~38 KB normally, 52 KB+ and changing while infected", False),
+                (ws, "WS pool", "static-metrics-cdn.example", "192.0.2.144", "HTTPS :443 beacon + JSON POST", "first-seen; cookie GETs and card-shaped POSTs", False),
+                (ws, "WS pool", "wallet-sync-cdn.example", "192.0.2.145", "HTTPS :443 POST + loader", "clipper endpoint and loader fetch", False)],
+        "strip_title": "SUPPLY-CHAIN WINDOW", "strip_label": "phases",
+        "strip_sub": "window {rwin} · {span} minutes · clean, infected from the quarter mark, clean again at three quarters",
+        "events": [(1800, "script modified"), (5400, "cleaned up")],
+        "plain": "A retail site loads a script from a third-party testing service. For about an hour the service's copy of that script is replaced, over and over, with a longer one that makes every shopper's browser also contact new sites and send card details to them. Then the script goes back to normal.",
+        "facts": [("Replays", "OPTIMJACK, the November 2026 experimentation-platform CDN skimmer"),
+                  ("Site", "www.brightcart-store.example 198.51.100.144"),
+                  ("CDN", "cdn.exp-platform.example 198.51.100.145, project 27184936"),
+                  ("Skimmer", "static-metrics-cdn.example 192.0.2.144"),
+                  ("Clipper", "wallet-sync-cdn.example 192.0.2.145"),
+                  ("Card data", "published test card numbers only")],
+        "tells_sub": "TLS you can decrypt with the key log",
+        "tells": [("Same URL, new size", "the project script grows from about 38 KB and changes size on each rebuild, every few minutes"),
+                  ("First-seen destinations", "browsers resolving and connecting to names no shopper has used before"),
+                  ("Card-shaped POSTs", "JSON bodies with number, expiry and cvv fields to a third-party host"),
+                  ("Clipper endpoint", "a small POST to a wallet-sync host"),
+                  ("Back to normal", "after clean-up the script returns to its original size and the extra calls stop")],
+        "net_sub": "normal page views, the script from the CDN, then the extra skimmer and clipper traffic while infected",
+        "legend": "All four are real TLS sessions; with the capture's key log the bodies are readable.",
+        "kpis": [("HTTPS", "Protocol"), ("178 orgs", "Reported scale")],
+        "filters": [("Skimmer traffic", 'ip.addr == 192.0.2.144', 'beacons and card-shaped POSTs'),
+                    ("Clipper", 'ip.addr == 192.0.2.145', 'wallet endpoint and loader'),
+                    ("The project script", 'ip.addr == 198.51.100.145 && tcp.port == 443', 'size changes during the window'),
+                    ("First-seen names", 'dns.qry.name contains "static-metrics-cdn" || dns.qry.name contains "wallet-sync-cdn"', 'DNS to the new hosts')],
+        "notes": [("warn", "Facts and limits", "The scenario follows public reporting of ~178 affected organisations (a platform-hosted script, reported November 2026), compressed into a two-hour window; the real exposure duration is not confirmed. Script bodies and endpoints are inert stand-ins."),
+                  ("", "Key log", "Because the sessions are key-logged TLS, response size change on the script URL is visible even without decryption.")]}
+
+
+def _spec_puppet(c):
+    ps = _ir_in(c, 127)
+    return {
+        "accent": PLUM,
+        "net": [("EXL nodes", "FILE1, SQL1, WEB1, BACKUP1", "EXL-PUPPET1", ps, "HTTPS :8140", "node, catalog and report calls: the normal agent run", False),
+                ("node127.probe-pool.example", "203.0.113.127", "EXL-PUPPET1", ps, "HTTPS :8140", "enrol as a new agent, then ask for another node's catalog", False),
+                ("node127.probe-pool.example", "203.0.113.127", "EXL-PUPPET1", ps, "HTTPS :8140 report PUT", "an oversized report the server takes seconds to process", False),
+                ("EXL-PUPPET1", ps, "cfg.sync-telemetry.example", "192.0.2.128", "HTTP fetch + HTTPS beacon + PUT", "stager, beacons every 55–90 s, CA key out", False),
+                ("EXL-PUPPET1", ps, "EXL-FILE1 / SQL1 / WEB1", "managed nodes", "SSH :22", "a configuration server logging in to its nodes", False)],
+        "strip_title": "CONFIG-SERVER TAKEOVER", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · enrol, exploit, server misbehaves, fleet pulls large payloads",
+        "events": [(1200, "enrol"), (1500, "exploit report"), (1650, ""), (1740, "")],
+        "plain": "An attacker registers a fake machine with the company's Puppet configuration server, then sends it a report that is far too big. The server chokes on it and starts behaving like an attacker's machine: it downloads a program, phones out, logs in to the machines it manages and sends out its certificate-signing key.",
+        "facts": [("Replays", "Puppet report-processing RCE, CVE-2026-115731 (fixed 2026.0.1, 2025.12.1, 2023.8.13); companion CVE-2026-115732 is the certname impersonation"),
+                  ("Server", "EXL-PUPPET1 %s, :8140" % ps),
+                  ("Attacker", "node127.probe-pool.example 203.0.113.127"),
+                  ("Sink", "cfg.sync-telemetry.example 192.0.2.128"),
+                  ("Payload", "an inert oversized JSON report, never code")],
+        "tells_sub": "the server's own behaviour changes",
+        "tells": [("Unknown agent", "certificate_request and certificate calls from an address that is not a managed node"),
+                  ("Impersonation shape", "a catalog request for a node's certname from the wrong source"),
+                  ("Oversized report, slow reply", "a report PUT many times normal size with a multi-second server delay"),
+                  ("A server that logs in", "SSH from the Puppet server to managed nodes, a role it does not have"),
+                  ("Large pulls afterwards", "the next agent runs fetch an abnormally large catalog and a ~1 MB file_content")],
+        "net_sub": "agents, the rogue agent, the report, the server's outbound behaviour, SSH to nodes",
+        "legend": "Arrow points client → server. 8140 is TLS; content is readable with the key log, as in the sibling replays.",
+        "kpis": [("8140", "Agent API port"), ("CVE-2026-115731", "Reference", "mono")],
+        "filters": [("Agent API", 'tcp.port == 8140 && ip.addr == %s' % ps, 'every agent call'),
+                    ("Enrolment", 'ip.src == 203.0.113.127 && tcp.port == 8140', 'the rogue agent'),
+                    ("Server outbound", 'ip.src == %s && ip.dst == 192.0.2.128' % ps, 'stager, beacons, CA key'),
+                    ("Server SSH", 'tcp.dstport == 22 && ip.src == %s' % ps, 'to the managed nodes')],
+        "notes": [("warn", "Facts and limits", "CVE IDs, affected and fixed versions, and the CISA KEV listing (17 November 2026) are from vendor and press reports; the CVSS score is reported inconsistently, so the page does not state one."),
+                  ("", "Autosigning", "Where the CA autosigns requests the enrolment step needs no stolen credential, which is why the capture shows it as a plain request.")]}
+
+
+def _spec_sshole(c):
+    h = _ir_in(c, 128)
+    return {
+        "accent": PLUM,
+        "net": [("five scanners", "203.0.113.151–155", "EXL-ALP1", h, "SSH :22 probes", "Go, libssh2, paramiko: distinct banners and KEXINIT lists", False),
+                ("bot sessions", "203.0.113.151–155", "EXL-ALP1", h, "SSH :22 success", "three longer, command-shaped sessions", False),
+                ("EXL-ALP1", h, "dl.cdn-assets-sync.example", "192.0.2.153", "HTTP :80", "script fetched over plain HTTP", False),
+                ("EXL-ALP1", h, "pool.xmr-mirror.example", "192.0.2.150", "Stratum :3333", "cleartext JSON-RPC login, jobs, share submits", False),
+                ("EXL-MGMT1", _w3_ip(c, "EXL-MGMT1"), "EXL-ALP1", h, "SSH :22", "administrators' own OpenSSH sessions, the benign look-alike", False)],
+        "strip_title": "INTERNET SSH WAVE", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · probes from the start, bypass successes, then script and mining",
+        "events": [(900, "bypass lands"), (960, ""), (1010, ""), (1040, "mining starts"), (1500, "")],
+        "plain": "A wave of automated logins hits one small Linux server. Each source uses a different SSH tool, so the connections look unrelated, and a few get in through a password flaw. The server then downloads a script and starts talking to a cryptocurrency mining pool.",
+        "facts": [("Replays", "OpenSSH 'SSHole' password bypass, CVE-2026-123158 (musl libc without PAM, fixed in OpenSSH 10.6p2)"),
+                  ("Host", "EXL-ALP1 %s, Alpine-style, OpenSSH 10.5 banner" % h),
+                  ("Sources", "203.0.113.151–155"),
+                  ("Mining pool", "pool.xmr-mirror.example 192.0.2.150, Stratum on :3333"),
+                  ("Script host", "dl.cdn-assets-sync.example 192.0.2.153")],
+        "tells_sub": "SSH is encrypted: the signal is shape and fingerprint",
+        "tells": [("Many libraries, one target", "Go, libssh2 and paramiko banners with different HASSH, all hitting one host"),
+                  ("Short sessions", "one to three auth exchanges then a server-side disconnect"),
+                  ("A session that stays", "the few successes last tens of seconds to minutes"),
+                  ("Plain HTTP script fetch", "then a first-seen mining-pool name"),
+                  ("Stratum in the clear", "login, jobs and periodic share submissions on :3333")],
+        "net_sub": "the probe wave, the successes, the script fetch, the miner, and the normal admin logins",
+        "legend": "Arrow points client → server.",
+        "kpis": [("22 + 3333", "Ports"), ("CVE-2026-123158", "Reference", "mono")],
+        "filters": [("The wave", 'tcp.dstport == 22 && ip.dst == %s && ip.src in {203.0.113.151 .. 203.0.113.155}' % h, 'five sources'),
+                    ("SSH banners", 'ssh.protocol contains "Go" || ssh.protocol contains "libssh2" || ssh.protocol contains "paramiko"', 'client library per source'),
+                    ("Mining", 'tcp.port == 3333 && ip.addr == 192.0.2.150', 'Stratum JSON-RPC'),
+                    ("Script fetch", 'http.request && ip.dst == 192.0.2.153', 'plain HTTP')],
+        "notes": [("warn", "Facts and limits", "CVE-2026-123158, the musl-without-PAM scope and the 10.6p2 fix are from vendor and press reports. Reports disagree on whether exploitation is confirmed, so the page does not claim it; the post-compromise behaviour shown is the commonly described botnet and miner pattern."),
+                  ("", "HASSH", "Each client library's KEXINIT list is distinct from the OpenSSH admin client, which is what fingerprinting keys on.")]}
+
+
+def _spec_cereal(c):
+    ex = _ir_in(c, 130)
+    return {
+        "accent": PLUM,
+        "net": [("mail.tasking-relay.example", "203.0.113.170", "EXL-EXCH1", ex, "SMTP :25", "innocuous subject, small base64 attachment, to one service mailbox", False),
+                ("EXL-EXCH1", ex, "mx.reports-hub.example", "192.0.2.170", "SMTP :25", "a reply about a minute later to a first-seen mail host", False),
+                ("EXL-EXCH1", ex, "mx.reports-hub.example", "192.0.2.170", "SMTP :25 bulk", "multi-hundred-KB archive attachments on a fixed rhythm", False),
+                ("mx.freightpartner.example", "198.51.100.170", "EXL-EXCH1", ex, "SMTP :25", "ordinary partner mail in and out, the benign look-alike", False)],
+        "strip_title": "MAIL AS COMMAND CHANNEL", "strip_label": "cadence",
+        "strip_sub": "window {rwin} · {span} minutes · task, reply, archive, repeating",
+        "events": [(300, "first task"), (1800, "first archive")],
+        "plain": "An attacker controls an implant on the company's mail server by emailing it. Messages with ordinary subjects arrive for a service mailbox, the server runs what they carry and mails the result to an outside address, and collected mail leaves the same way as large attachments.",
+        "facts": [("Replays", "an Exchange-resident implant pattern inspired by ESET's Turla 'Cereal' report (November 2026); mail-borne tasking is the older LightNeuron-style channel"),
+                  ("Server", "EXL-EXCH1 %s, Exchange ESMTP" % ex),
+                  ("Operator", "mail.tasking-relay.example 203.0.113.170"),
+                  ("Drop", "mx.reports-hub.example 192.0.2.170"),
+                  ("Mailbox", "reports@ the company domain")],
+        "tells_sub": "no command server: the mail system is the channel",
+        "tells": [("Task mail", "inbound to a single service mailbox with a small base64 'invoice' attachment"),
+                  ("Server-originated reply", "the Exchange server itself opening outbound SMTP to a first-seen host about a minute later"),
+                  ("A recipient nobody mails", "the same external mailbox every time"),
+                  ("Archive messages", "multi-hundred-KB attachments at a cadence unlike any user's"),
+                  ("Everything is SMTP", "no HTTPS beacon, no DNS tunnel")],
+        "net_sub": "task mail in, replies and archives out, partner mail beside it",
+        "legend": "Arrow points sender → receiver of the TCP connection.",
+        "kpis": [("SMTP :25", "Protocol"), ("ESET / Turla", "Attribution", "mono")],
+        "filters": [("Task mail", 'smtp.req.command == "RCPT" && ip.src == 203.0.113.170', 'to the service mailbox'),
+                    ("Server-originated mail", 'tcp.dstport == 25 && ip.src == %s && ip.dst == 192.0.2.170' % ex, 'replies and archives'),
+                    ("Attachments", 'imf.content.type contains "multipart/mixed" && ip.addr == 192.0.2.170', 'base64 parts'),
+                    ("Banner", 'smtp.response.parameter contains "Microsoft ESMTP"', 'the Exchange side')],
+        "notes": [("warn", "Facts and limits", "ESET describes Cereal as having no external server, with a backdoor answering Exchange-looking web requests; the mail-borne tasking replayed here is the older Turla LightNeuron-style pattern, used as the observable stand-in. Message contents are inert."),
+                  ("", "Why it is hard", "Every flow is plausible SMTP; detection depends on direction, first-seen destinations and attachment rhythm.")]}
+
+
+_ir_register("ir-armorycastle-vcenter-cve123890", "ARMORY CASTLE vCenter chain",
+             "Edge exploit, SSH pivot, vmdir LDAP takeover, secrets exfil", 150, _spec_armorycastle)
+_ir_register("ir-outlook-ntlm-leak-cve124194", "Outlook NTLM leak",
+             "Outbound SMB/WebDAV NTLM to a capture server, then portal use", 151, _spec_outlook)
+_ir_register("ir-freeswitch-sip-message-cve116779", "FreeSWITCH SIP MESSAGE",
+             "SIP MESSAGE to the api handler, callback, toll fraud", 152, _spec_freeswitch)
+_ir_register("ir-optimjack-supplychain", "OPTIMJACK web skimmer",
+             "A third-party script changes and shoppers' browsers start leaking card data", 153, _spec_optimjack)
+_ir_register("ir-puppet-report-rce-cve115731", "Puppet report RCE",
+             "Rogue agent, oversized report, the server misbehaves", 154, _spec_puppet)
+_ir_register("ir-openssh-sshole-cve123158", "OpenSSH SSHole wave",
+             "Multi-library SSH probes, bypass successes, Stratum mining", 155, _spec_sshole)
+_ir_register("ir-turla-cereal-exchange", "Turla Cereal Exchange C2",
+             "Mail-borne tasking and mail-borne results through Exchange", 156, _spec_cereal)
+
+
+# ---- Earlier incident replays (July to November 2026): same renderer, same shape --------------------
+def _ir_user(c, last):
+    return c.nets["user"].rsplit(".", 1)[0] + "." + str(last)
+
+
+def _web_chain(c, who, who_ip, edge, edge_ip, beacon, exfil, pivots, edge_note):
+    """The recurring edge-appliance shape: inbound exploit and web shell, outbound beacon, exfil, inward pivot."""
+    net = [(who, who_ip, edge, edge_ip, "HTTPS :443 exploit + web shell", edge_note, False),
+           (edge, edge_ip, beacon[0], beacon[1], "TCP :8443 beacon", "every 60–100 s, after first-seen DNS names that return NXDOMAIN", False),
+           (edge, edge_ip, exfil[0], exfil[1], "HTTP PUT + bulk upload", "a small config or key file, then tens of MB", False)]
+    return net + pivots
+
+
+def _spec_netscaler1(c):
+    vip, snip = _ir_in(c, 51), _ir_in(c, 52)
+    return {
+        "accent": PLUM,
+        "net": [("node74.probe-pool.example", "198.51.100.74", "EXL-CAG1-VIP", vip, "HTTPS :443 web shell", "21 commands over two and a half hours: ls, whoami, netstat, cat ns.conf", False),
+                ("node74.probe-pool.example", "198.51.100.74", "EXL-CAG1-VIP", vip, "DTLS + replayed cookie", "a probe and burst, then the same session cookie from a second client", False),
+                ("EXL-CAG1", snip, "sync.beacon-cloud.example", "192.0.2.21", "TCP :8443 beacon", "from 15:44, with first-seen DNS names returning NXDOMAIN", False),
+                ("EXL-CAG1", snip, "cdn-acme-updates.com", "192.0.2.22", "HTTP PUT", "the gateway configuration file, in cleartext", False),
+                ("EXL-CAG1", snip, "EXL-DC1 / DC2", _w3_ip(c, "EXL-DC1"), "LDAP :389 + SMB :445", "14 searches ending in an SPN scan, then failed SMB session setups", False),
+                ("EXL-CAG1", snip, "EXL-WEB1", _w3_ip(c, "EXL-WEB1"), "SSH :22", "a test login, then a reverse SSH back to the gateway", False)],
+        "strip_title": "GATEWAY COMPROMISE", "strip_label": "phases",
+        "strip_sub": "window {rwin} · {span} minutes · web shell all window, then beacon, DTLS, replay, exfil, SPN scan, SSH",
+        "events": [(41, "web shell"), (6278, "C2 beacon"), (7113, "cookie replay"), (7234, "SPN scan"), (7396, "")],
+        "plain": "An attacker uses a hidden page on the company's remote-access gateway to run commands, then has the gateway call out to a control server. The gateway copies its own configuration out, searches the directory for service accounts, probes file shares and finally opens an SSH tunnel back to itself.",
+        "facts": [("Replays", "a Citrix NetScaler/Gateway compromise described in a vendor incident report"),
+                  ("Gateway", "EXL-CAG1 VIP %s and SNIP %s, one MAC" % (vip, snip)),
+                  ("Operator", "node74.probe-pool.example 198.51.100.74"),
+                  ("Beacon sink", "sync.beacon-cloud.example 192.0.2.21 :8443"),
+                  ("Detection", "exactly one is built to fire: the LDAP SPN scan")],
+        "tells_sub": "fingerprints are reproduced where the math allows",
+        "tells": [("Web shell commands", "21 commands in GET requests across the window"),
+                  ("Same cookie, two clients", "the legitimate owner and the attacker present one session cookie"),
+                  ("First-seen DNS", "two C2 names that resolve to NXDOMAIN before any beacon"),
+                  ("SPN scan", "14 LDAP searches, the last filtering on servicePrincipalName"),
+                  ("Reverse SSH", "the internal server opens SSH back to the gateway")],
+        "net_sub": "web shell, DTLS and replay, beacon, config exfil, LDAP and SMB pivot, SSH",
+        "legend": "Arrow points initiator → responder. A benign portal day runs alongside.",
+        "kpis": [("9", "Attack phases"), ("LDAP SPN", "Designed detection")],
+        "filters": [("Web shell", 'ip.src == 198.51.100.74 && ip.dst == %s && tcp.port == 443' % vip, 'the operator to the VIP'),
+                    ("Beacon", 'ip.dst == 192.0.2.21 && tcp.port == 8443', 'the heartbeat'),
+                    ("Config exfil", 'ip.dst == 192.0.2.22', 'the PUT'),
+                    ("LDAP from the gateway", 'ip.src == %s && tcp.port == 389' % snip, 'enumeration and the SPN scan')],
+        "notes": [("warn", "Facts and limits", "The incident is reconstructed from a vendor write-up. The addressing is remapped into this estate; the content (user agents, paths, C2 names, the SPN filter) is kept as published. Hash-exact fingerprints are listed in the scenario, others are reproduced structurally."),
+                  ("", "Sibling", "ir-netscaler-cve88771 is a second, unrelated appliance compromise with its own offender.")]}
+
+
+def _spec_netscaler2(c):
+    vip, snip = _ir_in(c, 51), _ir_in(c, 52)
+    return {
+        "accent": PLUM,
+        "net": _web_chain(c, "scan88.edge-probe.example", "203.0.113.88", "EXL-CAG1-VIP", vip,
+                          ("sync.whipshot-cloud.example", "192.0.2.88"), ("cdn-citrix-patch.com", "192.0.2.89"),
+                          [("EXL-CAG1", snip, "EXL-DC1 / DC2", _w3_ip(c, "EXL-DC1"), "LDAP :389 + SMB :445", "an SPN scan, then failed session setups", False),
+                           ("EXL-CAG1", snip, "EXL-SQL1", _w3_ip(c, "EXL-SQL1"), "TDS :1433", "a real SQL login and query from the gateway", False)],
+                          "exploit, then a web shell written and driven with commands"),
+        "strip_title": "GATEWAY COMPROMISE", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · exploit, web shell, beacon, exfil, inward pivot",
+        "events": [(12, "exploit"), (930, "C2 beacon"), (1210, "config out"), (1560, "LDAP scan"), (1700, "MSSQL")],
+        "plain": "A second, unrelated attacker exploits the same kind of remote-access gateway, plants a web shell and has it call out to a control server. The gateway sends its configuration and tens of megabytes of session data out, then reaches inside to search the directory and log in to the database server.",
+        "facts": [("Replays", "a Citrix NetScaler/Gateway unauthenticated command-execution zero-day (CVE-2026-88771, Citrix bulletin CTX697096, CISA KEV, disclosed 27 September 2026)"),
+                  ("Gateway", "EXL-CAG1-VIP %s, SNIP %s" % (vip, snip)),
+                  ("Operator", "scan88.edge-probe.example 203.0.113.88"),
+                  ("Beacon", "sync.whipshot-cloud.example 192.0.2.88 :8443"),
+                  ("Exfil", "cdn-citrix-patch.com 192.0.2.89, a 200 KB config then ~28 MB")],
+        "tells_sub": "an edge device reaching inward",
+        "tells": [("Exploit then shell", "a request that writes a page, then commands in the same page"),
+                  ("Beacon plus NXDOMAIN", "first-seen names that fail to resolve, then a steady :8443 heartbeat"),
+                  ("Two exfil sizes", "a ~KB-to-200 KB config file, then tens of MB"),
+                  ("Gateway talks LDAP and TDS", "SPN scan and a database login from an appliance that never does"),
+                  ("Tell-apart", "different offender, appliance name and config numbering from the first NetScaler replay")],
+        "net_sub": "exploit, beacon, exfil and the inward pivot",
+        "legend": "Arrow points initiator → responder.",
+        "kpis": [("TDS :1433", "Pivot protocol"), ("CVE-2026-88771", "Reference", "mono")],
+        "filters": [("Operator", 'ip.addr == 203.0.113.88', 'exploit and shell commands'),
+                    ("Beacon", 'ip.dst == 192.0.2.88 && tcp.port == 8443', 'the heartbeat'),
+                    ("Exfil", 'ip.dst == 192.0.2.89', 'config PUT and bulk upload'),
+                    ("Database pivot", 'tcp.port == 1433 && ip.src == %s' % snip, 'TDS from the gateway')],
+        "notes": [("warn", "Facts and limits", "The CVE, its CISA KEV listing and the 27 September 2026 disclosure are confirmed by the Citrix bulletin and press; CVSS is reported as 9.5 to 9.8. The exploit, shell and beacon content are inert stand-ins, not the real exploit."),
+                  ("", "Reuse", "The beacon, LDAP, SMB and exfil helpers are the first NetScaler replay's.")]}
+
+
+def _spec_beyondtrust(c):
+    bt = _ir_in(c, 55)
+    return {
+        "accent": PLUM,
+        "net": _web_chain(c, "node102.probe-pool.example", "203.0.113.102", "EXL-BTRS1", bt,
+                          ("upd.bt-telemetry.example", "192.0.2.102"), ("cdn-bt-updates.com", "192.0.2.103"),
+                          [("EXL-BTRS1", bt, "EXL-DC1 / DC2", _w3_ip(c, "EXL-DC1"), "LDAP :389 + SMB :445", "an SPN scan, then failed session setups", False),
+                           ("EXL-BTRS1", bt, "EXL-MGMT1", _w3_ip(c, "EXL-MGMT1"), "RDP :3389", "the broker logging in to the jump host", False),
+                           ("EXL-BTRS1", bt, "EXL-WEB1", _w3_ip(c, "EXL-WEB1"), "SSH :22", "and to an application server", False)],
+                          "origin-spoofed file read then file write, then web shell commands"),
+        "strip_title": "REMOTE-SUPPORT APPLIANCE COMPROMISE", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · file operations, web shell, beacon, exfil, inward admin protocols",
+        "events": [(14, "file read"), (900, "C2 beacon"), (1180, "store out"), (1560, "LDAP scan"), (1700, "RDP")],
+        "plain": "A privileged-access appliance on the network edge is tricked into reading and writing files for an unauthenticated visitor. Because the appliance is meant to open admin sessions into the estate, the attacker then uses it to search the directory and log in to the jump host and a server.",
+        "facts": [("Replays", "the BeyondTrust Remote Support zero-day (CVE-2026-102764, advisory BT26-05, CISA KEV 16 October 2026)"),
+                  ("Appliance", "EXL-BTRS1 %s" % bt),
+                  ("Operator", "node102.probe-pool.example 203.0.113.102"),
+                  ("Beacon", "upd.bt-telemetry.example 192.0.2.102 :8443"),
+                  ("Exfil", "cdn-bt-updates.com 192.0.2.103, session store ~42 MB")],
+        "tells_sub": "a DMZ broker that reaches inward",
+        "tells": [("Spoofed origin", "file-read and file-write requests with a forged origin from an unauthenticated source"),
+                  ("Web shell", "commands in request bodies after the write"),
+                  ("Beacon", "first-seen NXDOMAIN names then a steady :8443 heartbeat"),
+                  ("Admin protocols from the edge", "LDAP, SMB, RDP and SSH originating at the appliance"),
+                  ("Session store", "a ~KB file then ~42 MB leave")],
+        "net_sub": "exploit, beacon, exfil and the admin-protocol pivot",
+        "legend": "Arrow points initiator → responder. Normal remote-support sessions to the appliance run alongside.",
+        "kpis": [("RDP + LDAP + SMB + SSH", "Pivot"), ("CVE-2026-102764", "Reference", "mono")],
+        "filters": [("Operator", 'ip.addr == 203.0.113.102', 'file operations and shell'),
+                    ("Beacon", 'ip.dst == 192.0.2.102 && tcp.port == 8443', 'the heartbeat'),
+                    ("Exfil", 'ip.dst == 192.0.2.103', 'session store'),
+                    ("RDP from the appliance", 'tcp.dstport == 3389 && ip.src == %s' % bt, 'to the jump host')],
+        "notes": [("warn", "Facts and limits", "The CVE, advisory BT26-05 and the KEV listing are confirmed by the vendor and press; exploitation since late August is attributed to ARMORY CASTLE by Mandiant. CVSS is reported as 9.3 (v4) and 9.8 by different sources. Exploit shapes are inert stand-ins."),
+                  ("", "Reuse", "The ARMORY CASTLE replay reuses this scenario's exploit shapes for its first stage.")]}
+
+
+def _spec_metabase(c):
+    mb = _ir_in(c, 56)
+    sql = _w3_ip(c, "EXL-SQL1")
+    return {
+        "accent": PLUM,
+        "net": [("scan72.bi-probe.example", "203.0.113.72", "EXL-BI1", mb, "HTTPS :443", "SQL injection at /reset_password, a confirming probe, then admin API pulls", False),
+                ("EXL-BI1", mb, "EXL-SQL1", sql, "TDS :1433", "one pooled login, then bulk SELECTs of 5,000 rows twice", False),
+                ("EXL-BI1", mb, "scan72.bi-probe.example", "203.0.113.72", "HTTP PUT", "the exported rows leave as a cleartext CSV", False),
+                ("visitors", "198.51.100.51–54", "EXL-BI1", mb, "HTTPS :443", "ordinary dashboards, the benign look-alike", False)],
+        "strip_title": "BI SERVER TAKEOVER", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · injection, admin takeover, database credentials, bulk export",
+        "events": [(18, "SQL injection"), (150, "bulk TDS"), (320, "")],
+        "plain": "An unauthenticated visitor sends a crafted password-reset request to the company's analytics server, becomes its administrator and reads the stored database logins. The analytics server then queries the file database in bulk and sends the results out.",
+        "facts": [("Replays", "the Metabase unauthenticated SQL-injection zero-day (CVE-2026-72898, POST /api/session/reset_password, CISA KEV)"),
+                  ("Server", "EXL-BI1 %s, backend EXL-SQL1 TDS :1433" % mb),
+                  ("Operator", "scan72.bi-probe.example 203.0.113.72, also the export destination"),
+                  ("Not RCE", "the damage is credentials and data, not code execution")],
+        "tells_sub": "a BI server that suddenly behaves like a database client",
+        "tells": [("Injection in the open", "a POST to /reset_password with SQL syntax, then a confirming probe issuing a session"),
+                  ("Admin API pulls", "database, setting and database-detail endpoints in quick succession"),
+                  ("Bulk TDS", "one pooled connection running large SELECTs the server never ran before"),
+                  ("Export to the operator", "a CSV PUT straight back to the attacker's address")],
+        "net_sub": "injection, takeover, the bulk TDS leg and the export",
+        "legend": "Arrow points initiator → responder.",
+        "kpis": [("TDS :1433", "Exfil path"), ("CVE-2026-72898", "Reference", "mono")],
+        "filters": [("Operator", 'ip.addr == 203.0.113.72', 'injection, pulls and export'),
+                    ("Bulk TDS", 'tcp.port == 1433 && ip.src == %s' % mb, 'the pooled connection'),
+                    ("Export", 'http.request.method == "PUT" && ip.dst == 203.0.113.72', 'cleartext CSV'),
+                    ("Dashboards", 'ip.dst == %s && tcp.port == 443' % mb, 'including benign visits')],
+        "notes": [("warn", "Facts and limits", "The CVE, the KEV listing, CVSS 10 and the exploited-in-the-wild status are confirmed by press and vendor write-ups. Sources disagree on the affected version range, so the page does not state one. The SQL in the capture is an inert stand-in."),
+                  ("", "Why TDS is readable", "The queries and result sets are in cleartext, so the volume and content are decodable.")]}
+
+
+def _spec_sharepoint(c):
+    sp = _ir_in(c, 57)
+    return {
+        "accent": PLUM,
+        "net": _web_chain(c, "node58.toolshell-ops.example", "203.0.113.58", "EXL-SP1", sp,
+                          ("cdn.sp-telemetry.example", "192.0.2.58"), ("updates-sharepoint-cdn.com", "192.0.2.59"),
+                          [("EXL-SP1", sp, "EXL-SQL1", _w3_ip(c, "EXL-SQL1"), "TDS :1433", "the content database", False),
+                           ("EXL-SP1", sp, "EXL-DC1 / DC2", _w3_ip(c, "EXL-DC1"), "LDAP :389 + SMB :445", "an SPN scan, then failed session setups", False)],
+                          "ToolPane exploit, spinstall0.aspx written, machine key read"),
+        "strip_title": "SHAREPOINT TOOLSHELL", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · exploit, web shell, key theft, beacon, pivot, exfil",
+        "events": [(16, "ToolPane exploit"), (920, "C2 beacon"), (1240, "key out"), (1480, "content DB")],
+        "plain": "An attacker sends a crafted request to a SharePoint page that processes untrusted data, drops a web shell and steals the farm's signing keys, which lets them forge requests later. SharePoint then phones out, talks to its database and the domain controller, and sends keys and a document library out.",
+        "facts": [("Replays", "the on-prem SharePoint deserialization RCE (CVE-2026-58644, July 2026 update, CISA KEV), modelled on the ToolShell-style key-theft chain"),
+                  ("Server", "EXL-SP1 %s, content DB on EXL-SQL1" % sp),
+                  ("Operator", "node58.toolshell-ops.example 203.0.113.58"),
+                  ("Web shell", "spinstall0.aspx"),
+                  ("Exfil", "updates-sharepoint-cdn.com 192.0.2.59, keys then ~35 MB")],
+        "tells_sub": "ToolPane, spinstall0 and the key",
+        "tells": [("ToolPane POST", "a request to ToolPane.aspx with a SignOut referer"),
+                  ("spinstall0.aspx", "a web shell page that did not exist before the exploit"),
+                  ("Machine key read", "a request that returns validation and decryption keys"),
+                  ("Beacon and NXDOMAIN", "first-seen names, then a :8443 heartbeat"),
+                  ("Database and DC", "TDS to the content DB, LDAP and SMB probing of the controllers")],
+        "net_sub": "exploit and key theft, beacon, pivot, exfil",
+        "legend": "Arrow points initiator → responder. Normal SharePoint portal visits run alongside.",
+        "kpis": [("spinstall0.aspx", "Web shell", "mono"), ("CVE-2026-58644", "Reference", "mono")],
+        "filters": [("Operator", 'ip.addr == 203.0.113.58', 'exploit and shell'),
+                    ("Web shell", 'http.request.uri contains "spinstall0"', 'decrypted with the key log'),
+                    ("Beacon", 'ip.dst == 192.0.2.58 && tcp.port == 8443', 'the heartbeat'),
+                    ("Content DB", 'tcp.port == 1433 && ip.src == %s' % sp, 'TDS from SharePoint')],
+        "notes": [("warn", "Facts and limits", "The CVE, CVSS 9.8, July 2026 fix and KEV listing are confirmed. Sources disagree on whether it belongs to the ToolShell family (the 2025 ToolShell CVEs are different), so this replay is ToolShell-style, and the spinstall0 and key-theft details follow that earlier campaign."),
+                  ("", "Why the key matters", "With the machine key the attacker can forge view-state later, so closing the shell alone does not end access.")]}
+
+
+def _spec_panos(c):
+    gw, vpn = _ir_in(c, 58), _ir_user(c, 200)
+    return {
+        "accent": PLUM,
+        "net": [("node57.probe-pool.example", "203.0.113.57", "EXL-GPGW1", gw, "HTTPS :443 portal", "a forged auth-override cookie, no credentials", False),
+                ("node57.probe-pool.example", "203.0.113.57", "EXL-GPGW1", gw, "HTTPS :443 gateway", "the VPN connect that follows", False),
+                ("EXL-VPN-7731", vpn, "EXL-DC1 / DC2", _w3_ip(c, "EXL-DC1"), "LDAP :389 + SMB :445", "directory search, then failed session setups", False),
+                ("EXL-VPN-7731", vpn, "EXL-FILE1", _w3_ip(c, "EXL-FILE1"), "SMB :445", "probing shares, the ransomware precursor", False),
+                ("EXL-VPN-7731", vpn, "EXL-MGMT1", _w3_ip(c, "EXL-MGMT1"), "RDP :3389", "two sessions to the jump host", False)],
+        "strip_title": "UNAUTHORISED VPN", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · cookie forged, VPN up, reconnaissance, lateral movement",
+        "events": [(20, "cookie forged"), (180, "LDAP scan"), (300, ""), (520, "RDP")],
+        "plain": "An attacker reads the VPN gateway's certificate and uses it to forge the cookie that normally proves a user logged in. The gateway gives them an internal address, and from there they search the directory, probe the file server and remote in to the jump host, as ransomware crews do before encrypting.",
+        "facts": [("Replays", "the PAN-OS GlobalProtect authentication bypass (CVE-2026-0257, vendor severity 7.8, CISA KEV)"),
+                  ("Gateway", "EXL-GPGW1 %s" % gw),
+                  ("Operator", "node57.probe-pool.example 203.0.113.57"),
+                  ("VPN foothold", "EXL-VPN-7731 %s, an address inside the user network" % vpn),
+                  ("Data tunnel", "not emitted; the control channel and resulting internal flows are")],
+        "tells_sub": "the pivot starts at an address that did not exist yesterday",
+        "tells": [("Forged cookie", "a portal request carrying an auth-override cookie with no prior login"),
+                  ("A new internal host", "the VPN-assigned address appears and immediately scans"),
+                  ("Directory and share probing", "LDAP searches and failed SMB session setups"),
+                  ("RDP to the jump host", "two sessions at two different times")],
+        "net_sub": "the forged login, the VPN connect and the internal movement from the VPN address",
+        "legend": "Arrow points initiator → responder. Normal portal visits run alongside.",
+        "kpis": [("VPN-assigned IP", "Pivot origin"), ("CVE-2026-0257", "Reference", "mono")],
+        "filters": [("Operator", 'ip.addr == 203.0.113.57', 'portal and gateway'),
+                    ("From the VPN address", 'ip.src == %s' % vpn, 'all lateral traffic'),
+                    ("LDAP from the VPN address", 'tcp.port == 389 && ip.src == %s' % vpn, 'the search'),
+                    ("RDP", 'tcp.dstport == 3389 && ip.src == %s' % vpn, 'to the jump host')],
+        "notes": [("warn", "Facts and limits", "The CVE, vendor severity 7.8 and the KEV listing are confirmed; other sources rate it 9.1. Exploitation by Qilin-linked affiliates is reported by a security vendor, not by the advisory."),
+                  ("", "Not from the edge box", "Unlike the other edge replays the pivot starts at the VPN-assigned address, not at the gateway.")]}
+
+
+def _spec_vcenter(c):
+    vc = _ir_in(c, 59)
+    return {
+        "accent": PLUM,
+        "net": [("node59.probe-pool.example", "203.0.113.59", "EXL-VC1", vc, "HTTPS :443", "a directory-traversal request that writes a cron file", False),
+                ("EXL-VC1", vc, "node59.probe-pool.example", "203.0.113.59", "SSH :22 reverse", "reverse SSH for persistence, twice", False),
+                ("EXL-VC1", vc, "sync.vc-telemetry.example", "192.0.2.60", "TCP :8443 beacon", "after first-seen DNS names", False),
+                ("EXL-VC1", vc, "cdn-vmware-updates.com", "192.0.2.61", "HTTP PUT + bulk upload", "the VM inventory, then ~18 MB", False),
+                ("EXL-VC1", vc, "EXL-ESXI1 / ESXI2", _ir_in(c, 65) + " / " + _ir_in(c, 66), "agent :902 / HTTPS", "the ransomware push, twice per host", False)],
+        "strip_title": "VCENTER TO ESXI", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · traversal, reverse SSH, beacon, inventory out, ESXi push",
+        "events": [(22, "traversal exploit"), (140, "reverse SSH"), (620, "inventory out"), (1600, "ESXi push"), (2600, "")],
+        "plain": "An attacker abuses a logging service on the company's VMware management server to run a command as root, then keeps a way back in with a reverse SSH connection. The management server sends out an inventory of the virtual machines and finally pushes a ransomware payload to the hypervisors it controls.",
+        "facts": [("Replays", "the VMware vCenter Syslog directory-traversal RCE (CVE-2026-59310, Broadcom advisory 29 July 2026, CISA KEV)"),
+                  ("vCenter", "EXL-VC1 %s" % vc),
+                  ("Hypervisors", "EXL-ESXI1 and EXL-ESXI2"),
+                  ("Operator", "node59.probe-pool.example 203.0.113.59, also the reverse-SSH sink"),
+                  ("Exfil", "cdn-vmware-updates.com 192.0.2.61, inventory then ~18 MB")],
+        "tells_sub": "a management server that originates SSH",
+        "tells": [("Traversal request", "an inbound request with path traversal to a cron location"),
+                  ("Reverse SSH", "vCenter opening SSH to the operator's address"),
+                  ("A beacon", "a :8443 heartbeat after first-seen names"),
+                  ("Inventory leaves", "a VM listing, then bulk"),
+                  ("ESXi agent traffic", "vCenter driving the ESXi management port in a pattern it never used")],
+        "net_sub": "the exploit, persistence, beacon, exfil and the ESXi push",
+        "legend": "Arrow points initiator → responder. vCenter-to-ESXi heartbeats and normal vSphere Client visits run alongside.",
+        "kpis": [("SSH reverse", "Persistence"), ("CVE-2026-59310", "Reference", "mono")],
+        "filters": [("Operator", 'ip.addr == 203.0.113.59', 'exploit and reverse SSH'),
+                    ("Reverse SSH", 'tcp.dstport == 22 && ip.src == %s && ip.dst == 203.0.113.59' % vc, 'outbound from vCenter'),
+                    ("Beacon", 'ip.dst == 192.0.2.60 && tcp.port == 8443', 'the heartbeat'),
+                    ("Inventory exfil", 'ip.dst == 192.0.2.61', 'the upload')],
+        "notes": [("warn", "Facts and limits", "The CVE, CVSS 9.8, the Broadcom advisory and the KEV listing are confirmed; exploitation since early August is reported. The China-nexus and ransomware attribution is less settled, so treat it as reported, not established."),
+                  ("", "Sibling", "ir-armorycastle-vcenter-cve123890 is the November vCenter chain; the two are unrelated vulnerabilities.")]}
+
+
+def _spec_wordpress(c):
+    web, db = _ir_in(c, 43), _ir_in(c, 44)
+    return {
+        "accent": PLUM,
+        "net": [("scan201 / scan214 / scan233", "203.0.113.119–121", "EXL-WEB4", web, "HTTPS :443 polling", "GETs for the staged installer path, mostly 404", False),
+                ("admin workstation", "WS-021", "EXL-WEB4", web, "HTTPS :443", "the core update that starts the window", False),
+                ("EXL-WEB4", web, "downloads.wordpress.org", "192.0.2.119", "HTTPS :443", "the 25–35 MB package download", False),
+                ("scan233.probe-labs.example", "203.0.113.121", "EXL-WEB4", web, "HTTPS :443 setup-config", "the same GET returns 200 for 4–9 seconds; the exploit POST lands", False),
+                ("EXL-WEB4", web, "db-sync.wp-mirror-cdn.example", "198.51.100.119", "MySQL :3306", "the site now talks to the attacker's database", False),
+                ("EXL-WEB4", web, "EXL-DB4", db, "MySQL :3306", "the legitimate database, the benign look-alike", False)],
+        "strip_title": "UPGRADE-WINDOW RACE", "strip_label": "stages",
+        "strip_sub": "window {rwin} · {span} minutes · polling all window, one short race, then the rogue database",
+        "events": [(3240, "core update"), (3280, "race + exploit")],
+        "plain": "While a WordPress site updates itself, the new installer files sit in a public folder for a few seconds. Scanners have been asking for that file for hours; one asks at the right moment and finishes the installer, pointing the site at a database the attacker runs.",
+        "facts": [("Replays", "the WordPress core upgrade-window race (CVE-2026-119977, CISA KEV 3 November 2026, fixed in 7.1.4)"),
+                  ("Site", "EXL-WEB4 %s" % web),
+                  ("Internal database", "EXL-DB4 %s" % db),
+                  ("Rogue database", "db-sync.wp-mirror-cdn.example 198.51.100.119 :3306"),
+                  ("Wire", "a real MySQL greeting, login and query, written for this scenario")],
+        "tells_sub": "a path that is normally 404 answers once",
+        "tells": [("Hours of polling", "three sources ask for the staged setup-config.php path every 5–60 s"),
+                  ("The same GET answers", "200 for a few seconds, then 404 again"),
+                  ("Step requests", "installer steps 0, 1 and the exploit POST from the poller that won"),
+                  ("Database moves", "the web server's :3306 traffic shifts to an external host"),
+                  ("Look-alikes", "the admin's own update, normal visits and a live pre-check are not the attack")],
+        "net_sub": "polling, the update, the race, and the two database connections",
+        "legend": "Arrow points initiator → responder.",
+        "kpis": [("MySQL :3306", "Takeover leg"), ("CVE-2026-119977", "Reference", "mono")],
+        "filters": [("Pollers", 'ip.dst == %s && ip.src in {203.0.113.119 .. 203.0.113.121}' % web, 'three sources'),
+                    ("Rogue database", 'ip.addr == 198.51.100.119 && tcp.port == 3306', 'after the exploit'),
+                    ("Legitimate database", 'ip.addr == %s && tcp.port == 3306' % db, 'throughout'),
+                    ("Package download", 'ip.addr == 192.0.2.119', 'the update')],
+        "notes": [("warn", "Facts and limits", "The CVE, the 3 November KEV listing and the 7.1.4 fix (28 October) are confirmed by press; the primary WordPress and NVD records were not read. Response strings follow the WordPress 7.1.3 installer."),
+                  ("", "Race width", "The window is 4–9 seconds, drawn per build; the page times above are the typical position.")]}
+
+
+def _spec_ipopt(c):
+    l1, l2 = _ir_in(c, 45), _ir_in(c, 46)
+    return {
+        "accent": PLUM,
+        "net": [("scan140.edge-sweep.example", "203.0.113.140", "EXL-LNX1", l1, "TCP :8443 SYN spray", "IP options on the SYN and a retransmit of the same SYN; no handshake ever completes", False),
+                ("scan141.edge-sweep.example", "203.0.113.141", "EXL-LNX2", l2, "TCP :9000 SYN spray", "the same pattern; one race is lost, bytes leak in a SYN-ACK", False),
+                ("EXL-LNX2", l2, "203.0.113.141", "callback", "TCP callback", "the compromised listener calls out", False),
+                ("gw.partner-co.example", "198.51.100.171", "EXL-LNX1 / LNX2", "listeners", "TCP + MPTCP", "normal partner sessions, retransmits and MP_CAPABLE", False)],
+        "strip_title": "TCP RACE SPRAY", "strip_label": "phases",
+        "strip_sub": "window {rwin} · {span} minutes · about 50 minutes of spraying, one win near the 65-minute mark",
+        "events": [(240, "spray begins"), (3240, "spray ends"), (3900, "winning SYN")],
+        "plain": "Two internet hosts hammer two Linux servers with connection requests that carry unusual network options, each sent twice. Against one server nothing ever completes. Against the other a single race goes wrong, a few bytes of memory leak in the reply, and the server later calls out.",
+        "facts": [("Replays", "the Linux IPv4 TCP use-after-free race (CVE-2026-98432, Akamai analysis; no confirmed in-the-wild exploitation reported)"),
+                  ("Plain listener", "EXL-LNX1 %s :8443" % l1),
+                  ("MPTCP listener", "EXL-LNX2 %s :9000" % l2),
+                  ("Sources", "203.0.113.140 and .141"),
+                  ("Sourced vs assumed", "options plus a retransmit are sourced; the gap, rate, leak shape and callback are assumed and marked so")],
+        "tells_sub": "five packets per attempt, repeated for 50 minutes",
+        "tells": [("Options on a SYN", "Record Route and Timestamp options in the TCP SYN's IP header"),
+                  ("Same SYN twice", "same source port and sequence number again 200–500 ms later"),
+                  ("Reset ends it", "the attacker resets the second SYN-ACK; the first is held back"),
+                  ("No completed handshakes", "the plain listener never sees an ACK from its attacker"),
+                  ("The win", "one SYN-ACK whose options area carries three extra 8-byte values")],
+        "net_sub": "the two sprays, the one successful listener and the benign look-alikes",
+        "legend": "Arrow points initiator → responder. A one-off Timestamp scanner and normal MPTCP clients run alongside as look-alikes.",
+        "kpis": [("5 packets", "Per attempt"), ("CVE-2026-98432", "Reference", "mono")],
+        "filters": [("The spray", 'ip.src == 203.0.113.140 && tcp.flags.syn == 1', 'to EXL-LNX1'),
+                    ("Second spray", 'ip.src == 203.0.113.141 && tcp.flags.syn == 1', 'to EXL-LNX2'),
+                    ("IP options", 'ip.hdr_len > 20 && ip.dst == %s' % l1, 'SYNs carrying options'),
+                    ("Retransmitted SYNs", 'tcp.analysis.retransmission && ip.src == 203.0.113.140', 'same sequence number')],
+        "notes": [("warn", "Facts and limits", "Per the scenario source, only the options-plus-retransmit trigger is sourced; the retry gap, rate, leaked bytes, payload and callback are assumptions, and a proof file in checks/proofs covers the tshark counts."),
+                  ("", "Hand-checked", "The proof harness needs tshark and a full-scale build, so it is run by hand, not in the gate.")]}
+
+
+_ir_register("ir-netscaler-compromise", "NetScaler compromise", "Web shell, beacon, DTLS, cookie replay, config exfil, SPN scan, reverse SSH", 140, _spec_netscaler1)
+_ir_register("ir-netscaler-cve88771", "NetScaler CVE-2026-88771", "Exploit, web shell, beacon, exfil, LDAP and MSSQL pivot", 141, _spec_netscaler2)
+_ir_register("ir-beyondtrust-cve102764", "BeyondTrust remote support", "Spoofed-origin file ops, web shell, then RDP, SMB and LDAP inward", 142, _spec_beyondtrust)
+_ir_register("ir-metabase-cve72898", "Metabase takeover", "SQL injection, admin takeover, bulk TDS export", 143, _spec_metabase)
+_ir_register("ir-sharepoint-cve58644", "SharePoint ToolShell", "ToolPane RCE, spinstall0 web shell, machine key theft, DB and DC pivot", 144, _spec_sharepoint)
+_ir_register("ir-panos-globalprotect-cve0257", "PAN-OS GlobalProtect bypass", "Forged cookie, unauthorised VPN, RDP, SMB and LDAP lateral", 145, _spec_panos)
+_ir_register("ir-vcenter-cve59310", "vCenter syslog RCE", "Traversal, reverse SSH, ESXi ransomware push", 146, _spec_vcenter)
+_ir_register("ir-wordpress-upgrade-race", "WordPress upgrade race", "Staged installer race, then a rogue MySQL takeover", 147, _spec_wordpress)
+_ir_register("ir-ipopt-tcp-uaf", "TCP use-after-free race", "IP-options SYN spray, MPTCP listener leak and callback", 148, _spec_ipopt)
 
 
 # =======================================================================================
@@ -4609,7 +5243,7 @@ def generation_report(protocols, meta):
 # name can never disagree. _FALLBACK_VERSION is used only when that file is absent or unreadable;
 # a test fails if it drifts from dev/VERSION. REVISIONS below is the narrative history and its
 # letter-series labels (5d, ...) are history entries, not the current version.
-_FALLBACK_VERSION = "5.5.2"
+_FALLBACK_VERSION = "5.5.3"
 
 
 def _read_version(app_dir=None):

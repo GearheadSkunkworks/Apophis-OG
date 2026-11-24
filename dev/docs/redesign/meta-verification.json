@@ -2341,6 +2341,303 @@
    },
    "seconds": 0.4,
    "error": null
+  },
+  "ir-armorycastle-vcenter-cve123890": {
+   "id": "ir-armorycastle-vcenter-cve123890",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "SSH",
+    "LDAP",
+    "DNS",
+    "vSphere API"
+   ],
+   "packets": 9882,
+   "verified": [
+    "HTTPS",
+    "SSH",
+    "LDAP",
+    "DNS"
+   ],
+   "carrier_only": [
+    "vSphere API"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 596,
+    "HTTPS": 6531,
+    "TCP-other": 2629,
+    "SSH": 80,
+    "DNS": 4,
+    "LDAP": 42
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "ir-outlook-ntlm-leak-cve124194": {
+   "id": "ir-outlook-ntlm-leak-cve124194",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SMB2",
+    "NTLM",
+    "HTTP",
+    "HTTPS",
+    "DNS"
+   ],
+   "packets": 476,
+   "verified": [
+    "HTTP",
+    "HTTPS",
+    "DNS"
+   ],
+   "carrier_only": [
+    "NTLM"
+   ],
+   "missing": [],
+   "unverifiable": [
+    "SMB2"
+   ],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 46,
+    "DNS": 16,
+    "SMB2": 169,
+    "HTTP": 57,
+    "HTTPS": 188
+   },
+   "seconds": 0.5,
+   "error": null
+  },
+  "ir-freeswitch-sip-message-cve116779": {
+   "id": "ir-freeswitch-sip-message-cve116779",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SIP",
+    "RTP",
+    "HTTP",
+    "DNS"
+   ],
+   "packets": 2901,
+   "verified": [
+    "SIP",
+    "RTP",
+    "HTTP",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "HTTPS"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "SIP": 84,
+    "ARP": 104,
+    "DNS": 4,
+    "HTTP": 11,
+    "HTTPS": 968,
+    "RTP": 1730
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "ir-optimjack-supplychain": {
+   "id": "ir-optimjack-supplychain",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "TLS",
+    "DNS"
+   ],
+   "packets": 7799,
+   "verified": [
+    "HTTPS",
+    "DNS"
+   ],
+   "carrier_only": [
+    "TLS"
+   ],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 206,
+    "DNS": 338,
+    "HTTPS": 7255
+   },
+   "seconds": 0.9,
+   "error": null
+  },
+  "ir-puppet-report-rce-cve115731": {
+   "id": "ir-puppet-report-rce-cve115731",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "SSH",
+    "HTTP",
+    "DNS",
+    "Puppet agent API (8140)"
+   ],
+   "packets": 24432,
+   "verified": [
+    "HTTPS",
+    "SSH",
+    "HTTP",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [
+    "Puppet agent API (8140)"
+   ],
+   "extra": [
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 206,
+    "TCP-other": 21925,
+    "DNS": 4,
+    "HTTP": 15,
+    "HTTPS": 870,
+    "SSH": 1412
+   },
+   "seconds": 14.6,
+   "error": null
+  },
+  "ir-openssh-sshole-cve123158": {
+   "id": "ir-openssh-sshole-cve123158",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SSH",
+    "HTTP",
+    "Stratum",
+    "DNS"
+   ],
+   "packets": 8528,
+   "verified": [
+    "SSH",
+    "HTTP",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [
+    "Stratum"
+   ],
+   "extra": [
+    "TCP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 46,
+    "SSH": 7737,
+    "DNS": 14,
+    "HTTP": 12,
+    "TCP-other": 719
+   },
+   "seconds": 0.5,
+   "error": null
+  },
+  "ir-turla-cereal-exchange": {
+   "id": "ir-turla-cereal-exchange",
+   "family": "REPLAY",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "SMTP",
+    "DNS"
+   ],
+   "packets": 4942,
+   "verified": [
+    "SMTP",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 86,
+    "SMTP": 4834,
+    "DNS": 22
+   },
+   "seconds": 0.6,
+   "error": null
+  },
+  "ndr-gentlemen": {
+   "id": "ndr-gentlemen",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "HTTPS",
+    "SMB",
+    "Kerberos",
+    "LDAP",
+    "DNS"
+   ],
+   "packets": 24834,
+   "verified": [
+    "HTTPS",
+    "SMB",
+    "Kerberos",
+    "LDAP",
+    "DNS"
+   ],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [],
+   "extra": [
+    "DCE/RPC",
+    "HTTP",
+    "ICMP",
+    "RDP",
+    "SSH",
+    "TCP-other",
+    "TDS",
+    "WinRM"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ARP": 170,
+    "DNS": 74,
+    "HTTPS": 3268,
+    "Kerberos": 830,
+    "SMB2": 9178,
+    "ICMP": 35,
+    "WinRM": 15,
+    "TDS": 15,
+    "LDAP": 202,
+    "HTTP": 16,
+    "DCE/RPC": 67,
+    "SSH": 15,
+    "RDP": 10795,
+    "TCP-other": 154
+   },
+   "seconds": 1.5,
+   "error": null
   }
  },
  "baseline_protocols": {

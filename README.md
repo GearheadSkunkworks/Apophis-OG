@@ -50,7 +50,7 @@ flowchart LR
 
 ## What's in a capture
 
-A capture is one ordinary business day plus whichever scenarios you pick. There are around 70 scenarios, in four flavors:
+A capture is one ordinary business day plus whichever scenarios you pick. There are around 80 scenarios, in four flavors:
 
 | Category | What it gives you |
 |---|---|

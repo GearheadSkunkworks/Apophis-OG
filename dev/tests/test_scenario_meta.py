@@ -157,7 +157,7 @@ class Api(unittest.TestCase):
             self.assertNotIn("sources", by[n]["meta"])
         shown = [m for m in self.body["modules"] if not m.get("pinned") and not m.get("recipe_driven")
                  and not m.get("ot_only")]
-        self.assertEqual(len(shown), 58)
+        self.assertEqual(len(shown), 66)
         self.assertTrue(all("meta" in m for m in shown))
 
     def test_pinned_baseline_has_no_meta(self):

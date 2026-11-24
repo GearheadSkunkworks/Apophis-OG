@@ -4,7 +4,7 @@ A self-contained replay of the BeyondTrust Remote Support / Privileged Remote Ac
 (CVE-2026-102764, CVSS 9.3): an improper-origin-validation / authentication-bypass in the
 appliance's internal messaging component that lets an unauthenticated remote attacker perform
 file operations on the appliance (read secrets, write files). The CVE number, score and
-exploitation dates are labels owned by this generator, not verified against a vendor advisory.
+exploitation dates were checked against press and vendor reports (advisory BT26-05), not read from NVD.
 
 Modelled as a selectable scenario (``ir-beyondtrust-cve102764``, category IR), a SIBLING package
 to netgen.netscaler / netscaler88771: it reuses their emitter toolkit (crafted TLS 1.3, JA4H-aware

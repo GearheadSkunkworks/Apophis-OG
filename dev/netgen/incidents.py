@@ -352,6 +352,8 @@ BEACON_PROFILES = {
                      tls="winhttp", ctype="application/javascript", cookie="__cfduid"),
     "cobaltc2_play": dict(path="/static/bootstrap.bundle.min.js", ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64; Trident/7.0; rv:11.0) like Gecko",
                      tls="winhttp", ctype="application/javascript", cookie="__cfduid"),
+    "cobaltc2_gent": dict(path="/assets/vendor/polyfill.min.js", ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64; Trident/7.0; rv:11.0) like Gecko",
+                     tls="winhttp", ctype="application/javascript", cookie="__cfduid"),
 }
 
 
@@ -1212,6 +1214,7 @@ ACTORS = {
     "ndr-medusa": ("Cloudflared + Ligolo reverse tunnel", ".medusa", "CISA AA25-071A"),
     "ndr-black-basta": ("Cobalt Strike HTTP + SMB named pipes", ".basta", "CISA AA24-131A"),
     "ndr-play": ("Cobalt Strike / SystemBC", ".play", "CISA AA23-352A"),
+    "ndr-gentlemen": ("Cobalt Strike HTTP + SMB named pipes (edge-device / valid-account entry)", ".gentlemen", "vendor threat reports (no CISA advisory)"),
     "ndr-handala": ("Telegram bot API + icanhazip", None, "Void Manticore (no public advisory)"),
 }
 
@@ -1660,7 +1663,7 @@ def ndr_scattered_spider(ctx, eng, tag, win):
 
 # ============================================== ransomware / actor impact prims
 RANSOM_NOTES = {".akira": "akira_readme.txt", ".medusa": "!!!READ_ME_MEDUSA!!!.txt",
-                ".basta": "readme.txt", ".play": "ReadMe.txt"}
+                ".basta": "readme.txt", ".play": "ReadMe.txt", ".gentlemen": "README-GENTLEMEN.txt"}
 
 
 # Ransom note of the standalone ndr-ransomware-encryption module (hidden reference of the NDR-08 lab:
@@ -1726,6 +1729,12 @@ CHAIN_NOTES = {
         "To recover, contact us: pl4y-recovery@proton.example\r\n"
         "Reference: {code}\r\n"
         "Use a different mail provider if you receive no answer within 48 hours.\r\n"),
+    ".gentlemen": (
+        "Gentlemen's Lock. Your network was compromised and your data is encrypted and copied.\r\n\r\n"
+        "We prefer to settle like gentlemen: contact us within 5 days and the data stays private; "
+        "otherwise it is released on our leak site.\r\n\r\n"
+        "Contact: gentlemen-support@onionmail.example, Session ID 05b7f3a19c2e44d68a0f1b3c5d7e9f2a4c6b8d0e1f3a5c7b9d1e3f5a7c9b1d3e5f\r\n"
+        "Your company id: {code}\r\n"),
 }
 
 
@@ -1881,7 +1890,9 @@ PLAY_C2_IP, PLAY_C2_NAME = "203.0.113.88", "node88.cdn-relay.example"
 # throwaway team servers (documentation range, built via _ext_src so neither reaches
 # used_indicator_ips()/the threat export): one per actor chain that needs to differ from the
 # shared, real `cobaltc2` ThreatFox indicator.
-_COBALT_ACTOR_SITES = {"cobaltc2_bb": (BLACKBASTA_C2_NAME, BLACKBASTA_C2_IP), "cobaltc2_play": (PLAY_C2_NAME, PLAY_C2_IP)}
+GENTLEMEN_C2_IP, GENTLEMEN_C2_NAME = "203.0.113.160", "relay160.edge-sync.example"
+_COBALT_ACTOR_SITES = {"cobaltc2_bb": (BLACKBASTA_C2_NAME, BLACKBASTA_C2_IP), "cobaltc2_play": (PLAY_C2_NAME, PLAY_C2_IP),
+                       "cobaltc2_gent": (GENTLEMEN_C2_NAME, GENTLEMEN_C2_IP)}
 
 
 def cobalt_http_beacon(ctx, src, ts, key="cobaltc2"):
@@ -2020,7 +2031,7 @@ def _actor_chain(ctx, eng, tag, win, c2, ext=None, wiper=False):
         return (lo + a * 60, lo + b * 60)
     # only Akira's own registry text names a specific exfil tool (rclone); every other chain
     # keeps the generic browser UA on the same shared exfil upload.
-    exfil_ua = "rclone/v1.67.0" if ext == ".akira" else None
+    exfil_ua = {".akira": "rclone/v1.67.0", ".gentlemen": "rclone/v1.68.1"}.get(ext)
     c2(ctx, eng, tag, (lo + 3 * 60, hi))
     ndr_recon(ctx, eng, tag, W(8, 22))
     ndr_credential_access(ctx, eng, tag, W(20, 40))
@@ -2056,6 +2067,13 @@ def ndr_black_basta(ctx, eng, tag, win):
 def ndr_play(ctx, eng, tag, win):
     # its own team server (cobaltc2_play), distinct from Black Basta's and the shared cobaltc2
     _actor_chain(ctx, eng, tag, win, lambda c, e, t, w: c2_cobalt(c, e, t, w, key="cobaltc2_play"), ext=".play")
+
+
+def ndr_gentlemen(ctx, eng, tag, win):
+    # The Gentlemen (top ransomware-as-a-service group by victim count, Oct-Nov 2026): entry through an
+    # unpatched edge device or purchased valid credentials, Cobalt Strike with its own team server, rclone
+    # exfil, then encryption (.gentlemen). Its own team server (cobaltc2_gent), distinct from Black Basta's.
+    _actor_chain(ctx, eng, tag, win, lambda c, e, t, w: c2_cobalt(c, e, t, w, key="cobaltc2_gent"), ext=".gentlemen")
 
 
 def ndr_handala(ctx, eng, tag, win):
@@ -4286,6 +4304,8 @@ _reg("ndr-black-basta", "NDR", "black-basta", "Black Basta ransomware kill chain
      ((13, 0), (14, 45)), ndr_black_basta, "Cobalt Strike HTTP+SMB-pipe C2, lateral, exfil, .basta encryption")
 _reg("ndr-play", "NDR", "play", "Play ransomware kill chain (CISA AA23-352A)",
      ((13, 0), (14, 45)), ndr_play, "Cobalt Strike C2 (the advisory also documents SystemBC; not generated here), SMB/RDP lateral, exfil, .play encryption")
+_reg("ndr-gentlemen", "NDR", "gentlemen", "The Gentlemen ransomware kill chain (vendor threat reports; no CISA advisory)",
+     ((13, 0), (14, 45)), ndr_gentlemen, "Cobalt Strike HTTP+SMB-pipe C2 on its own team server, lateral, rclone exfil, .gentlemen encryption")
 _reg("ndr-handala", "NDR", "handala", "Handala / Void Manticore (network-observable subset: theft + share wiper)",
      ((13, 0), (14, 45)), ndr_handala, "Telegram/HTTPS C2 + icanhazip, data theft, SMB share overwrite-wiper (no encryption)")
 
@@ -6032,6 +6052,82 @@ _reg("ir-ipopt-tcp-uaf", "IR", "ipopt-tcp-uaf",
      "LNX2 calls back out to the attacker on a high port (ASSUMED). Own offenders (203.0.113.140-141); option-free "
      "clients, plain SYN retransmits, a partner MPTCP client and a one-off option-bearing scanner ship as look-alikes. "
      "The retransmit gap, the attacker's RSTs, the rate and the leak are modelling choices, not documented signatures")
+
+
+# IR -- the November 2026 batch (headline incidents of the month). Each is a sibling pack, same lazy-import,
+# pin-safe pattern: hosts are injected inside build(), nothing runs unless the scenario is selected.
+from .armorycastle_vcenter123890 import build as _armorycastle_build    # noqa: E402
+_reg("ir-armorycastle-vcenter-cve123890", "IR", "armorycastle-vcenter-cve123890",
+     "ARMORY CASTLE vCenter chain (CVE-2026-123890): edge-appliance exploit -> internal pivot -> vmdir bypass -> SSO admin -> secrets theft",
+     ((14, 0), (16, 0)), _armorycastle_build,
+     "Pin-safe replay of the espionage chain disclosed with the November 2026 vCenter patch: the BeyondTrust "
+     "Remote Support edge appliance is exploited (the sibling pack's request shapes) and beacons out, then SSHes to an "
+     "internal Linux appliance that beacons on its own and talks LDAP to the vCenter directory -- a simple bind with an "
+     "empty password that is accepted, an LDAP ADD of a new SSO user, a MODIFY into Administrators, a tenant-credential "
+     "search returning key-sized values -- then logs in with the new account (STS token request, SDK login) and the "
+     "secrets leave over HTTP. Own offender (203.0.113.123) and sinks (192.0.2.124-125); vCenter/ESXi heartbeats and "
+     "vSphere Client visits ship as look-alikes. Cleartext LDAP; cleartext-in-TLS HTTP")
+
+from .outlook_ntlm_leak import build as _outlook_ntlm_leak_build    # noqa: E402
+_reg("ir-outlook-ntlm-leak-cve124194", "IR", "outlook-ntlm-leak-cve124194",
+     "Outlook NTLM hash leak (CVE-2026-124194): crafted message -> outbound SMB/WebDAV NTLM to an external host -> portal spray",
+     ((9, 0), (11, 0)), _outlook_ntlm_leak_build,
+     "Pin-safe replay of the exploited Outlook spoofing flaw: opening a crafted message makes workstations resolve a "
+     "never-seen external name and open outbound SMB (445) with a full NTLM negotiate/challenge/authenticate that the "
+     "capture server refuses, then the WebClient fallback on :80 (OPTIONS and PROPFIND with NTLM in the headers); "
+     "minutes later the harvested account is sprayed and used at the mail portal from the same external network. Own "
+     "offenders (203.0.113.124-125); ordinary NTLM file-share logons and portal visits ship as look-alikes. Decodable SMB2/NTLM")
+
+from .freeswitch_sip_message import build as _freeswitch_sip_message_build    # noqa: E402
+_reg("ir-freeswitch-sip-message-cve116779", "IR", "freeswitch-sip-message-cve116779",
+     "FreeSWITCH SIP MESSAGE command injection (CVE-2026-116779): scanner sweep -> MESSAGE to the api handler -> callback -> toll fraud",
+     ((10, 0), (12, 0)), _freeswitch_sip_message_build,
+     "Pin-safe replay of the unauthenticated FreeSWITCH flaw: internet SIP scanners sweep the call server (OPTIONS and "
+     "REGISTER probes, 401/404), one source sends SIP MESSAGE requests whose recipient is the api handler with short "
+     "text/plain commands (200 OK), and the server then behaves like a hijacked call server -- first-seen DNS and an HTTP "
+     "callback, a C2 beacon, and bursts of outbound INVITEs with brief G.711 media to a premium-rate gateway. Own offender "
+     "(203.0.113.126) and sinks; internal phone registrations ship as look-alikes. Cleartext SIP/RTP")
+
+from .optimjack_skimmer import build as _optimjack_build    # noqa: E402
+_reg("ir-optimjack-supplychain", "IR", "optimjack-supplychain",
+     "OPTIMJACK third-party-script skimmer: tampered experimentation-platform script -> card/cookie/wallet exfil from visitors",
+     ((11, 0), (13, 0)), _optimjack_build,
+     "Pin-safe replay of the November 2026 supply-chain incident in which an experimentation platform's CDN served "
+     "modified project JavaScript: shoppers' browsers load a retail site and the CDN project script (normal ~38 KB), "
+     "then for a stretch the same script URL returns a larger, rebuilt body and the browsers make first-seen requests -- "
+     "cookie/telemetry GET beacons, JSON POSTs of card-shaped fields (published test numbers), a wallet-clipper POST and a "
+     "loader fetch -- before the script returns to normal. Own infrastructure (192.0.2.144-145, 198.51.100.144-145). "
+     "Real key-logged TLS; decrypts with the exported keys")
+
+from .puppet_report_rce import build as _puppet_report_rce_build    # noqa: E402
+_reg("ir-puppet-report-rce-cve115731", "IR", "puppet-report-rce-cve115731",
+     "Puppet report-processing RCE (CVE-2026-115731): enrol + impersonate -> oversized report -> server callback, SSH, CA-key exfil",
+     ((15, 0), (17, 0)), _puppet_report_rce_build,
+     "Pin-safe replay of the exploited Puppet Server flaw: nodes check in on 8140 (node, catalog, report) while an external "
+     "agent enrols (autosigned) and asks for another node's catalog under its certname, then PUTs an oversized report the "
+     "server grinds on for seconds; the SERVER then fetches a stager (first-seen DNS, plain HTTP), beacons, opens SSH to "
+     "managed nodes, sends the CA key out in a cleartext PUT, and the next agent runs pull an abnormally large catalog and a "
+     "~1 MB file blob. Own offender (203.0.113.127) and C2 (192.0.2.128). Cleartext-in-TLS HTTP on 8140")
+
+from .openssh_sshole import build as _openssh_sshole_build    # noqa: E402
+_reg("ir-openssh-sshole-cve123158", "IR", "openssh-sshole-cve123158",
+     "OpenSSH 'SSHole' auth bypass (CVE-2026-123158): botnet SSH wave -> bypass -> script fetch -> Stratum cryptomining",
+     ((19, 0), (21, 0)), _openssh_sshole_build,
+     "Pin-safe replay of the OpenSSH flaw on musl Linux: five internet sources sweep one Alpine host with short SSH "
+     "connections from three different client libraries (distinct banners and KEXINIT lists, hence distinct HASSH), a few "
+     "succeed and stay open, and the host then fetches a script over plain HTTP, resolves a first-seen mining-pool name and "
+     "speaks cleartext Stratum JSON-RPC on :3333 (login, jobs, share submissions) while administrators' OpenSSH sessions "
+     "continue. Own sources (203.0.113.151-155) and sinks (192.0.2.150, 192.0.2.153). Encrypted SSH; cleartext Stratum")
+
+from .turla_cereal_exchange import build as _turla_cereal_build    # noqa: E402
+_reg("ir-turla-cereal-exchange", "IR", "turla-cereal-exchange",
+     "Turla Exchange-resident implant (mail-borne C2 pattern; ESET 'Cereal' toolset): task mail in -> server replies out -> bulk collected-mail archives to a first-seen MX",
+     ((16, 0), (18, 0)), _turla_cereal_build,
+     "Pin-safe replay of the Exchange-resident implant ESET attributed to Turla: an external sender mails innocuous "
+     "'invoice' messages with small base64 attachments to one service mailbox, the Exchange server itself replies a minute "
+     "later over outbound SMTP to a first-seen external mail host, and at a steady cadence sends multi-hundred-KB archive "
+     "attachments out; ordinary partner correspondence continues. No external C2 host exists, which is the point. Own "
+     "operator (203.0.113.170) and drop (192.0.2.170). Exchange ESMTP banners, multipart MIME, base64 attachments")
 
 
 # Baseline traffic that is ALWAYS in the capture and is NOT selectable. These are display-only

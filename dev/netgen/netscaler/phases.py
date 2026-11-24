@@ -473,6 +473,11 @@ _PORTAL_PROFILES = {
         "cookie": lambda: "JSESSIONID=%s" % os.urandom(16).hex().upper(),
         "server": "VMware", "title": "vSphere Client",
     },
+    "owa": {
+        "paths": ["/owa/auth/logon.aspx", "/owa/", "/owa/auth/15.2.1544/themes/resources/segoeui-regular.ttf", "/ews/exchange.asmx"],
+        "cookie": lambda: "cadata=%s; X-OWA-CANARY=%s" % (os.urandom(18).hex(), os.urandom(12).hex()),
+        "server": "Microsoft-IIS/10.0", "title": "Outlook",
+    },
 }
 
 

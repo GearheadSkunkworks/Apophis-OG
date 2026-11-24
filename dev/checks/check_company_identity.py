@@ -33,6 +33,14 @@ SCENARIOS = {
     "ir-vcenter-cve59310":            ("203.0.113.59", 50),
     "ir-wordpress-upgrade-race":      ("203.0.113.119", 50),
     "ir-ipopt-tcp-uaf":               ("203.0.113.140", 50),
+    "ir-armorycastle-vcenter-cve123890": ("203.0.113.123", 20),
+    "ir-outlook-ntlm-leak-cve124194": ("203.0.113.124", 20),
+    "ir-freeswitch-sip-message-cve116779": ("203.0.113.126", 20),
+    "ir-puppet-report-rce-cve115731": ("203.0.113.127", 20),
+    "ir-openssh-sshole-cve123158":    ("203.0.113.151", 20),
+    "ir-optimjack-supplychain":       ("192.0.2.144", 20),
+    "ir-turla-cereal-exchange":       ("203.0.113.170", 20),
+    "ndr-gentlemen":                  ("203.0.113.160", 20),
 }
 LEAK = re.compile(rb"(?i)corp\.example\.local|north(?:)wind|(?<![a-z0-9])exl-(?:dc|file|sql|web|ws|fw|mgmt|backup|sb|ot|hmi|plc|rtu|scada|eng|cag|sp\d|vc|esxi|bi\d|gpgw|vpn|lnx|db|print|log|sw|wlc|ap|ntp|sensor|idmz|pdc|btrs)")
 

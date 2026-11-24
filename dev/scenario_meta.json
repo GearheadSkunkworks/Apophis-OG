@@ -2601,6 +2601,290 @@
     "dev/netgen/ipopt_tcp_uaf/__init__.py:306"
    ],
    "notes": "Retransmit gap, rate and leak are modelling choices per the registry note."
+  },
+  {
+   "id": "ir-armorycastle-vcenter-cve123890",
+   "family": "REPLAY",
+   "title": "ARMORY CASTLE vCenter chain (CVE-2026-123890): edge-appliance exploit -> internal pivot -> vmdir bypass -> SSO admin -> secrets theft",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "An edge appliance is exploited, an internal appliance then drives LDAP writes against the vCenter directory and logs in with the new account: a sensor should show an accepted empty-password LDAP bind, directory writes from a non-admin host, and large uploads to the same external sink.",
+   "protocols": [
+    "HTTPS",
+    "SSH",
+    "LDAP",
+    "DNS",
+    "vSphere API"
+   ],
+   "hosts": [
+    "Edge remote-support appliance",
+    "Internal Linux appliance",
+    "vCenter appliance",
+    "ESXi hosts",
+    "Internet host (attacker)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "The edge appliance is exploited (file read/write, webshell) and beacons out.",
+    "The edge appliance SSHes to an internal Linux appliance, which beacons on its own.",
+    "The appliance binds to the vCenter directory with an empty password (accepted), adds an SSO user into Administrators and searches tenant credentials, then logs in with the new account.",
+    "Secrets leave over HTTP, then in bulk."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py (registry entry)"
+   ],
+   "notes": "Steps follow the registry note and the pack's builder functions."
+  },
+  {
+   "id": "ir-outlook-ntlm-leak-cve124194",
+   "family": "REPLAY",
+   "title": "Outlook NTLM hash leak (CVE-2026-124194): crafted message -> outbound SMB/WebDAV NTLM to an external host -> portal spray",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "Workstations send NTLM authentication to an external address over SMB and HTTP, and the same account then appears at the mail portal from the internet: a sensor should flag outbound NTLM to an external host and the later spray.",
+   "protocols": [
+    "SMB2",
+    "NTLM",
+    "HTTP",
+    "HTTPS",
+    "DNS"
+   ],
+   "hosts": [
+    "User workstations",
+    "Mail portal",
+    "Internet host (capture server)",
+    "Internet host (attacker)"
+   ],
+   "zone_path": [
+    "user",
+    "edge"
+   ],
+   "steps": [
+    "Workstations resolve a never-seen external name.",
+    "Each opens outbound SMB 445 and completes an NTLM exchange that the server refuses.",
+    "The WebDAV fallback repeats the NTLM exchange over HTTP on port 80.",
+    "The harvested account is sprayed and then used at the mail portal."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py (registry entry)"
+   ],
+   "notes": "Steps follow the registry note and the pack's builder functions."
+  },
+  {
+   "id": "ir-freeswitch-sip-message-cve116779",
+   "family": "REPLAY",
+   "title": "FreeSWITCH SIP MESSAGE command injection (CVE-2026-116779): scanner sweep -> MESSAGE to the api handler -> callback -> toll fraud",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "A call server receives SIP MESSAGE requests aimed at its api handler and then starts outbound calls and callbacks it never made before: a sensor should show the MESSAGE pattern and the toll-fraud call bursts.",
+   "protocols": [
+    "SIP",
+    "RTP",
+    "HTTP",
+    "DNS"
+   ],
+   "hosts": [
+    "FreeSWITCH call server",
+    "IP phones",
+    "Internet hosts (scanners, attacker)",
+    "Premium-rate SIP gateway"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "Scanners sweep the SIP port with OPTIONS and REGISTER.",
+    "One source sends SIP MESSAGE requests addressed to the api handler.",
+    "The call server fetches a stager over HTTP and beacons.",
+    "The call server places outbound calls to a premium-rate gateway."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py (registry entry)"
+   ],
+   "notes": "Steps follow the registry note and the pack's builder functions."
+  },
+  {
+   "id": "ir-optimjack-supplychain",
+   "family": "REPLAY",
+   "title": "OPTIMJACK third-party-script skimmer: tampered experimentation-platform script -> card/cookie/wallet exfil from visitors",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "The same script URL grows and changes while visitors start contacting new external domains with POSTs: a sensor should show first-seen servers, a size change on a stable URL and the POST bursts.",
+   "protocols": [
+    "HTTPS",
+    "TLS",
+    "DNS"
+   ],
+   "hosts": [
+    "User workstations",
+    "Retail website",
+    "Experimentation-platform CDN",
+    "Skimmer and wallet servers"
+   ],
+   "zone_path": [
+    "user",
+    "edge"
+   ],
+   "steps": [
+    "Browsers load a retail site and the CDN project script.",
+    "The script URL returns a larger rebuilt body for a stretch.",
+    "Browsers contact first-seen skimmer domains with cookie beacons, card-shaped POSTs and a wallet POST.",
+    "The script returns to normal size."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py (registry entry)"
+   ],
+   "notes": "Steps follow the registry note and the pack's builder functions."
+  },
+  {
+   "id": "ir-puppet-report-rce-cve115731",
+   "family": "REPLAY",
+   "title": "Puppet report-processing RCE (CVE-2026-115731): enrol + impersonate -> oversized report -> server callback, SSH, CA-key exfil",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "A configuration server starts making outbound calls, SSH sessions and a cleartext key upload after an external agent's odd report: a sensor should show the server's new roles and the large fleet pulls.",
+   "protocols": [
+    "HTTPS",
+    "SSH",
+    "HTTP",
+    "DNS",
+    "Puppet agent API (8140)"
+   ],
+   "hosts": [
+    "Puppet server",
+    "Managed nodes",
+    "Internet host (attacker)",
+    "Internet host (C2)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "Nodes check in on port 8140 as usual.",
+    "An external agent enrols and asks for another node's catalog under that node's name.",
+    "It sends an oversized report the server takes seconds to process.",
+    "The server fetches a stager, beacons, opens SSH to nodes and sends the CA key out; nodes then pull an unusually large catalog and file."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py (registry entry)"
+   ],
+   "notes": "Steps follow the registry note and the pack's builder functions."
+  },
+  {
+   "id": "ir-openssh-sshole-cve123158",
+   "family": "REPLAY",
+   "title": "OpenSSH 'SSHole' auth bypass (CVE-2026-123158): botnet SSH wave -> bypass -> script fetch -> Stratum cryptomining",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "A Linux host takes a wave of short SSH connections from varied clients, then starts cryptomining traffic: a sensor should show the HASSH variety, the long sessions and the Stratum login and share submissions.",
+   "protocols": [
+    "SSH",
+    "HTTP",
+    "Stratum",
+    "DNS"
+   ],
+   "hosts": [
+    "Alpine Linux host",
+    "Management host",
+    "Internet hosts (botnet sources)",
+    "Script host",
+    "Mining pool"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "Five sources send short SSH connections with three different client libraries.",
+    "A few connections succeed and stay open.",
+    "The host fetches a script over HTTP.",
+    "The host resolves a pool name and speaks Stratum on port 3333."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py (registry entry)"
+   ],
+   "notes": "Steps follow the registry note and the pack's builder functions."
+  },
+  {
+   "id": "ir-turla-cereal-exchange",
+   "family": "REPLAY",
+   "title": "Turla Exchange-resident implant (mail-borne C2 pattern; ESET 'Cereal' toolset): task mail in -> server replies out -> bulk collected-mail archives to a first-seen MX",
+   "category": "Incident replay",
+   "category_fit": "direct",
+   "expected_observation": "The mail server itself sends mail to an address no user mails, right after each inbound task message, and ships large archives out: a sensor should show the new outbound destination and the cadence.",
+   "protocols": [
+    "SMTP",
+    "DNS"
+   ],
+   "hosts": [
+    "Exchange server",
+    "Partner mail servers",
+    "Internet host (operator)",
+    "Internet host (drop mail server)"
+   ],
+   "zone_path": [
+    "edge",
+    "server"
+   ],
+   "steps": [
+    "An external sender mails small attachments to one service mailbox.",
+    "The Exchange server replies by outbound SMTP to a first-seen mail host.",
+    "It sends large archive attachments at a steady cadence.",
+    "Ordinary partner mail continues."
+   ],
+   "confidence": "low",
+   "sources": [
+    "dev/netgen/incidents.py (registry entry)"
+   ],
+   "notes": "Steps follow the registry note and the pack's builder functions. ESET describes Cereal as an Exchange-resident toolset with no attacker-controlled server whose backdoor answers Exchange-looking web requests; the mail-borne tasking and outbound-SMTP replies replayed here are the older Turla Exchange-implant pattern (LightNeuron, 2019), used as the network-observable stand-in."
+  },
+  {
+   "id": "ndr-gentlemen",
+   "family": "SEC",
+   "title": "The Gentlemen ransomware kill chain (vendor threat reports; no CISA advisory)",
+   "category": "Multi-stage campaign",
+   "category_fit": "direct",
+   "expected_observation": "A ransomware chain with its own team server, rclone-style exfiltration and a .gentlemen extension: a sensor should show the staged chain ending in mass SMB rewrites.",
+   "protocols": [
+    "HTTPS",
+    "SMB",
+    "Kerberos",
+    "LDAP",
+    "DNS"
+   ],
+   "hosts": [
+    "Compromised workstation",
+    "Domain controllers",
+    "File and backup servers",
+    "Internet host (C2)"
+   ],
+   "zone_path": [
+    "user",
+    "server",
+    "edge"
+   ],
+   "steps": [
+    "Reconnaissance, credential access and lateral movement from the foothold.",
+    "Cobalt Strike HTTP and SMB-pipe beacons to a dedicated team server.",
+    "Data theft with an rclone user agent.",
+    "SMB encryption write-storm with a .gentlemen extension and ransom note."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/incidents.py (registry entry)"
+   ],
+   "notes": "Steps follow the registry note and the pack's builder functions."
   }
  ]
 }

@@ -2116,7 +2116,7 @@ function ogUpdateDialog(){
       const t0 = Date.now();
       const poll = async () => {
         try { const h2 = await fetch('/api/settings', {cache: 'no-store'}); if(h2.ok && Date.now() - t0 > 2500){ location.reload(); return; } } catch(e) { /* still restarting */ }
-        if(Date.now() - t0 > 60000){ delete dlg.dataset.locked; show('Updated to ' + r.version, 'The app did not come back on its own. Open it again from Applications.', closeBtn()); return; }
+        if(Date.now() - t0 > 60000){ delete dlg.dataset.locked; show('Updated to ' + r.version, 'The new version did not start. Open the app again from Applications: it starts the version you had, and nothing is lost.', closeBtn()); return; }
         setTimeout(poll, 1000);
       };
       setTimeout(poll, 2000);
