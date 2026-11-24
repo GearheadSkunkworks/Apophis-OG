@@ -62,7 +62,7 @@ def set_capture_day(day=None):
         try:
             d = datetime.strptime(day.strip(), "%Y-%m-%d")
         except ValueError:
-            raise ValueError("capture date must be YYYY-MM-DD, got %r" % day)
+            raise ValueError("capture date must be YYYY-MM-DD, got %r" % day) from None
         CAPTURE_DAY = (d.year, d.month, d.day)
     elif hasattr(day, "year"):
         CAPTURE_DAY = (day.year, day.month, day.day)
@@ -403,7 +403,7 @@ def build_hosts(inv_path, user_net=None, server_net=None, ot_nets=None, with_ot=
         fw_a, fw_b, fw_out = fw[0], fw[1], fw[2]
         fw_extra = fw[3:]                  # inside-C / -D / -E when the OT subnet is enabled
         hosts["FW-A"], hosts["FW-B"], hosts["FW-OUT"] = fw_a, fw_b, fw_out
-        for nm, obj in zip(("FW-OT", "FW-OPS", "FW-IDMZ"), fw_extra):
+        for nm, obj in zip(("FW-OT", "FW-OPS", "FW-IDMZ"), fw_extra, strict=False):
             hosts[nm] = obj
     else:
         # gw_side-tagged inventory: gateway legs may belong to either firewall. Construct every
@@ -771,7 +771,7 @@ class Day:
         # 4) TXT (SPF-style) and internal PTR lookups
         if rng.random() < 0.5:
             self.add(arrive + rng.uniform(60, span), F.dns_query_ext, "dns-noise", ws, rng.choice(["google.com", "microsoft.com", "github.com"]),
-                     qtype=F.P.DNS_TXT, answers=[(F.P.DNS_TXT, F.P.txt_rdata("v=spf1 include:_spf.google.com ~all"))])
+                     qtype=F.P.DNS_TXT, answers=[(F.P.DNS_TXT, F.P.txt_rdata(["v=spf1 include:_spf.google.com ~all"]))])
         for _ in range(max(1, int(2 * sc))):
             tgt = rng.choice(self.servers)
             rev = ".".join(reversed(tgt.ip.split("."))) + ".in-addr.arpa"
@@ -802,7 +802,7 @@ class Day:
         runs an MCP server: it advertises _mcp._tcp.local, is driven over plaintext HTTP by
         workstations and the admin jump host, and keeps a link to the vendor cloud.
         """
-        ctx, h = self.ctx, self.ctx.h
+        h = self.ctx.h
         upd_at = local(*F.MCP_UPDATE_HM)
         board = h.get(H(F.MCP_BOARD))
 
@@ -981,10 +981,10 @@ class Day:
         failures have to stay scattered across accounts and hours, and mostly end in success,
         or the scenario stops being distinguishable.
         """
-        ctx, h, d = self.ctx, self.ctx.h, self.ctx.dir
+        h, d = self.ctx.h, self.ctx.dir
         if d is None:
             return
-        dc1, dc2 = h[H("DC1")], h[H("DC2")]
+        _dc1, _dc2 = h[H("DC1")], h[H("DC2")]
         file1 = h[H("FILE1")]
         jump = h.get(H("MGMT1"))
 
@@ -1084,7 +1084,7 @@ class Day:
 
     # --------------------------------------------------------------- admin work
     def admin(self):
-        ctx, h = self.ctx, self.ctx.h
+        h = self.ctx.h
         mgmt = h[H("MGMT1")]
         n = max(4, int(14 * self.scale))
         for _ in range(n):
@@ -1673,7 +1673,7 @@ def main():
     hosts, link, sites, resolvers = build_hosts(args.inventory)
     arp = ArpModel(link)
     pki = PKI()
-    keylog = open(args.keylog, "w")
+    keylog = open(args.keylog, "w")  # noqa: SIM115 handle outlives this scope
     ctx = F.Ctx(hosts, link, arp, pki, keylog, scale=args.scale)
     ctx.sites = sites
     ctx.isp_resolvers = resolvers
@@ -1703,7 +1703,8 @@ def main():
             r = INC.threat_collection(args.export_iocs + ".stix.json", args.export_iocs + ".csv")
             print(f"wrote threat collection: {r['indicators']} indicators -> {r['stix']}")
         if args.stats:
-            json.dump(eng.stats, open(args.stats, "w"), indent=1)
+            with open(args.stats, "w") as sf:
+                json.dump(eng.stats, sf, indent=1)
         for k, (n, b, *_) in sorted(eng.stats.items(), key=lambda kv: -kv[1][1]):
             print(f"  {k:26s} {n:>9,} pkts {b/1e6:>9.2f} MB")
         return
@@ -1736,7 +1737,8 @@ def main():
         r = INC.threat_collection(args.export_iocs + ".stix.json", args.export_iocs + ".csv")
         print(f"wrote threat collection: {r['indicators']} indicators -> {r['stix']}")
     if args.stats:
-        json.dump(eng.stats, open(args.stats, "w"), indent=1)
+        with open(args.stats, "w") as sf:
+            json.dump(eng.stats, sf, indent=1)
     for k, (n, b, *_) in sorted(eng.stats.items(), key=lambda kv: -kv[1][1]):
         print(f"  {k:12s} {n:>9,} pkts {b/1e6:>9.2f} MB")
 

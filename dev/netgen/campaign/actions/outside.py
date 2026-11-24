@@ -251,7 +251,7 @@ def new_domain_contact(ctx, src, dst, *, ts, domain="", visits=2, interval_s=20.
     t = ts + F.rng.uniform(0.15, 0.6)
     ua = P.UAS[0] if ctx.is_windows(src) else P.UAS[2]
     page = b"<!DOCTYPE html><html><head><title>Welcome</title></head><body><h1>It works</h1></body></html>"
-    for i in range(max(1, int(visits))):
+    for _i in range(max(1, int(visits))):
         pre, s, tls = _tls_open(ctx, src, dst, t, host=name, profile=getattr(src, "tls_profile", "chrome"), dns=False, rate=50e6)
         s.c2s(tls.app_data(True, _req("GET", "/", name, ua)), think=F.rng.uniform(0.001, 0.004))
         s.s2c(tls.app_data(False, _resp("200 OK", page, "text/html; charset=utf-8", s.t, server="nginx")), think=F.rng.uniform(0.02, 0.1))
@@ -270,7 +270,7 @@ def selfsigned_tls_contact(ctx, src, dst, *, ts, port=8443, sessions=3, interval
     payload; the bytes are inert filler."""
     sni = (host or dst.fqdn or "localhost").strip(".").lower()
     out, t = [], ts
-    for i in range(max(1, int(sessions))):
+    for _i in range(max(1, int(sessions))):
         pre, s, tls = _tls_open(ctx, src, dst, t, host=sni, port=int(port), profile="go", dns=bool(dst.fqdn), selfsigned=True, rate=50e6)
         s.c2s(tls.app_data(True, _rb(_sz(120, 420))), think=F.rng.uniform(0.001, 0.005))
         s.s2c(tls.app_data(False, _rb(_sz(size_min, size_max))), think=F.rng.uniform(0.02, 0.12))

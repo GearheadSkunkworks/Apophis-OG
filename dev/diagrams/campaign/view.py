@@ -191,7 +191,7 @@ def render_filters(templates, src_addr, dst_addr, fqdn, params):
             val = {"src_ip": src_addr, "dst_ip": dst_addr, "fqdn": fqdn}.get(key) if not key.startswith("p:") \
                 else (params or {}).get(key[2:])
             if val is None or val == "" or isinstance(val, (list, dict)):
-                ok[0] = False
+                ok[0] = False  # noqa: B023 closure runs inside the iteration
                 return ""
             return _BAD.sub("", str(val))
         text = _PLACE.sub(sub, str(tpl))

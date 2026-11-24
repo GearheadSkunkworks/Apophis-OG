@@ -71,7 +71,7 @@ def trash(out_dir, name, busy=None):
     if os.path.islink(src) or not os.path.isfile(src):
         raise StoreError("No capture named %s in that folder." % name, 404)
     names = [name] + _siblings(base, name)
-    tid = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()) + "-" + os.path.splitext(name)[0]
+    tid = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()) + "-" + re.sub(r"[^A-Za-z0-9._-]", "_", os.path.splitext(name)[0])[:200]
     root, n = os.path.join(base, TRASH), 1
     dest = os.path.join(root, tid)
     while os.path.exists(dest):
@@ -96,7 +96,7 @@ def trash(out_dir, name, busy=None):
             os.rmdir(dest)                      # only our own empty staging folder
         except OSError:
             pass
-        raise StoreError("Could not move the capture, nothing was changed: %s" % (e.strerror or e), 500)
+        raise StoreError("Could not move the capture, nothing was changed: %s" % (e.strerror or e), 500) from e
     return {"ok": True, "trash_id": tid, "moved": names}
 
 
@@ -105,7 +105,7 @@ def restore(out_dir, trash_id, busy=None):
     if why:
         raise StoreError("Not now: %s." % why, 409)
     base = _base(out_dir)
-    if not isinstance(trash_id, str) or not _ID_RE.match(trash_id) or ".." in trash_id:
+    if not isinstance(trash_id, str) or not _ID_RE.fullmatch(trash_id) or ".." in trash_id:
         raise StoreError("Not a valid holding entry id.")
     dest = os.path.join(base, TRASH, trash_id)
     if os.path.islink(dest) or not os.path.isdir(dest):
@@ -114,7 +114,7 @@ def restore(out_dir, trash_id, busy=None):
         with open(os.path.join(dest, "manifest.json")) as fh:
             files = [_bare(f) for f in json.load(fh)["files"]]
     except (OSError, ValueError, KeyError, TypeError):
-        raise StoreError("The holding entry's manifest is missing or unreadable; nothing was restored.", 500)
+        raise StoreError("The holding entry's manifest is missing or unreadable; nothing was restored.", 500) from None
     taken = [f for f in files if os.path.lexists(os.path.join(base, f))]
     if taken:
         raise StoreError("Cannot restore: %s already exist%s in the folder. Nothing was restored."
@@ -126,7 +126,7 @@ def restore(out_dir, trash_id, busy=None):
             moves.append((os.path.join(dest, f), os.path.join(base, f)))
     except OSError as e:
         _undo(moves)
-        raise StoreError("Could not restore, nothing was changed: %s" % (e.strerror or e), 500)
+        raise StoreError("Could not restore, nothing was changed: %s" % (e.strerror or e), 500) from e
     try:                                         # leave the manifest folder only if it is now empty of captures
         os.rename(os.path.join(dest, "manifest.json"), os.path.join(dest, "manifest.json.restored"))
     except OSError:

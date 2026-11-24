@@ -4,8 +4,8 @@ import os
 import stat
 import sys
 import tempfile
-import time
 import unittest
+import urllib.error
 from collections import Counter
 from unittest import mock
 
@@ -548,11 +548,11 @@ class TestSources(CacheCase):
         h = sources._Redirect([])
         import urllib.request as ur
         req = ur.Request("https://a.example/x")
-        with self.assertRaises(Exception):
+        with self.assertRaises(urllib.error.URLError):
             h.redirect_request(req, None, 302, "Found", {}, "http://b.example/x")
         req = ur.Request("https://a.example/x", headers={"Auth-Key": "k"})
         h2 = sources._Redirect(["Auth-Key"])
-        with self.assertRaises(Exception):
+        with self.assertRaises(urllib.error.URLError):
             h2.redirect_request(req, None, 302, "Found", {}, "https://other.example/x")
 
     def test_http_get_refuses_http(self):
@@ -771,3 +771,21 @@ class TestCli(CacheCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PhishtankHostile(unittest.TestCase):
+    HDR = "phish_id,url,phish_detail_url,submission_time,verified,online,target\n"
+    GOOD = '1,http://bad.example.com/x,u,2026-01-01T00:00:00+00:00,yes,yes,Other\n'
+
+    def _p(self, raw):
+        from intel import sources
+        return sources._parse_phishtank(raw)
+
+    def test_bare_newline_in_unquoted_field_keeps_good_rows(self):
+        raw = self.HDR + self.GOOD + '2,http://a.example.com/\r\x01b,u,t,yes,yes,x\n' + self.GOOD.replace("bad.", "ok.")
+        vals = {i["value"] for i in self._p(raw)}
+        self.assertIn("http://bad.example.com/x", vals)
+
+    def test_oversize_field_does_not_raise(self):
+        raw = self.HDR + self.GOOD + '3,"' + "a" * 140000 + '",u,t,yes,yes,x\n'
+        self.assertIn("http://bad.example.com/x", {i["value"] for i in self._p(raw)})

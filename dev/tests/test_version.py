@@ -1,6 +1,5 @@
 """dev/VERSION is the single source of truth for the app version."""
 import os
-import re
 import sys
 import tempfile
 import unittest

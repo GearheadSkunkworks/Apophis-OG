@@ -16,7 +16,6 @@ import subprocess
 import tempfile
 import unittest
 
-from netgen import flows as F
 from netgen.core import PcapWriter
 from netgen.identity import H
 from netgen.model import set_capture_day
@@ -130,8 +129,8 @@ class ActionsOutside(unittest.TestCase):
 
     def test_subdomain_enum_dns(self):
         rc = {}
-        names, tcp = [], 0
-        for sp, dp, payload in dns_messages(self.res["subdomain_enum"]):
+        names = []
+        for sp, _dp, payload in dns_messages(self.res["subdomain_enum"]):
             parse_dns(payload)
             if sp == 53:
                 r = struct.unpack("!H", payload[2:4])[0]
@@ -163,7 +162,6 @@ class ActionsOutside(unittest.TestCase):
 
     def test_selfsigned_cert_on_wire(self):
         from cryptography import x509
-        from cryptography.hazmat.primitives import serialization
         blob = b"".join(_tcp_payloads(self.res["selfsigned_tls_contact"], self.ctx.pki and self.ws.ip) +
                          _tcp_payloads(self.res["selfsigned_tls_contact"]))
         # find the Certificate handshake message (type 11) and read the first certificate
@@ -236,7 +234,7 @@ class ActionsOutside(unittest.TestCase):
 
         def shape(pk):
             out = []
-            for ts, f in pk:
+            for _ts, f in pk:
                 ihl = (f[14] & 0xF) * 4 if len(f) > 34 and f[12:14] == b"\x08\x00" else 0
                 out.append((f[12:14], f[26:34] if ihl else b"", f[14 + ihl + 2:14 + ihl + 4] if ihl else b"",
                             f[14 + ihl + 13] if ihl and f[23] == 6 else 0))

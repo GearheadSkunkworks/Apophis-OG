@@ -214,7 +214,7 @@ class TestLayout(unittest.TestCase, LayoutAssertions):
         self.assertEqual([z["id"] for z in lay["zones"]][-1], "ot")
         xs = [z["x"] for z in lay["zones"]]
         self.assertEqual(xs, sorted(xs))
-        for k, n in lay["nodes"].items():
+        for _k, n in lay["nodes"].items():
             z = next(z for z in lay["zones"] if z["id"] == n["zone"])
             self.assertAlmostEqual(n["x"], z["x"], 1)
 
@@ -579,7 +579,7 @@ class TestFixtures(unittest.TestCase):
         summ = summ if isinstance(summ, list) else [summ] * len(camps)
         score = self.load(base + ".score.json") if self.forms[name]["score"] else None
         out = []
-        for c, s in zip(camps, summ):
+        for c, s in zip(camps, summ, strict=False):
             if not c.get("stages"):
                 continue
             out.append(V.build(c, s, score))

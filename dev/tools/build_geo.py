@@ -150,7 +150,7 @@ def dp(points, tol):
         if best > tol:
             keep[bi] = True
             stack += [(a, bi), (bi, b)]
-    return [p for p, k in zip(points, keep) if k]
+    return [p for p, k in zip(points, keep, strict=False) if k]
 
 
 def ring_area_centroid(ring):

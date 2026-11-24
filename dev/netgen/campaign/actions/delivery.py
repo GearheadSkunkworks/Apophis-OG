@@ -5,9 +5,8 @@ program, an archive or a document anyone can open. The credentials posted by the
 fixed dummy values. See ``c2.py`` for the determinism note.
 """
 from ... import flows as F
-from ... import protocols as P
 from . import ActionSpec, register
-from .c2 import (_p, _rb, _b64, _b32, _req, _resp, _tls_open, _tls_close, _tcp_open, _host_of, _client_ua, _sz)
+from .c2 import (_p, _rb, _b64, _b32, _req, _resp, _tls_open, _tls_close, _tcp_open, _host_of, _client_ua)
 
 # file type -> (magic/header bytes, content type, default name)
 FILETYPES = {

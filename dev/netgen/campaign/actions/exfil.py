@@ -3,12 +3,11 @@
 Wire behaviour only: uploads and queries carry random filler (never real data) from the engine's
 seeded generator. See ``c2.py`` for the determinism note.
 """
-import base64
 
 from ... import flows as F
 from ... import protocols as P
 from . import ActionSpec, register
-from .c2 import (_p, _rb, _b32, _req, _resp, _tls_open, _tls_close, _host_of, _client_ua, _sz, _lookup,
+from .c2 import (_p, _rb, _b32, _req, _resp, _tls_open, _tls_close, _host_of, _client_ua, _lookup,
                  _domain_of, _dns_stream, QTYPES)
 
 MAX_UPLOAD = 200_000_000

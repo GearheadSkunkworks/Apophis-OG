@@ -201,7 +201,7 @@ class Kernel:
                 mod = importlib.import_module(modname)
             except Exception as e:                           # import-time failure
                 sys.modules.pop(modname, None)
-                raise ModuleError("could not import %s: %s" % (modname, e))
+                raise ModuleError("could not import %s: %s" % (modname, e)) from e
 
             entry = {"module": mod, "undo": [], "manifest": m}
             self._loaded[name] = entry
@@ -221,7 +221,7 @@ class Kernel:
                 sys.modules.pop(modname, None)
                 if isinstance(e, ModuleError):
                     raise
-                raise ModuleError("%r failed to register: %s" % (name, e))
+                raise ModuleError("%r failed to register: %s" % (name, e)) from e
             finally:
                 self._loading = None
             return True

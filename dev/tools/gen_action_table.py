@@ -27,7 +27,7 @@ def _cell(text):
 def render():
     reg = actions.load_all()
     by = {}
-    for tok, spec in reg.items():
+    for _tok, spec in reg.items():
         by.setdefault(spec.tactic, []).append(spec)
     order = [t["slug"] for t in attack.tactics()]
     order += sorted(k for k in by if k not in order)
@@ -57,7 +57,7 @@ def render():
 def main(argv):
     text = render()
     if "--check" in argv:
-        cur = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
+        cur = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""  # noqa: SIM115 handle outlives this scope
         if cur != text:
             print("docs/action-reference.md is out of date; run tools/gen_action_table.py")
             return 1

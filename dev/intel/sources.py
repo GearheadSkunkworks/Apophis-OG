@@ -28,7 +28,7 @@ from typing import Callable, Optional
 import http.client
 
 from . import cache as _cache
-from . import classify, model, parsers
+from . import model, parsers
 
 USER_AGENT = "OpenGenerator-intel/1"
 TIMEOUT = 20
@@ -432,7 +432,14 @@ def _parse_phishtank(raw):
     import csv
     import io
     out, seen = [], {}
-    for row in csv.DictReader(io.StringIO(parsers._to_text(raw, 32 * 1024 * 1024))):
+    rd = csv.DictReader(io.StringIO(parsers._to_text(raw, 32 * 1024 * 1024)))
+    while True:
+        try:
+            row = next(rd)
+        except StopIteration:
+            break
+        except csv.Error:        # hostile row (bare newline in a field, oversize field): skip it, keep what parsed
+            continue
         if (row.get("online") or "").lower() != "yes":
             continue
         tgt = (row.get("target") or "").strip()

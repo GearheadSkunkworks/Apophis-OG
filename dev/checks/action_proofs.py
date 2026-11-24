@@ -216,7 +216,7 @@ def main(argv=None):
                                                  ",".join(r["protocols"][:6]), "  " + r["note"] if r["note"] else ""))
     if a.json:
         with open(a.json, "w") as f:
-            json.dump({"actions": rows, "gaps": [dict(zip(("tactic", "name", "count"), g)) for g in tactic_gaps()],
+            json.dump({"actions": rows, "gaps": [dict(zip(("tactic", "name", "count"), g, strict=False)) for g in tactic_gaps()],
                        "tshark": os.path.exists(TSHARK)}, f, indent=1)
     if not a.no_write and not a.only:
         with open(DOC, "w") as f:

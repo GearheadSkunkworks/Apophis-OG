@@ -99,7 +99,6 @@ def stage(sid, tactic, name, acts, narrative="", duration=120, techniques=None):
 
 def camp(name, stages, iocs=None, options=None, desc="", seed=7, expect=None, actor="Unattributed"):
     stages = copy.deepcopy(stages)
-    techs = {}
     for st in stages:
         ts = []
         for a in st["actions"]:
@@ -222,7 +221,6 @@ def fake_score(summary):
                                      "actions": [e["action"]], "detections": [], "note": "fixture"})
                 if t not in seen:
                     seen.append(t)
-    order = {"detected": 0, "related": 1, "missed": 2}
     n = len(techs)
     nd = sum(1 for x in techs.values() if x["status"] == "detected")
     nr = sum(1 for x in techs.values() if x["status"] == "related")

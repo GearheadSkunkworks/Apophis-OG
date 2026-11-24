@@ -4,7 +4,7 @@ Reads only the view model (contract section 3), lets ``layout.place`` position e
 house style of ``make_diagram._netflow_panel`` (white pill labels on the lanes, rounded node boxes). Omitted (None)
 when the view has no flows to draw, which is the vulnerability-only form. Every dynamic string goes through ``esc``.
 """
-from branding import SAPPHIRE, PLUM, GRAY, MAGENTA, TANGERINE
+from branding import SAPPHIRE, GRAY, MAGENTA, TANGERINE
 import make_diagram as MD
 
 from .. import layout as L
@@ -87,7 +87,7 @@ def render(view, ctx=None):
           "<title>%s</title></path>" % (e["path"], e["color"], op, style, _marker_id(e["color"]), MD.esc(tip)))
 
     # nodes
-    for nid, n in lay["nodes"].items():
+    for _nid, n in lay["nodes"].items():
         stroke = ZONE_STROKE.get(n["zone"], SAPPHIRE)
         dash = ' stroke-dasharray="5 3"' if n["kind"] == "aggregate" else ""
         fill = "#f3f4f6" if n["kind"] == "external" else "#fff"

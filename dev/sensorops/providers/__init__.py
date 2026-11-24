@@ -23,7 +23,7 @@ def get_provider(sensor, apikey, name=DEFAULT):
         cls = _REGISTRY[(name or DEFAULT).lower()]
     except (KeyError, AttributeError):
         raise ValueError("unknown sensor provider %r (available: %s)"
-                         % (name, ", ".join(sorted(_REGISTRY))))
+                         % (name, ", ".join(sorted(_REGISTRY)))) from None
     return cls(sensor, apikey)
 
 

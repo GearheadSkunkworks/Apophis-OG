@@ -20,7 +20,7 @@ if DEV not in sys.path:
 
 import opengenerator_build as OGB                      # noqa: E402
 from netgen import flows as F                          # noqa: E402
-from netgen.campaign import actions as ACT, console, exports, runner, hosts   # noqa: E402
+from netgen.campaign import actions as ACT, console, runner, hosts   # noqa: E402
 from checks import check_rfc791 as RFC                 # noqa: E402
 
 INVENTORY = os.path.join(DEV, "inventory.json")

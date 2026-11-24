@@ -100,7 +100,7 @@ class MetaC(unittest.TestCase):
             with open(pcap, "wb") as fh:
                 fh.write(struct.pack("<IHHiIII", 0xA1B2C3D4, 2, 4, 0, 0, 65535, 1))
             for tok, m in META.items():
-                for what, tpl, exp in m["filters"]:
+                for _what, tpl, _exp in m["filters"]:
                     flt = _sample(self.reg[tok], tpl)
                     r = subprocess.run([TSHARK, "-r", pcap, "-Y", flt, "-c", "1"], capture_output=True, text=True)
                     self.assertNotEqual(r.returncode, 2, (tok, flt, r.stderr))

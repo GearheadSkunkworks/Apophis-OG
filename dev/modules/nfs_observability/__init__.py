@@ -55,7 +55,7 @@ CATEGORY = {"key": "STD", "tag": "STD",
 
 # ---- the 7 systems this module introduces (suffix, ip) -- resolved through H() at build time --
 _WORKSTATIONS = [("WS-%03d" % n, "10.10.10.%d" % ip)
-                 for n, ip in zip(range(76, 82), range(196, 202))]
+                 for n, ip in zip(range(76, 82), range(196, 202), strict=False)]
 _NFS_SUFFIX, _NFS_IP = "NFS1", "10.10.20.21"
 
 # ---- NFSv3 / ONC-RPC (RFC 1813) procedure numbers, program 100003 vers 3 -----------------
@@ -184,12 +184,13 @@ def _inject_hosts(ctx):
         ctx.h[name] = Host(name, ip, mac, os_, role, subnet, ident.fqdn(suffix))
 
     # the NFS exporter: a Linux file-server/NAS on the server LAN
-    add(_NFS_SUFFIX, _NFS_IP, "00:a0:98:51:02:21", "linux",
-        "NFS file server (NFSv3 exports)", "10.10.20.0/24")
+    link = ctx.link          # place() re-homes the default addresses onto the run's own /24s
+    add(_NFS_SUFFIX, link.place(_NFS_IP), "00:a0:98:51:02:21", "linux",
+        "NFS file server (NFSv3 exports)", link.server_net)
     # 6 Windows workstations on the user LAN (VMware OUI, like the rest of the virtual estate)
     for i, (suffix, ip) in enumerate(_WORKSTATIONS):
-        add(suffix, ip, "00:50:56:ab:03:%02x" % (0x20 + i), "Windows 11",
-            "Windows workstation", "10.10.10.0/24")
+        add(suffix, link.place(ip), "00:50:56:ab:03:%02x" % (0x20 + i), "Windows 11",
+            "Windows workstation", link.user_net)
 
 
 def _uid(h):

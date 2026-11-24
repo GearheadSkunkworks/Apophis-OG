@@ -22,7 +22,6 @@ if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
 import server                                          # noqa: E402
-import campaign_api                                    # noqa: E402
 
 SECRET = "sk-TESTKEY-0123456789abcdef"  # release-scan: allow
 IOCS = [
@@ -440,6 +439,7 @@ class FakeRun:
 
     def __call__(self, *a, **kw):
         self.calls.append((a, kw))
+        server.STATE["running"] = False                 # the handler claims the run; a real run_generator releases it
         self.ev.set()
 
 

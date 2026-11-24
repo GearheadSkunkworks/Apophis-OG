@@ -23,6 +23,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import threading
 import urllib.parse
 import urllib.request
 import zipfile
@@ -107,6 +108,8 @@ def check(current, get=_get):
         return {"state": "error", "current": current, "message": str(e) if isinstance(e, UpdateError) else "The update server sent something unexpected."}
     best, newer, app = None, None, None
     for rel in releases if isinstance(releases, list) else []:
+        if not isinstance(rel, dict):
+            continue
         m = TAG.match(str(rel.get("tag_name", "")))
         if not m or rel.get("draft") or rel.get("prerelease"):
             continue
@@ -119,7 +122,7 @@ def check(current, get=_get):
             assets = {a.get("name"): a.get("browser_download_url") for a in rel.get("assets", [])}
             names = ("og-app-%d.%d.%d.json" % v, "og-app-%d.%d.%d.sig" % v, "OpenGenerator-%d.%d.%d-app.zip" % v)
             if all(n in assets for n in names) and (app is None or v > app[0]):
-                app = (v, dict(zip(("json", "sig", "zip"), (assets[n] for n in names))))
+                app = (v, dict(zip(("json", "sig", "zip"), (assets[n] for n in names), strict=False)))
             elif newer is None or v > newer:
                 newer = v
     if app:                                                       # a newer minor or major: the whole app is swapped, from any older version
@@ -195,7 +198,7 @@ def install(info, app_dir, base=None, get=_get):
             overlay.check_tree(new, m)                            # exactly the signed files, byte for byte
         except (ValueError, KeyError, TypeError):
             raise UpdateError("The update's files do not match its signed list; nothing was changed.") from None
-        for name, data in zip(overlay.SIGNED, (manifest_bytes, sig)):   # kept so every start can re-verify
+        for name, data in zip(overlay.SIGNED, (manifest_bytes, sig), strict=False):   # kept so every start can re-verify
             with open(os.path.join(new, name), "wb") as fh:
                 fh.write(data)
         cur_dir, prev = os.path.join(base, "current"), os.path.join(base, "previous")
@@ -288,6 +291,7 @@ def install_app(info, app_dir, bundle=None, get=_get, run=_run, keep=None):
 
 # ---- HTTP routes (server.py)
 _LAST = {}
+_INSTALL_LOCK = threading.Lock()
 
 
 def route_get(path, app_dir, get=_get):
@@ -312,8 +316,12 @@ def route_post(path, app_dir, busy, get=_get):
     why = busy()
     if why:
         return fail(409, "Finish first: %s." % why)
+    if not _INSTALL_LOCK.acquire(blocking=False):
+        return fail(409, "An update is already installing.")
     try:
-        v = install(_LAST, app_dir, get=get)
+        v = install(dict(_LAST), app_dir, get=get)
     except UpdateError as e:
         return fail(400, str(e))
+    finally:
+        _INSTALL_LOCK.release()
     return 200, json.dumps({"ok": True, "version": v, "restarting": True}), "application/json", None

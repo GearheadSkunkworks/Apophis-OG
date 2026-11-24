@@ -27,7 +27,7 @@
     "replay-a-capture",
     "build-a-campaign"
    ],
-   "body": "## Steps\n\n1. Under Starting point, pick one button: Clean baseline, Security, Performance, Crypto posture, OT / ICS day or Incident replay. Clean baseline adds no scenarios.\n2. Under Choose scenarios, change the selection if you want. Use the category rail, the search box and the family chips to find scenarios. Press Details on a scenario to open its card, then Add to capture or Remove from capture. The strip above, The capture day, shows where each scenario falls in the 16 hours.\n3. In the right panel, set Company name and Industry. Both are optional. A blank company name becomes Example. See [[company-and-industry]].\n4. Set Capture date. It starts as today. Pin a date to make two runs comparable.\n5. Set Size with the slider or Quick sample, Standard or Full day. The slider starts at 0.10x, and the line beside it estimates file size and packet count. See [[baseline-and-scale]].\n6. Open More options to change the Output folder (default `~/OpenGenerator-Captures`) or untick the certificate and threat collection exports, both ticked by default. Advanced: addressing and OT changes the user and server networks or adds an OT network. See [[addressing-and-networks]].\n7. Press Generate capture. Stop cancels and discards the partial capture. When the build ends, the app moves to Captures.\n\n## Find your files\n\nIn Captures, the file table lists the pcap first, such as `example-all-in-one.pcap`. Press Reveal in folder to open it. See [[generation-report]] and [[captures-and-files]].\n\n## If something goes wrong\n\n- Generate capture is disabled. Hover over it. The message names the missing dependency or empty field. Settings has a Re-check button.\n- The build shows Failed. Try a smaller size.\n- Captures says No capture yet. No build has finished in this session. Check the output folder named in Earlier captures, or build one from Compose."
+   "body": "## Steps\n\n1. Under Starting point, pick one button: Clean baseline, Security, Performance, Crypto posture, OT / ICS day or Incident replay. Clean baseline adds no scenarios.\n2. Under Choose scenarios, change the selection if you want. Use the category rail, the search box and the family chips to find scenarios. Press Details on a scenario to open its card, then Add to capture or Remove from capture. The strip above, The capture day, shows where each scenario falls in the 16 hours.\n3. In the right panel, set Company name and Industry. Both are optional. A blank company name becomes Example. See [[company-and-industry]].\n4. Set Capture date. It starts as today. Pin a date to make two runs comparable.\n5. Set Size with the slider or Quick sample, Standard or Full day. The slider starts at 0.10x, and the line beside it estimates file size and packet count. See [[baseline-and-scale]].\n6. Open More options to change the Output folder (default `~/OpenGenerator-Captures`) or untick the certificate and threat collection exports, both ticked by default. Advanced: addressing and OT changes the user and server networks or adds an OT network. See [[addressing-and-networks]].\n7. Press Generate capture. Stop cancels and discards the partial capture. A build that fails removes its partial capture too. When the build ends, the app moves to Captures.\n\n## Find your files\n\nIn Captures, the file table lists the pcap first, such as `example-all-in-one.pcap`. Press Reveal in folder to open it. See [[generation-report]] and [[captures-and-files]].\n\n## If something goes wrong\n\n- Generate capture is disabled. Hover over it. The message names the missing dependency or empty field. Settings has a Re-check button.\n- The build shows Failed. Try a smaller size.\n- Captures says No capture yet. No build has finished in this session. Check the output folder named in Earlier captures, or build one from Compose."
   },
   {
    "id": "import-and-validate-a-pcap",
@@ -84,7 +84,7 @@
     "baseline-and-scale",
     "settings-and-lab-switch"
    ],
-   "body": "Replay needs tcpreplay, which you install separately.\n\n## Before you start\n\n- Have a capture. See [[build-a-capture]].\n- Know which network card is cabled to the sensor's monitoring port or SPAN or TAP feed.\n- Expect a macOS administrator prompt. The password goes to macOS, not to this app.\n\n## Steps\n\n1. Click Replay in the top bar, or Replay this capture in Captures after a build. Use for replay on an earlier capture does the same for that file.\n2. Check the dependency chips under Replay on the wire. If tcpreplay is missing, a red message gives the install command. Install it, then reload the page.\n3. Capture file holds your last build. Type another path to replay a different file.\n4. Choose the card in Replay interface. The app marks one as recommended.\n5. Choose a Speed. Original timing x multiplier is the default: 1 is real time, 2 is twice as fast, 0.5 is half speed. Top speed, Fixed packets/sec and Fixed Mbps ignore the capture's timing.\n6. Set Loops to the number of times to play the capture. 1 plays it once.\n7. Leave Open a monitor window ticked to get a Terminal window showing tcpreplay's output. Control-C there stops the replay without a password.\n8. Tick I understand - start the replay. Start replay stays greyed out until you do.\n9. Click Start replay and approve the macOS prompt. The progress panel shows Played as a percentage, send rate and elapsed time. The top bar chip changes to Replaying.\n10. When it ends the title reads Replay complete. Click Stop replay to end it early; the title then reads Stopped, noting the capture was partly played.\n\n- The replay runs as a separate process. Reloading the page, opening a second tab or restarting the app does not stop it. Quitting the app on purpose does.\n- A sensor with the matching threat collection raises threat matches during replay. See [[lab-sensor-pushes]].\n\n## If something goes wrong\n\n- Start replay stays disabled: tick the acknowledgement, install tcpreplay, or wait for a running replay to finish.\n- Could not start replay: read the message under the form. The app re-checks the file and interface before it asks for a password."
+   "body": "Replay needs tcpreplay, which you install separately.\n\n## Before you start\n\n- Have a capture. See [[build-a-capture]].\n- Know which network card is cabled to the sensor's monitoring port or SPAN or TAP feed.\n- Expect a macOS administrator prompt. The password goes to macOS, not to this app.\n\n## Steps\n\n1. Click Replay in the top bar, or Replay this capture in Captures after a build. Use for replay on an earlier capture does the same for that file.\n2. Check the dependency chips under Replay on the wire. If tcpreplay is missing, a red message gives the install command. Install it, then reload the page.\n3. Capture file holds your last build. Type another path to replay a different file.\n4. Choose the card in Replay interface. The app marks one as recommended.\n5. Choose a Speed. Original timing x multiplier is the default: 1 is real time, 2 is twice as fast, 0.5 is half speed. Top speed, Fixed packets/sec and Fixed Mbps ignore the capture's timing.\n6. Set Loops to the number of times to play the capture. 1 plays it once.\n7. Leave Open a monitor window ticked to get a Terminal window showing tcpreplay's output. Control-C there stops the replay without a password.\n8. Tick I understand - start the replay. Start replay stays greyed out until you do.\n9. Click Start replay and approve the macOS prompt. The progress panel shows Played as a percentage, send rate and elapsed time. The top bar chip changes to Replaying.\n10. When it ends the title reads Replay complete. Click Stop replay to end it early; the title then reads Stopped, noting the capture was partly played.\n\n- The replay runs as a separate process. Reloading the page, opening a second tab or restarting the app does not stop it. Quitting the app on purpose does.\n- A sensor with the matching threat collection raises threat matches during replay. See [[lab-sensor-pushes]].\n\n## If something goes wrong\n\n- Start replay stays disabled: tick the acknowledgement, install tcpreplay, or wait for a running replay to finish.\n- It says a replay is already in progress. Only one replay runs at a time. Wait for it to end or press Stop replay.\n- It says tcpreplay will not be run as root. Replay runs it as administrator, so the app does so only for a `tcpreplay` kept in a protected place, such as a Homebrew or system folder. One in your home folder is refused. Install it with the command shown.\n- Could not start replay: read the message under the form. The app re-checks the file and interface before it asks for a password."
   },
   {
    "id": "build-a-campaign",
@@ -323,7 +323,7 @@
     "settings-and-lab-switch",
     "captures-and-files"
    ],
-   "body": "Turn on Lab tools in Settings to see this page ([[settings-and-lab-switch]]).\n\nSensor pushes sends material from a build to a monitoring appliance over its REST API. One panel is safe to repeat. The other deletes data on the target.\n\n## Push the threat collection\n\nA capture exports a file of the external indicators it used: command-and-control, exfiltration and malware-delivery hosts. Loading it into an appliance lets the appliance match those hosts when you replay the capture.\n\nThe push replaces only the collection the tool owns, named ExampleThreatCollection.\n\nYou give it:\n\n- Appliance address\n- API key\n- Threat collection file\n- Upload to: A sensor (standalone) or A console. A console syncs indicators to its connected sensors.\n- Generate detections on an indicator match, on by default. With it off, matching hosts are tagged but no detection is raised.\n\nCheck appliance is read-only. It confirms the address and key, and says whether a previous collection will be replaced. Push threat collection runs the upload. The panel then shows counts for indicators in the file, imported, replaced and detections, plus a log.\n\n## Danger zone: push certificates\n\nThis panel is marked Destructive. Push certificates deletes every SSL decryption key already on the sensor, then uploads the certificates for the current capture. Deleted keys cannot be recovered.\n\nYou give it a sensor address, an API key, a certificates folder, and a protocol and port. The protocol is HTTP, SMTP or LDAP, and the port defaults to 443. A key with no protocol mapping decrypts nothing.\n\nCheck sensor is read-only. It reports how many existing keys would be deleted. Push certificates stays disabled until the address, key and a valid port are filled in. Clicking it opens Replace all decryption keys?, where you press and hold Hold to delete and replace for 1.5 seconds.\n\n- Run the certificate push only against a laboratory sensor.\n- Appliances present a self-signed certificate. The connection is encrypted, but the app does not verify who answers, so confirm the address.\n- The API key is held in memory only and is forgotten when you close the page.\n"
+   "body": "Turn on Lab tools in Settings to see this page ([[settings-and-lab-switch]]).\n\nSensor pushes sends material from a build to a monitoring appliance over its REST API. One panel is safe to repeat. The other deletes data on the target.\n\n## Push the threat collection\n\nA capture exports a file of the external indicators it used: command-and-control, exfiltration and malware-delivery hosts. Loading it into an appliance lets the appliance match those hosts when you replay the capture.\n\nThe push replaces only the collection the tool owns, named ExampleThreatCollection.\n\nYou give it:\n\n- Appliance address\n- API key\n- Threat collection file\n- Upload to: A sensor (standalone) or A console. A console syncs indicators to its connected sensors.\n- Generate detections on an indicator match, on by default. With it off, matching hosts are tagged but no detection is raised.\n\nCheck appliance is read-only. It confirms the address and key, and says whether a previous collection will be replaced. Push threat collection runs the upload. The panel then shows counts for indicators in the file, imported, replaced and detections, plus a log.\n\n## Danger zone: push certificates\n\nThis panel is marked Destructive. Push certificates deletes every SSL decryption key already on the sensor, then uploads the certificates for the current capture. Deleted keys cannot be recovered.\n\nYou give it a sensor address, an API key, a certificates folder, and a protocol and port. The protocol is HTTP, SMTP or LDAP, and the port defaults to 443. A key with no protocol mapping decrypts nothing.\n\nCheck sensor is read-only. It reports how many existing keys would be deleted. Push certificates stays disabled until the address, key and a valid port are filled in. Clicking it opens Replace all decryption keys?, where you press and hold Hold to delete and replace for 1.5 seconds.\n\n- Run the certificate push only against a laboratory sensor.\n- Appliances present a self-signed certificate. The connection is encrypted, but the app does not verify who answers, so confirm the address. The Check sensor and push reports show the sensor's certificate SHA-256, so you can notice a change.\n- Sensor calls ignore proxy settings in your environment, so the key is never sent through a proxy.\n- The API key is held in memory only and is forgotten when you close the page.\n"
   },
   {
    "id": "lab-modules",
@@ -375,7 +375,8 @@
     "lab-modules",
     "lab-sensor-pushes",
     "sessions",
-    "lab-import-pcap"
+    "lab-import-pcap",
+    "let-an-agent-drive-the-app"
    ],
    "body": "Settings is the slider icon in the top bar.\n\n## Lab tools\n\nLab tools is off at first. Turn it on and a Lab tab appears, holding Import pcap, Recipes, Sensor pushes and Modules. Turn it off and Lab disappears; if you were on it, the app returns you to Compose. The choice is remembered in this browser.\n\nSee [[lab-import-pcap]], [[lab-recipes]], [[lab-sensor-pushes]] and [[lab-modules]].\n\n## Appearance\n\nPalette offers Slate Blue (the default), Forge, Teal, Sage and Clay. Theme is Dark, Light or System.\n\n## Defaults\n\n- Output folder is where captures are written. See [[captures-and-files]].\n- Default size is Quick sample, Standard or Full day. Changing it resets Compose's size.\n\n## Sessions, Checks and API keys\n\nSee [[sessions]] for Sessions. Checks lists the dependency checks, with a Re-check button. API keys has a Forget stored keys button."
   },
@@ -430,7 +431,7 @@
     "sessions",
     "captures-and-files"
    ],
-   "body": "The download-arrow icon in the top bar, labelled Check for updates, opens a dialog.\n\n## You are up to date\n\nThe dialog says You are up to date and names your version.\n\n## A patch is available\n\nA patch is a version whose last number is above zero, such as 5.5.1 after 5.5.0. It is a small update for the same major and minor version. The dialog shows the new version, your version and the release notes. Installing restarts the app, so finish any capture in progress first.\n\nClick Install and restart, or Later.\n\n## A newer version is available\n\nFrom 5.5.0 on, Update can replace the whole app with the newest full release, from any older version. The dialog says Installing replaces the app and restarts it. Click Install and restart.\n\n- The app downloads the new one, checks it, and swaps it in. It restarts by itself, and the page reloads when it is back.\n- Your old app is kept in `app-previous` in the settings folder. Each new update replaces that copy.\n- After the swap, check again. A patch for the new version may be waiting, so it can take two clicks.\n\n## When the app cannot replace itself\n\nThe app cannot swap itself if it runs from a temporary location or from a folder it cannot write to. The dialog says The update was not installed, and one of these:\n\n- Move the app to your Applications folder, open it from there, then update.\n- The folder holding the app is not writable. Move the app to your Applications folder and update from there.\n\nNothing is changed.\n\n## Versions before 5.5.0\n\nAn older app cannot update itself to a new full release. Its dialog offers Open releases page. Download the app once, then updating works from there.\n\n## Other messages\n\n- The app did not come back on its own. Open it again from Applications.\n- A copy that runs from source says to update it with git pull.\n- Could not check for updates. Try again in a moment."
+   "body": "The download-arrow icon in the top bar, labelled Check for updates, opens a dialog.\n\n## You are up to date\n\nThe dialog says You are up to date and names your version.\n\n## A patch is available\n\nA patch is a version whose last number is above zero, such as 5.5.1 after 5.5.0. It is a small update for the same major and minor version. The dialog shows the new version, your version and the release notes. Installing restarts the app, so finish any capture in progress first.\n\nClick Install and restart, or Later.\n\n## A newer version is available\n\nFrom 5.5.0 on, Update can replace the whole app with the newest full release, from any older version. The dialog says Installing replaces the app and restarts it. Click Install and restart.\n\n- The app downloads the new one, checks it, and swaps it in. It restarts by itself, and the page reloads when it is back.\n- Your old app is kept in `app-previous` in the settings folder. Each new update replaces that copy.\n- After the swap, check again. A patch for the new version may be waiting, so it can take two clicks.\n\n## When the app cannot replace itself\n\nThe app cannot swap itself if it runs from a temporary location or from a folder it cannot write to. The dialog says The update was not installed, and one of these:\n\n- Move the app to your Applications folder, open it from there, then update.\n- The folder holding the app is not writable. Move the app to your Applications folder and update from there.\n\nNothing is changed.\n\n## Versions before 5.5.0\n\nAn older app cannot update itself to a new full release. Its dialog offers Open releases page. Download the app once, then updating works from there.\n\n## Other messages\n\n- An update is already installing. Only one update runs at a time. Wait for it to finish.\n- The app did not come back on its own. Open it again from Applications.\n- A copy that runs from source says to update it with git pull.\n- Could not check for updates. Try again in a moment."
   },
   {
    "id": "baseline-and-scale",
@@ -512,7 +513,7 @@
     "scenarios-and-categories",
     "captures-and-files"
    ],
-   "body": "You can change the simulated company's network addresses to fit your lab.\n\n## Where to find the settings\n\nIn Compose, open More options, then Advanced: addressing and OT. The first two fields are User network (class C) and Server network (class C), with example values such as `10.10.10.0/24` and `10.10.20.0/24`.\n\n## User and server networks\n\nThe user network holds 127 hosts: workstations, phones, access points, printers and boards. The server network holds 16: domain controllers, file, SQL and web servers, the phone system and the sensor.\n\nBoth must be /24 networks, and they must differ. Every host keeps its own last number when you change a network.\n\nExternal addresses never change, including the threat-intelligence indicators used by security scenarios.\n\n## OT network\n\nTick Add an OT network (class C) and type one /24 for the lowest control levels. The app adds two more /24 networks for site operations and the industrial DMZ. OT is off by default, and OT scenarios do nothing until you turn it on.\n\nClassify those subnets in your monitoring platform before relying on OT results. Otherwise the OT devices land in an external or unknown zone."
+   "body": "You can change the simulated company's network addresses to fit your lab.\n\n## Where to find the settings\n\nIn Compose, open More options, then Advanced: addressing and OT. The first two fields are User network (class C) and Server network (class C), with example values such as `10.10.10.0/24` and `10.10.20.0/24`.\n\n## User and server networks\n\nThe user network holds 127 hosts: workstations, phones, access points, printers and boards. The server network holds 16: domain controllers, file, SQL and web servers, the phone system and the sensor.\n\nBoth must be /24 networks, and they must differ. Every host keeps its own last number when you change a network.\n\nExternal addresses never change, including the threat-intelligence indicators used by security scenarios.\n\n## OT network\n\nTick Add an OT network (class C) and type one /24 for the lowest control levels. The app adds two more /24 networks for site operations and the industrial DMZ. OT is off by default, and OT scenarios do nothing until you turn it on.\n\nDiagrams and capture filters use the networks you set, not the defaults.\n\nClassify those subnets in your monitoring platform before relying on OT results. Otherwise the OT devices land in an external or unknown zone."
   },
   {
    "id": "generation-report",
@@ -565,7 +566,7 @@
     "baseline-and-scale",
     "company-and-industry"
    ],
-   "body": "## Where files go\n\nA build writes to the Output folder, set in Compose under More options or in Settings. The two stay in sync. The default is `~/OpenGenerator-Captures`.\n\n## What a build writes\n\n- The capture, named `example-all-in-one.pcap` by default.\n- A TLS key log ending in `-tls-keys.log`, in the format Wireshark reads.\n- A `certs` folder with a certificate and key for each simulated server, plus the issuing CA. Written when Export server certs + keys is ticked.\n- A threat collection as `.stix.json` and `.csv` files, listing only the indicators your scenarios put on the wire. Written when Export threat collection is ticked.\n- A build manifest ending in `.manifest.json`, recording the scenarios placed and the packets each produced.\n- A generation report CSV. See [[generation-report]].\n\n## When a build ends\n\nThe app switches to Captures. Packets by scenario lists each scenario with its packets, its size and whether it grows with the Size setting.\n\nStop discards the partial capture and key log. A failed build shows the error and the end of the log.\n\n## Earlier captures\n\nBelow the result, captures in your output folder are listed newest first, with Open report, Use for replay and Remove. Use for replay opens Replay with that file filled in.\n\nRemove moves the capture and its related files to a holding folder; it does not delete them. A Removed list appears with a Restore button for each item."
+   "body": "## Where files go\n\nA build writes to the Output folder, set in Compose under More options or in Settings. The two stay in sync. The default is `~/OpenGenerator-Captures`.\n\n## What a build writes\n\n- The capture, named `example-all-in-one.pcap` by default.\n- A TLS key log ending in `-tls-keys.log`, in the format Wireshark reads.\n- A `certs` folder with a certificate and key for each simulated server, plus the issuing CA. Written when Export server certs + keys is ticked.\n- A threat collection as `.stix.json` and `.csv` files, listing only the indicators your scenarios put on the wire. Written when Export threat collection is ticked.\n- A build manifest ending in `.manifest.json`, recording the scenarios placed and the packets each produced.\n- A generation report CSV. See [[generation-report]].\n\n## When a build ends\n\nThe app switches to Captures. Packets by scenario lists each scenario with its packets, its size and whether it grows with the Size setting.\n\nStop discards the partial capture and key log. A failed build removes its partial capture, then shows the error and the end of the log.\n\n## Earlier captures\n\nBelow the result, captures in your output folder are listed newest first, with Open report, Use for replay and Remove. Use for replay opens Replay with that file filled in.\n\nRemove moves the capture and its related files to a holding folder; it does not delete them. A Removed list appears with a Restore button for each item."
   },
   {
    "id": "scenarios-and-categories",
@@ -702,7 +703,7 @@
     "indicator-cards",
     "report-pasting-rules"
    ],
-   "body": "Under Public feeds there are 27 feeds, plus From a URL for any https list.\n\n**The info badge.** Hover the badge beside a feed. It says which indicator types the feed gives and which of those send traffic. Types that never send traffic by themselves, such as file hashes, file names, e-mail addresses and CVEs for products that are not network-facing, are listed as hidden.\n\n**Keys.** ThreatFox, URLhaus, OTX and Shodan need a key. A key you type stays in the page and goes only to that feed's publisher. On macOS you can choose to keep it in the Keychain. Shodan has a query box. The default is `has_vuln:true`.\n\n**Offline.** Tick Offline (cache only) to read only what was fetched before.\n\n## What changed\n\n- Removed: MalwareBazaar (hashes only), Feodo Tracker (its lists are empty), the Emerging Threats compromised-host list (no campaign traffic) and Botvrij (not updated since February 2026).\n- Added: CINS Army, IPsum, Phishing.Database (addresses and domains), PhishTank, DShield, Spamhaus DROP and Shodan.\n- Added later: SiberKapan and Infoblox (MISP feeds), APNIC honeynet (SSH, Telnet and malware URLs) and CERT Polska domains.\n\n## Good to know\n\n- The APNIC Telnet feed lists real Telnet attackers, but the campaign has no Telnet action. Its addresses send SSH or RDP logon attempts instead.\n- SiberKapan addresses are treated as scanners. The APNIC malware URLs often point at a bare address and port.\n- Spamhaus DROP lists netblocks. One address stands in for each block.\n\nEach feed has its own terms of use. A feed can change its format without notice."
+   "body": "Under Public feeds there are 27 feeds, plus From a URL for any https list.\n\n**The info badge.** Hover the badge beside a feed. It says which indicator types the feed gives and which of those send traffic. Types that never send traffic by themselves, such as file hashes, file names, e-mail addresses and CVEs for products that are not network-facing, are listed as hidden.\n\n**Keys.** ThreatFox, URLhaus, OTX and Shodan need a key. A key you type stays in the page and goes only to that feed's publisher. On macOS you can choose to keep it in the Keychain. A link you type under From a URL is cached by its host only, with a hash of the full address, so a token in the link is not kept. Shodan has a query box. The default is `has_vuln:true`.\n\n**Offline.** Tick Offline (cache only) to read only what was fetched before.\n\n## What changed\n\n- Removed: MalwareBazaar (hashes only), Feodo Tracker (its lists are empty), the Emerging Threats compromised-host list (no campaign traffic) and Botvrij (not updated since February 2026).\n- Added: CINS Army, IPsum, Phishing.Database (addresses and domains), PhishTank, DShield, Spamhaus DROP and Shodan.\n- Added later: SiberKapan and Infoblox (MISP feeds), APNIC honeynet (SSH, Telnet and malware URLs) and CERT Polska domains.\n\n## Good to know\n\n- The APNIC Telnet feed lists real Telnet attackers, but the campaign has no Telnet action. Its addresses send SSH or RDP logon attempts instead.\n- SiberKapan addresses are treated as scanners. The APNIC malware URLs often point at a bare address and port.\n- Spamhaus DROP lists netblocks. One address stands in for each block.\n\nEach feed has its own terms of use. A feed can change its format without notice."
   },
   {
    "id": "search-help",
@@ -727,6 +728,190 @@
     "scenarios-and-categories"
    ],
    "body": "Press the ? icon in the top bar, or press Ctrl or Cmd + K from any screen.\n\n- Type plain words, such as \"replay a capture\" or \"make a pcap\". Every word you type has to match.\n- The status line says how many results there are. If there are none, try fewer words.\n- Titles count most, then keywords, then summaries, then the full text.\n- When you open Help from a screen, the articles for that screen come first, under \"On this screen\".\n- Open an article, then use the back button to return to your results. Related articles are at the bottom."
+  },
+  {
+   "id": "let-an-agent-drive-the-app",
+   "kind": "workflow",
+   "title": "Let an AI agent drive the app",
+   "summary": "Turn on agent access, hand over a token and check what it did.",
+   "keywords": [
+    "agent",
+    "ai agent",
+    "token",
+    "bearer token",
+    "agent access",
+    "api",
+    "automation",
+    "assistant",
+    "turn on",
+    "revoke",
+    "audit log"
+   ],
+   "where": "Settings",
+   "related": [
+    "what-is-the-agent-api",
+    "agent-verbs",
+    "agent-limits",
+    "mcp-adapter",
+    "review-a-staged-sensor-push",
+    "settings-and-lab-switch"
+   ],
+   "body": "Use this when you want an AI assistant or a script to build and run scenarios for you. It reaches the app only on this computer.\n\n## Steps\n\n1. Open Settings and find Agent access. Access token says Off.\n2. Press Create token. The token is copied to your clipboard and a message says Token copied. Paste it into your agent.\n3. Access token now says On. The token is kept in the system keychain, or in a private file beside the settings where there is no keychain.\n4. Give the token to your agent client. It sends it as `Authorization: Bearer` with each call. To connect an MCP client, see [[mcp-adapter]].\n5. Ask the agent to build a capture. It polls its own build until it finishes. Look in Captures for the result.\n6. To see what it did, open `agent-audit.log` in the settings folder. Each call is one line with the verb, the status and the names of the arguments. Secret values are never written.\n\n## Take access back\n\n- Press Replace token. The old token stops working at once, and a new one is copied.\n- Press Turn off. The token is removed and the API goes quiet until you create another.\n\n## If something goes wrong\n\n- The agent gets nothing back. Access token must say On. The API answers only on `127.0.0.1`, so the agent has to run on this computer.\n- Replay or a sensor push does not work for the agent. That is by design. See [[agent-limits]]."
+  },
+  {
+   "id": "review-a-staged-sensor-push",
+   "kind": "workflow",
+   "title": "Review a sensor push an agent staged",
+   "summary": "Check the details and press the push button yourself.",
+   "keywords": [
+    "staged push",
+    "sensor push",
+    "review",
+    "dismiss",
+    "pending",
+    "confirm",
+    "agent stage",
+    "certificates",
+    "expires"
+   ],
+   "where": "Settings",
+   "related": [
+    "let-an-agent-drive-the-app",
+    "lab-sensor-pushes",
+    "agent-limits",
+    "settings-and-lab-switch"
+   ],
+   "body": "An agent cannot push to a sensor. It can only record a request. You decide.\n\n## Steps\n\n1. Open Settings, Agent access. Staged sensor push shows the sensor and the certificate folder. If nothing is waiting it says None waiting.\n2. Press Review. The app switches to Lab, opens Sensor pushes and fills in the sensor, folder, protocol and port.\n3. Check the details. A message says Check the details, then press the push button yourself.\n4. Press the push button. The key saved for that sensor in Settings is used, as in [[lab-sensor-pushes]].\n\nTo refuse a request, press Dismiss instead.\n\n## Good to know\n\n- A staged push expires after 15 minutes.\n- The agent sends the sensor address only. A request that carries a key is refused.\n- The page checks for a waiting request every 15 seconds.\n\n## If something goes wrong\n\n- Review is grayed out. Nothing is waiting, or the request has expired. Ask the agent to stage it again.\n- The push fails. The sensor needs its key saved first. See [[settings-and-lab-switch]]."
+  },
+  {
+   "id": "what-is-the-agent-api",
+   "kind": "note",
+   "title": "What the agent API is",
+   "summary": "A local door for AI agents, and when to use it.",
+   "keywords": [
+    "agent api",
+    "ai agent",
+    "automation",
+    "script",
+    "ci job",
+    "local api",
+    "assistant",
+    "mcp",
+    "agent/v1",
+    "when to use"
+   ],
+   "where": "Settings",
+   "related": [
+    "let-an-agent-drive-the-app",
+    "agent-verbs",
+    "agent-limits",
+    "mcp-adapter"
+   ],
+   "body": "The agent API lets an outside assistant drive the app: an AI client, a script or a CI job. It lives at `/agent/v1/` on this computer.\n\n## When to use it\n\n- An AI agent should build and run scenarios for you, such as \"build a ransomware campaign and make a capture\".\n- A script should build the same capture every night.\n- You want a record of what a tool did on your behalf.\n\nFor work you do yourself, use the app. This is for tools.\n\n## What it can do\n\nIt can read what the app can build, read a threat feed or a pasted report, compile and check campaigns, keep a campaign library, run builds as background jobs, list finished captures and check a sensor. See [[agent-verbs]].\n\n## What it cannot do\n\nIt cannot replay traffic to a network, and it cannot push to a sensor. Those stay with you. See [[agent-limits]].\n\n## How to start\n\nCreate a token in Settings. See [[let-an-agent-drive-the-app]]. The API is off until a token exists."
+  },
+  {
+   "id": "agent-verbs",
+   "kind": "note",
+   "title": "What an agent can ask for",
+   "summary": "The verbs, grouped by what they do.",
+   "keywords": [
+    "verbs",
+    "catalog",
+    "intel",
+    "campaign",
+    "library",
+    "build",
+    "capture",
+    "sensor check",
+    "preflight",
+    "stage",
+    "pending",
+    "agent/v1"
+   ],
+   "where": "Settings",
+   "related": [
+    "what-is-the-agent-api",
+    "let-an-agent-drive-the-app",
+    "build-a-campaign",
+    "mcp-adapter"
+   ],
+   "body": "An agent calls verbs under `/agent/v1/`. Bodies are the same JSON the app uses. `verbs` lists them.\n\n- **catalog.** Read what the app can build: actions, ATT&CK, templates, feeds, modules and capabilities.\n- **intel.** `intel/fetch` reads a threat feed. `intel/parse` reads pasted text.\n- **campaign.** Compile, validate, estimate, preview and run a campaign. A campaign that is not valid gets a 400 error with a plain message.\n- **library.** List, save, load and import saved campaigns.\n- **build.** `build/submit` starts a build. `build/status` shows it. `build/cancel` stops it. A build runs in the background, so an agent submits, then polls until it stops running.\n- **capture.** List finished captures and read a manifest.\n- **sensor.** `sensor/check` and `sensor/preflight` are read-only checks. `sensor/stage` records a push for you to review. `sensor/pending` lists what is waiting.\n\n## Sensors\n\nAn agent sends the sensor address only. The app uses the key you saved for that sensor in Settings. A request that carries a key is refused.\n\nFor campaign terms, see [[build-a-campaign]]."
+  },
+  {
+   "id": "agent-limits",
+   "kind": "note",
+   "title": "What an agent can never do",
+   "summary": "The limits, and the cookie that scripts now need.",
+   "keywords": [
+    "limits",
+    "403",
+    "forbidden",
+    "replay",
+    "sensor push",
+    "cookie",
+    "og_ui",
+    "curl",
+    "script",
+    "sensor key",
+    "safety"
+   ],
+   "where": "Settings",
+   "related": [
+    "what-is-the-agent-api",
+    "review-a-staged-sensor-push",
+    "let-an-agent-drive-the-app",
+    "replay-a-capture"
+   ],
+   "body": "These limits are built in.\n\n- **No replay and no push.** There is no agent verb for either one. Replay and sensor push stay with a person in the app.\n- **One door.** A token is refused with a 403 on every route outside `/agent/v1/`.\n- **The sensor key stays put.** It never passes through the agent. A staged push is only a request, which you confirm. See [[review-a-staged-sensor-push]].\n- **Local only.** The API answers on `127.0.0.1`.\n- **A log.** Every call is written to `agent-audit.log` in the settings folder.\n\n## The cookie change\n\nFrom 5.5.1, the replay and sensor push routes, and `/api/agent/*`, need the `og_ui` cookie that the app sets when its page loads. A script that called them without it, such as an old curl line for replay, now gets 403. Add the cookie, or do it in the app.\n\n## What this does not stop\n\nAny program on this computer can read that cookie, and a process that can run programs can start replay tools directly. The check stops agent tools that speak HTTP. It does not stop someone with a shell on the machine."
+  },
+  {
+   "id": "mcp-adapter",
+   "kind": "note",
+   "title": "The MCP adapter",
+   "summary": "Point an MCP client at the app.",
+   "keywords": [
+    "mcp",
+    "adapter",
+    "og_mcp",
+    "model context protocol",
+    "claude",
+    "agent client",
+    "stdio",
+    "tools",
+    "OG_AGENT_TOKEN"
+   ],
+   "where": "Settings",
+   "related": [
+    "let-an-agent-drive-the-app",
+    "agent-verbs",
+    "what-is-the-agent-api"
+   ],
+   "body": "`og_mcp.py` is a small adapter that lets an MCP client use the agent API. It speaks over stdio and offers each verb as a tool.\n\n## Set it up\n\n1. Create a token in Settings. See [[let-an-agent-drive-the-app]].\n2. In your client's MCP settings, add a server that runs `python3` with `og_mcp.py`.\n3. Set the environment variable `OG_AGENT_TOKEN` to your token.\n\nThe setting looks like this:\n\n```\n{\"command\": \"python3\", \"args\": [\"og_mcp.py\"], \"env\": {\"OG_AGENT_TOKEN\": \"<token>\"}}\n```\n\nThe adapter talks to `http://127.0.0.1:8765`. Set `OG_URL` to use another address.\n\nThe app must be running, and the token must be on. The same limits apply: no replay, no push. See [[agent-limits]]."
+  },
+  {
+   "id": "question-mark-tips",
+   "kind": "note",
+   "title": "The question-mark tips",
+   "summary": "Short notes sit behind the ? icons.",
+   "keywords": [
+    "tip",
+    "tips",
+    "question mark",
+    "hint",
+    "help icon",
+    "tooltip",
+    "hover",
+    "note",
+    "explain",
+    "?"
+   ],
+   "where": "",
+   "related": [
+    "search-help",
+    "build-a-capture",
+    "lab-import-pcap"
+   ],
+   "body": "Many screens keep their short explanations behind a ? icon, so the panel stays clear.\n\n- Hover the ? icon, or move to it with the Tab key, to read the note.\n- Some icons appear only when there is something to say, such as a note about the capture date or the chosen protocols.\n- For longer help, press Ctrl or Cmd + K and search. See [[search-help]]."
   }
  ]
 }

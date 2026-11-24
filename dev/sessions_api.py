@@ -61,7 +61,7 @@ def sessions_dir(create=True):
 
 def _slug(name):
     s = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")[:60]
-    return s or "session"
+    return "session-last" if s == "last" else (s or "session")    # "last" is the autosave file's id
 
 
 def _path(kind_id):
@@ -175,6 +175,14 @@ def session_list(_q=None):
     return 200, {"sessions": rows[:MAX_SESSIONS]}
 
 
+def _other_name(p, name):
+    try:
+        old = (_read(p) or {}).get("name")                         # a case-only difference is the same session
+        return isinstance(old, str) and old.casefold() != name.casefold()
+    except ApiError:                                             # unreadable: overwrite, as before
+        return False
+
+
 def session_save(data):
     data = campaign_api._need_obj(data)
     name = data.get("name")
@@ -184,7 +192,11 @@ def session_save(data):
     state = clean_state(data.get("state"))
     sid = _slug(name)
     with _LOCK:
-        p = _path(sid)
+        p, n = _path(sid), 1
+        while os.path.exists(p) and _other_name(p, name):          # a different name with this slug
+            n += 1
+            sid = "%s-%d" % (_slug(name)[:56], n)
+            p = _path(sid)
         if not os.path.exists(p) and len([f for f in os.listdir(sessions_dir()) if f.startswith("s-")]) >= MAX_SESSIONS:
             raise ApiError(400, "too many saved sessions; delete some first")
         _write(p, {"name": name, "saved_at": time.time(), "state": state})

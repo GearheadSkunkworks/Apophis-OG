@@ -50,9 +50,9 @@ def messages(buf):
 
 def check(path):
     errs, storms, notes = collections.Counter(), 0, []
-    for (port, srv), st in streams(path).items():
+    for (_port, _srv), st in streams(path).items():
         local = collections.Counter()
-        opened, creates, handles, reads, writes, renames, flag, nw = [], {}, {}, collections.Counter(), collections.Counter(), 0, 0, 0
+        opened, creates, _handles, reads, writes, renames, flag, nw = [], {}, {}, collections.Counter(), collections.Counter(), 0, 0, 0
         resp = {}
         for m in messages(st["s"]):
             if m[:4] == b"\xfeSMB" and struct.unpack("<H", m[12:14])[0] == 5 and struct.unpack("<I", m[8:12])[0] == 0:

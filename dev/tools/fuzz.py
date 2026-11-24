@@ -50,7 +50,7 @@ ALLOWED = (ValueError, sources.FeedError, campaign_api.ApiError)   # CampaignErr
 
 TYPES = set(model.TYPES)
 ROLES = set(model.ROLES)
-IOC_KEYS = {"type", "value", "role", "confidence", "source", "tags", "techniques", "first_seen", "note", "why"}
+IOC_KEYS = {"type", "value", "role", "confidence", "source", "tags", "techniques", "first_seen", "note", "why", "card"}
 ROUTES = ("/api/intel/parse", "/api/intel/fetch", "/api/campaign/compile", "/api/campaign/validate",
           "/api/campaign/estimate", "/api/campaign/library/import", "/api/campaign/library/save",
           "/api/campaign/library/load", "/api/campaign/library/delete", "/api/campaign/diagram")
@@ -65,7 +65,7 @@ def contract_problems(rec, strict=True):
     p = []
     if not isinstance(rec, dict):
         return ["record is not a dict"]
-    if set(rec) != IOC_KEYS:
+    if set(rec) - {"card"} != IOC_KEYS - {"card"}:       # card only on annotated (playable) records
         p.append("keys differ: %s" % sorted(set(rec) ^ IOC_KEYS))
     t, v = rec.get("type"), rec.get("value")
     if t not in TYPES:
@@ -100,12 +100,16 @@ def contract_problems(rec, strict=True):
     fs = rec.get("first_seen")
     if fs is not None and not isinstance(fs, str):
         p.append("first_seen not str/None")
-    for k, n in (("note", 200), ("why", 300)):
+    for k, n in (("note", 500), ("why", 300)):
         s = rec.get(k)
         if not isinstance(s, str) or len(s) > n:
             p.append("%s not str or too long" % k)
         elif any(unicodedata.category(c) == "Cc" and (strict or c not in "\t\n") for c in s):
             p.append("control character in %s" % k)
+    cd = rec.get("card")      # optional: intel.describe.annotate adds {"what", "traffic"} to playable records
+    if cd is not None and not (isinstance(cd, dict) and set(cd) == {"what", "traffic"}
+                               and all(isinstance(x, str) for x in cd.values())):
+        p.append("bad card %r" % (cd,))
     try:
         json.dumps(rec)
     except (TypeError, ValueError):

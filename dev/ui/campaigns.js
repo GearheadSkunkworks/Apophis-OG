@@ -605,7 +605,7 @@
         absorb(res, feed.title);
       }, function (err) {
         say(feed.title + ': ' + err.message, 'err'); toast(err.message, 'error');
-      }).then(function () { setBusy(false); });
+      }).then(function () { setBusy(false); }, function () { setBusy(false); });
     }
 
     function feedRow(feed) {
@@ -719,7 +719,7 @@
         if (warn) say(statusLine.textContent + ' ' + warn, 'info');
       }, function (err) {
         say((filename || 'Pasted text') + ': ' + err.message + (warn ? ' ' + warn : ''), 'err'); toast(err.message, 'error');
-      }).then(function () { setBusy(false); });
+      }).then(function () { setBusy(false); }, function () { setBusy(false); });
     }
     var addBtn = el('button', {type: 'button', 'class': 'btn secondary ogc-btn ogc-sm', onclick: function () {
       sendParse(pasteArea.value, '', 'paste', '');
@@ -1004,7 +1004,7 @@
         clear(compileMsg);
         compileMsg.appendChild(el('p', {'class': 'ogc-row-err'}, err.message));
         toast(err.message, 'error');
-      }).then(function () { setBusy(false); renderSummary(); });
+      }).then(function () { setBusy(false); renderSummary(); }, function () { setBusy(false); renderSummary(); });
     }
 
     // ---- goal modes and starter templates (GET /api/campaign/templates)

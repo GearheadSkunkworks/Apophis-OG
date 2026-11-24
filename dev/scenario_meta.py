@@ -95,7 +95,7 @@ def scale_profile(row, anchors, tolerance=1.03):
         if row.get("errors") or None in pk or None in by or len(pk) != len(anchors) or not all(pk):
             return None
         return {"behaviour": "fixed" if max(pk) <= min(pk) * tolerance else "scales",
-                "points": [[a, p, b] for a, p, b in zip(anchors, pk, by)]}
+                "points": [[a, p, b] for a, p, b in zip(anchors, pk, by, strict=False)]}
     except (KeyError, TypeError):
         return None
 

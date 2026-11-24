@@ -80,6 +80,8 @@ def preflight(sensor, apikey, certs_dir=None):
         if ident:
             report["appliance"] = "%s (%s, firmware %s)" % (
                 ident["hostname"], ident["platform"], ident["version"])
+            if ident.get("cert_sha256"):
+                report["appliance"] += ", certificate SHA-256 %s" % ident["cert_sha256"]
     except Exception as e:                                 # noqa: BLE001
         report["errors"].append(provider.explain(e))
         return report
@@ -111,9 +113,14 @@ def preflight(sensor, apikey, certs_dir=None):
     return report
 
 
+def _explain(provider, e):
+    return provider.explain(e) if provider else str(e)
+
+
 def _run(sensor, apikey, certs_dir, protocol, port, label):
-    provider = get_provider(sensor, apikey)
+    provider = None
     try:
+        provider = get_provider(sensor, apikey)
         pairs = find_pairs(certs_dir)
         with SLOCK:
             SSTATE["total"] = len(pairs)
@@ -224,14 +231,15 @@ def _run(sensor, apikey, certs_dir, protocol, port, label):
                  % (protocol, port))
     except Exception as e:                                 # noqa: BLE001
         with SLOCK:
-            SSTATE.update(running=False, done=True, phase="error", error=provider.explain(e))
-        _log("stopped: %s" % provider.explain(e))
+            SSTATE.update(running=False, done=True, phase="error", error=_explain(provider, e))
+        _log("stopped: %s" % _explain(provider, e))
     finally:
         CANCEL.clear()
 
 
 def push_cert(sensor, apikey, certs_dir, protocol="http", port=443, label="Example"):
     """Start a certificate push on a worker thread. Raises if one is already running."""
+    get_provider(sensor, apikey)       # a bad address raises ValueError here, before `running` is taken
     with SLOCK:
         if SSTATE["running"]:
             raise RuntimeError("a certificate push is already in progress")

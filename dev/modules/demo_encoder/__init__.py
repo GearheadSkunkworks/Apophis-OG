@@ -19,7 +19,9 @@ def _ftp_line(s):
 
 def register(kernel):
     global _builtin
-    _builtin = P.register_encoder(ENCODER, _ftp_line)      # returns the previous (built-in) impl
+    prev = P.register_encoder(ENCODER, _ftp_line)          # returns the previous (built-in) impl
+    if prev is not _ftp_line:                              # a second register must not make _builtin recurse into itself
+        _builtin = prev
     kernel.on_unload(lambda: P.reset_encoder(ENCODER))
 
 

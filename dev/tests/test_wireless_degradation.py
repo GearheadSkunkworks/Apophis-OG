@@ -106,7 +106,7 @@ class WirelessDegradation(unittest.TestCase):
         self.assertTrue({21, 22, 23} <= types, types)
 
     def test_every_header_checksum_and_fields(self):
-        for ts, h, p in self.pk:
+        for _ts, h, _p in self.pk:
             self.assertTrue(h["ok"])
             self.assertEqual(h["ver"], 4)
             self.assertEqual(h["len"], h["wire"])           # total length equals what is on the wire
@@ -114,14 +114,14 @@ class WirelessDegradation(unittest.TestCase):
 
     def test_ip_fragments_reassemble(self):
         sets = defaultdict(list)
-        for ts, h, p in self.pk:
+        for _ts, h, p in self.pk:
             if h["ff"] & 0x3FFF:        # MF or offset set
                 sets[(h["src"], h["dst"], h["id"], h["proto"])].append((h["ff"], p, h["len"] - h["ihl"]))
         self.assertTrue(sets, "no IPv4 fragments")
-        for k, frs in sets.items():
+        for _k, frs in sets.items():
             frs.sort(key=lambda x: x[0] & 0x1FFF)
             pos = 0
-            for i, (ff, p, ln) in enumerate(frs):
+            for i, (ff, _p, ln) in enumerate(frs):
                 self.assertEqual((ff & 0x1FFF) * 8, pos)
                 self.assertEqual(bool(ff & 0x2000), i < len(frs) - 1)
                 if i < len(frs) - 1:
@@ -132,7 +132,7 @@ class WirelessDegradation(unittest.TestCase):
             self.assertEqual(pos, ulen)                    # reassembled length == original datagram
 
     def test_echo_gap_and_discovery_before_join(self):
-        ctrl = [u for u in self.udp if u[2] == 5246 and u[3][:1] == b"\x01"]    # AP -> AC, DTLS-wrapped
+        _ctrl = [u for u in self.udp if u[2] == 5246 and u[3][:1] == b"\x01"]    # AP -> AC, DTLS-wrapped
         clear = [u for u in self.udp if u[2] == 5246 and u[3][:1] == b"\x00"]   # Discovery (clear)
         self.assertTrue(clear, "no Discovery Requests")
         # AP -> AC application data at the 30 s cadence: some AP shows a gap of >= 60 s in its control records
@@ -141,7 +141,7 @@ class WirelessDegradation(unittest.TestCase):
             if h["proto"] == 17 and not (h["ff"] & 0x1FFF) and struct.unpack("!H", p[2:4])[0] == 5246 and p[8:9] == b"\x01" and p[12] == 23:
                 by[(h["src"])].append(ts)
         self.assertTrue(by)
-        gaps = [b - a for v in by.values() for a, b in zip(sorted(v), sorted(v)[1:])]
+        gaps = [b - a for v in by.values() for a, b in zip(sorted(v), sorted(v)[1:], strict=False)]
         self.assertTrue(any(g >= 60 for g in gaps), "no echo gap during the stall")
         self.assertTrue(sum(1 for g in gaps if 29 < g < 31) > 20, "steady 30 s echo cadence missing")
         # every handshake ClientHello after a Discovery from the same AP

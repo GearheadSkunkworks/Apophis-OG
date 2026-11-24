@@ -74,6 +74,8 @@ def collection_preflight(sensor, apikey, stix_path=None, target="sensor"):
         if ident:
             report["appliance"] = "%s (%s, firmware %s)" % (
                 ident["hostname"], ident["platform"], ident["version"])
+            if ident.get("cert_sha256"):
+                report["appliance"] += ", certificate SHA-256 %s" % ident["cert_sha256"]
     except Exception as e:                                 # noqa: BLE001
         report["errors"].append(provider.explain(e))
         return report
@@ -144,10 +146,10 @@ def _trun(sensor, apikey, stix_path, name, target, detections):
             # cause is almost always that the capture was generated with the export unticked.
             raise RuntimeError(
                 "no threat collection at %s — generate a capture with ‘Export threat "
-                "collection’ ticked first." % stix_path)
+                "collection’ ticked first." % stix_path) from None
         except json.JSONDecodeError as e:
             raise RuntimeError("%s is not valid JSON (%s)"
-                               % (os.path.basename(stix_path), e))
+                               % (os.path.basename(stix_path), e)) from e
         with TLOCK:
             TSTATE["indicators"] = n_ind
         _tlog("%s: %d indicator(s), %d bytes" % (os.path.basename(stix_path), n_ind, len(raw)))

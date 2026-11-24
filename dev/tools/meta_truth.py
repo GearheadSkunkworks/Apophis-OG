@@ -30,6 +30,7 @@ TSHARK = "/Applications/Wireshark.app/Contents/MacOS/tshark"
 ALT_PARAMS = {
     "exposed_service_login": [dict(service="ssh", attempts=3, successes=1)],
     "lolbin_fetch": [dict(component="bitsadmin")],
+    "exploit_probe": [dict(cve="CVE-2023-0002")],  # the X-Request-Tag header exists only when a CVE is set
 }
 _PH = re.compile(r"\{(src_ip|dst_ip|fqdn|p:[A-Za-z0-9_]+)\}")
 

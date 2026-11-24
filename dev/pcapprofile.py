@@ -213,7 +213,6 @@ def _iter_pcapng(f):
         if btype == 0x00000001 and len(body) >= 8:     # Interface Description Block
             lt = struct.unpack(endian + "H", body[0:2])[0]
             linktypes[iface] = lt
-            res = 6                                     # default 1e-6
             # options follow snaplen (body: linktype(2) reserved(2) snaplen(4) options...)
             opt = body[8:]
             p = 0
@@ -224,7 +223,6 @@ def _iter_pcapng(f):
                     break
                 if code == 9 and val:                  # if_tsresol
                     b = val[0]
-                    res = (b & 0x7F)
                     tsresol[iface] = (1.0 / (2 ** (b & 0x7F))) if (b & 0x80) else (10.0 ** -(b & 0x7F))
                 p += 4 + olen + ((4 - olen % 4) % 4)
             tsresol.setdefault(iface, 1e-6)
@@ -800,7 +798,7 @@ def profile(path, cap=None):
     server_ports = {}               # (ip, port, l4) -> syn_count
     macs = set()
     vlans = set()
-    snis, tls_versions, offered_groups, negotiated = _CSet(), {}, set(), {}
+    snis, tls_versions, offered_groups = _CSet(), {}, set()
     dns_names = _CSet()
     quic, quic_snis = {}, set()     # version-name -> count
     embedded = set()                # (addr_or_name, where) carried inside payloads
@@ -1095,7 +1093,7 @@ def tables(prof):
                             [[a, b, "TCP" if l4 == 6 else "UDP", v[0], v[1], round(max(0.0, v[3] - v[2]), 3), v[4], v[5]]
                              for (a, b, l4), v in sorted(p["convos"].items(), key=lambda kv: -kv[1][1])])
     tally = {}
-    for (ip, port, l4), cnt in p["server_ports"].items():
+    for (_ip, port, l4), cnt in p["server_ports"].items():
         r = tally.setdefault((port, l4), [0, 0]); r[0] += cnt; r[1] += 1
     out["ports"] = (["port", "l4", "syns", "server_hosts"],
                     [[pt, l4, r[0], r[1]] for (pt, l4), r in sorted(tally.items(), key=lambda kv: -kv[1][0])])
@@ -1176,7 +1174,6 @@ def content(prof):
     total = max(1, p["pkts"] - p["unsupported"])
     # protocol mix table, by packets, with byte share
     rows = sorted(p["protocols"].items(), key=lambda kv: -kv[1])
-    tb = p["bytes"] or 1
     proto_rows = "".join(
         "<tr><td>%s</td><td class='m'>%d</td><td class='m'>%.1f%%</td><td class='m'>%s</td></tr>"
         % (_esc(n), c, 100.0 * c / total, _fmt_bytes(p["bytes_by"].get(n, 0)))
@@ -1302,7 +1299,7 @@ def content(prof):
             if n not in ENGINE_SYNTH and n not in ("Ethernet-other", "TCP-other", "UDP-other")
             and not n.startswith("IP-proto-")}
     rx_named = {}
-    for (ip, port, _l4), cnt in p["server_ports"].items():
+    for (_ip, port, _l4), cnt in p["server_ports"].items():
         nm = PLATFORM_PORTS.get(port)
         if nm and nm not in ENGINE_SYNTH:              # only the platform protocols the engine lacks
             rx_named[nm] = rx_named.get(nm, 0) + cnt
@@ -1429,7 +1426,7 @@ def content(prof):
                       "%d packet(s) used a link layer this profiler does not parse (see 'What the "
                       "profiler read'). They are counted but not classified." % p["unsupported"]))
     # a compact protocol-mix bar for the page header (render_page expects an svg)
-    SAP, PLUM, CY = "#C2410C", "#DC2626", "#15803D"
+    SAP, PLUM = "#C2410C", "#DC2626"
     top = rows[:8]
     mx = max((c for _n, c in top), default=1)
     W, Hs = 1180, 70 + 26 * len(top)
@@ -1677,11 +1674,11 @@ def load_recipe(path):
         with open(path) as fh:
             raw = json.load(fh)
     except (OSError, ValueError) as e:
-        raise ValueError("%s: %s" % (os.path.basename(path), e))
+        raise ValueError("%s: %s" % (os.path.basename(path), e)) from e
     try:
         return validate_recipe(raw)
     except ValueError as e:
-        raise ValueError("%s: %s" % (os.path.basename(path), e))
+        raise ValueError("%s: %s" % (os.path.basename(path), e)) from e
 
 
 def build_spec(prof, inventory_path):
@@ -1726,7 +1723,7 @@ def build_spec(prof, inventory_path):
         flows.append(flow)
 
     # 1. TCP protocols named from the observed server ports — real SYN counts drive the sessions.
-    for (ip, port, l4), syns in sorted(p["server_ports"].items(), key=lambda kv: -kv[1]):
+    for (_ip, port, l4), syns in sorted(p["server_ports"].items(), key=lambda kv: -kv[1]):
         if l4 != "tcp":
             continue
         proto = _CI_TCP_PORT.get(port)

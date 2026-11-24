@@ -7,7 +7,6 @@ decoded, JSON-parsed, regex-matched or csv-parsed. Deep JSON nesting (RecursionE
 Parsers dedupe their own output and cap it at MAX_IOCS.
 """
 import csv
-import io
 import json
 import re
 
@@ -280,7 +279,7 @@ def parse_csv(text, source="csv", max_bytes=MAX_BYTES):
         return out
     for r in rr:
         def g(names):
-            return [r[idx[n]].strip() for n in names if n in idx and idx[n] < len(r) and r[idx[n]].strip()]
+            return [r[idx[n]].strip() for n in names if n in idx and idx[n] < len(r) and r[idx[n]].strip()]  # noqa: B023 closure runs inside the iteration
         ctx_bits = [c for n in h if n in _CTX_COLS and n not in {"ioc", "indicator", "value"}
                     for c in g([n])]
         ioc_col_ctx = [r[i].strip() for i in vcols if i < len(r) and r[i].strip()
@@ -742,7 +741,7 @@ def _tf_csv(text, source):
         if header is None:
             header = [c.strip().lower() for c in r]
             continue
-        _tf_item(dict(zip(header, [c.strip() for c in r])), source, out, seen)
+        _tf_item(dict(zip(header, [c.strip() for c in r], strict=False)), source, out, seen)
     return out
 
 

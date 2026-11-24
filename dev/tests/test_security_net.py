@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import campaign_api  # noqa: E402
 import server  # noqa: E402
-from intel import cache, sources  # noqa: E402
+from intel import sources  # noqa: E402
 from sensorops import _util  # noqa: E402
 try:
     from sensorops.providers.network_sensor import NetworkSensorProvider  # noqa: E402
@@ -315,7 +315,7 @@ class TestSensorAddress(unittest.TestCase):
             return R()
         answers = iter([["10.1.1.1"], ["127.0.0.1"]])
         with mock.patch("socket.getaddrinfo", lambda h, p=None, *a, **k: [(2, 1, 6, "", (next(answers)[0], p))]), \
-                mock.patch.object(urllib.request, "urlopen", fake_open):
+                mock.patch("sensorops.providers.network_sensor._urlopen", fake_open):
             prov._req("/extra" + "hop")
         req = captured["req"]
         self.assertEqual(req.full_url, "https://10.1.1.1:8443/api/v1/extra" + "hop")
@@ -326,7 +326,7 @@ class TestSensorAddress(unittest.TestCase):
     def test_provider_refuses_rebound_loopback_without_connecting(self):
         prov = NetworkSensorProvider("rebind.example.net", "SECRETKEY")
         with mock.patch("socket.getaddrinfo", gai("127.0.0.1")), \
-                mock.patch.object(urllib.request, "urlopen", side_effect=AssertionError("must not connect")):
+                mock.patch("sensorops.providers.network_sensor._urlopen", side_effect=AssertionError("must not connect")):
             with self.assertRaises(urllib.error.URLError) as c:
                 prov._req("/extra" + "hop")
         self.assertNotIn("SECRETKEY", str(c.exception))
@@ -340,7 +340,7 @@ class TestSensorAddress(unittest.TestCase):
             def __exit__(s, *a): return False
             def geturl(s): return "https://elsewhere.example/"
             def read(s, n=-1): return b"{}"
-        with mock.patch.object(urllib.request, "urlopen", lambda *a, **k: R()):
+        with mock.patch("sensorops.providers.network_sensor._urlopen", lambda *a, **k: R()):
             with self.assertRaises(urllib.error.URLError):
                 prov._req("/extra" + "hop")
 

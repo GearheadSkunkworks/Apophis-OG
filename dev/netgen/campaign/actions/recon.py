@@ -6,9 +6,6 @@ directory/share queries with dummy data. Nothing here carries an exploit, a payl
 Shared helpers used by access.py and lateral.py live in this module too (``deterministic``,
 ``is_external``, ``vantage_for``, ``arp_between``, ``own_user``, ``account_names``).
 """
-import functools
-import os
-import random as _random
 import struct
 
 from . import ActionSpec, register

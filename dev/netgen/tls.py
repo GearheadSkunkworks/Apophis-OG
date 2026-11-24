@@ -184,7 +184,7 @@ class PKI:
             with open(os.path.join(out_dir, "demo-public-tls-ca-r1.crt"), "wb") as f:
                 f.write(self._pub[1].public_bytes(serialization.Encoding.PEM))
         written = []
-        for host, (key, der, ca_der) in self.leaf.items():
+        for host, (key, der, _ca_der) in self.leaf.items():
             safe = host.replace("*", "_").replace("/", "_")
             cert = x509.load_der_x509_certificate(der)
             with open(os.path.join(out_dir, safe + ".crt"), "wb") as f:

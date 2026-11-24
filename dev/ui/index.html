@@ -230,7 +230,7 @@
                 <span class="tiptag" tabindex="0" role="note"
                   title="Inter-control-centre data exchange via MMS over TCP 102. Electric-utility only — shown when the Energy industry is selected.">?</span></label>
             </div>
-            <div class="hint" id="protohint"></div>
+            <span class="tiptag" id="protohint" tabindex="0" role="note" style="visibility:hidden" data-tip="">?</span>
             <div class="fgrid">
               <div class="fld">
                 <label for="otpoll">Level&nbsp;1 poll interval (s) <span class="tiptag" tabindex="0" role="note" data-tip="How often supervisory polls each PLC. The biggest lever on capture size &mdash; real plants run 0.1&ndash;5&nbsp;s; 2&nbsp;s is the default.">?</span></label>
@@ -278,8 +278,7 @@
               <tr><td><b>Safety (SIS)</b></td><td>—</td><td>Isolated safety-instrumented controllers; written almost never. Any traffic to them is notable.</td></tr>
             </tbody>
           </table>
-          <p class="hint">These OT scenarios are inert unless the OT zone is enabled above, and their
-          events only attribute correctly once the subnets are classified.</p>
+          <span class="tiptag" tabindex="0" role="note" data-tip="These OT scenarios are inert unless the OT zone is enabled above, and their events only attribute correctly once the subnets are classified.">?</span>
         </div>
       </details>
 
@@ -323,7 +322,7 @@
             <input type="date" id="capdate" style="flex:1 1 auto;min-width:0">
             <button class="btn secondary md" id="captoday" type="button" style="flex:0 0 auto">Today</button>
           </div>
-          <div id="capdate-note" class="hint"></div>
+          <span class="tiptag" id="capdate-note" tabindex="0" role="note" style="visibility:hidden" data-tip="">?</span>
         </div>
         <div class="dk-size">
         <div class="scalehead">
@@ -469,7 +468,7 @@
       <div class="go">
         <button class="btn" id="rgo" disabled
                 title="Read the note above and tick the acknowledgement first.">Start replay</button>
-        <button class="btn secondary" id="rstop" style="display:none">Stop replay</button>
+        <button class="btn secondary" id="rstop" style="visibility:hidden">Stop replay</button>
         <span class="tiptag" tabindex="0" role="note" data-tip="Replaying injects raw packets, which requires root. macOS will show its own administrator prompt when you start; the password goes straight to macOS and is never typed into, or handled by, this page.">?</span>
       </div>
     </details>
@@ -541,7 +540,7 @@
         <button class="btn md" id="pcaprecipe" type="button" disabled>Save recipe</button>
       </div>
       <div id="pcapmsg" class="hint pathmsg" role="status" aria-live="polite"></div>
-      <p class="hint">The profile reads packet headers only. Payload contents are never stored in the recipe.</p>
+      <span class="tiptag" tabindex="0" role="note" data-tip="The profile reads packet headers only. Payload contents are never stored in the recipe.">?</span>
       <datalist id="dl-caps"></datalist>
     </div>
     <div class="panel imp-compare">
@@ -551,7 +550,7 @@
           <input id="pcapcompare" type="text" list="dl-caps" autocomplete="off" placeholder="/path/to/the-new-capture.pcap"></div>
         <button class="btn secondary md" id="pcapcmpbtn" type="button" style="align-self:flex-end">Compare with the original</button>
       </div>
-      <p class="hint">Use this after you add the recipe and build a new capture. It lines the new capture up against the original and lists which of the original&rsquo;s protocols came back and which the generator could not recreate.</p>
+      <span class="tiptag" tabindex="0" role="note" data-tip="Use this after you add the recipe and build a new capture. It lines the new capture up against the original and lists which of the original&rsquo;s protocols came back and which the generator could not recreate.">?</span>
     </div>
   </section>
 
@@ -599,7 +598,7 @@
             <option value="sensor">A sensor (standalone)</option>
             <option value="console">A console</option>
           </select>
-          <div class="hint" id="tctargethint"></div>
+          <span class="tiptag" id="tctargethint" tabindex="0" role="note" style="visibility:hidden" data-tip="">?</span>
         </div>
       </div>
       <div class="checks block" style="margin-top:14px">
@@ -617,7 +616,7 @@
                   title="Enter the appliance address and an API key first.">Check appliance</button>
           <button class="btn" id="tcgo" type="button" disabled
                   title="Enter the appliance address and an API key first.">Push threat collection</button>
-          <button class="btn secondary" id="tcstop" type="button" style="display:none">Stop</button>
+          <button class="btn secondary" id="tcstop" type="button" style="visibility:hidden">Stop</button>
         </div>
       </div>
       <div id="tcprogress" style="display:none;margin-top:16px">
@@ -680,7 +679,7 @@
                     title="Enter the sensor address and an API key first.">Check sensor</button>
             <button class="btn dg" id="sensorgo" type="button" disabled
                     title="Needs the sensor address, API key and port. A confirmation opens before any key is deleted.">Push certificates</button>
-            <button class="btn secondary" id="sensorstop" type="button" style="display:none">Stop</button>
+            <button class="btn secondary" id="sensorstop" type="button" style="visibility:hidden">Stop</button>
           </div>
         </div>
 
@@ -728,7 +727,7 @@
   </div>
   <nav class="subnav" id="setnav" aria-label="Settings sections">
     <button type="button" data-jump="set-lab">Lab tools</button><button type="button" data-jump="set-look">Appearance</button><button type="button" data-jump="set-sess">Sessions</button>
-    <button type="button" data-jump="set-def">Defaults</button><button type="button" data-jump="set-checks">Checks</button><button type="button" data-jump="set-keys">API keys</button>
+    <button type="button" data-jump="set-def">Defaults</button><button type="button" data-jump="set-checks">Checks</button><button type="button" data-jump="set-keys">API keys</button><button type="button" data-jump="set-agent">Agent access</button>
   </nav>
   <div class="setgrid">
     <div>
@@ -785,6 +784,17 @@
           <button type="button" class="btn secondary md" id="keyforget" disabled>Forget stored keys</button>
         </div>
       </div>
+      <div class="panel" id="set-agent">
+        <h2>Agent access</h2>
+        <div class="setrow">
+          <div><div class="st">Access token</div><div class="sd" id="agentstate" role="status">Checking&hellip;</div></div>
+          <span style="display:flex;gap:8px"><button type="button" class="btn secondary md" id="agentmake">Create token</button><button type="button" class="btn secondary md" id="agentoff" disabled>Turn off</button></span>
+        </div>
+        <div class="setrow">
+          <div><div class="st">Staged sensor push</div><div class="sd" id="agentpend" role="status">None waiting.</div></div>
+          <span style="display:flex;gap:8px"><button type="button" class="btn secondary md" id="agentreview" disabled>Review</button><button type="button" class="btn secondary md" id="agentdismiss" disabled>Dismiss</button></span>
+        </div>
+      </div>
     </div>
     <div>
       <div class="panel" id="set-sess">
@@ -824,10 +834,6 @@
           <dt>Threat collection</dt><dd>A STIX 2.1 bundle of the external indicators the capture actually emitted. Loading it into a sensor turns those flows into threat-intelligence matches.</dd>
           <dt>Decryption keys</dt><dd>The server certificates and private keys written beside the capture. Load them into a sensor so it can decrypt the capture's HTTPS. Each build mints new ones, so they only fit the capture they came with.</dd>
         </dl>
-      </div>
-      <div class="panel">
-        <h2>About</h2>
-        <a class="btn secondary md aboutlink2" href="/about" target="_blank" rel="noopener">Open About</a>
       </div>
     </div>
   </div>
@@ -901,7 +907,7 @@ async function loadModules(){
     // disagree about the available choices. The first entry (Logistics) is the default.
     const ind = $('industry');
     if(ind && !ind.options.length && Array.isArray(d.industries)){
-      ind.innerHTML = d.industries.map(x => `<option value="${x}">${x}</option>`).join('');
+      ind.innerHTML = d.industries.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
     }
     genGate();
   }catch(e){
@@ -915,27 +921,27 @@ function renderGroups(){
     const mods = ALL_MODULES.filter(m => m.prefix === c.key)
                             .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     if(!mods.length) return '';
-    return `<div class="grp" data-cat="${c.key}">
+    return `<div class="grp" data-cat="${esc(c.key)}">
       <header>
-        <span class="gname" style="color:color-mix(in srgb, ${c.color} 72%, var(--ink))">${c.tag || c.key}</span>
-        <span class="gdesc">${c.label}</span>
-        <span class="gcount" id="gc-${c.key}"></span>
-        <button type="button" data-all="${c.key}">All</button>
-        <button type="button" data-none="${c.key}">None</button>
+        <span class="gname" style="color:color-mix(in srgb, ${esc(c.color)} 72%, var(--ink))">${esc(c.tag || c.key)}</span>
+        <span class="gdesc">${esc(c.label)}</span>
+        <span class="gcount" id="gc-${esc(c.key)}"></span>
+        <button type="button" data-all="${esc(c.key)}">All</button>
+        <button type="button" data-none="${esc(c.key)}">None</button>
       </header>
       <div class="mods">${mods.map(m => `
         <div class="mod${m.pinned ? ' pinned' : ''}${m.ot_only ? ' otonly' : ''}${m.ot_only && !m.pinned ? ' otscn' : ''}"${m.ot_only && m.pinned ? ' style="display:none"' : ''}>
           <label class="modlab">
-            <input type="checkbox" class="${m.pinned ? 'modpin' : 'modcb'}" value="${m.name}"
-                   data-cat="${m.prefix}" checked${m.pinned ? ' disabled' : ''}>
+            <input type="checkbox" class="${m.pinned ? 'modpin' : 'modcb'}" value="${esc(m.name)}"
+                   data-cat="${esc(m.prefix)}" checked${m.pinned ? ' disabled' : ''}>
             <span>
-              <span class="mtitle">${m.title}${m.pinned ? '<span class="alwayson">always on</span>' : ''}</span>
-              <span class="mmeta"><code>${m.name}</code>${m.note ? ' — ' + m.note : ''}${m.pinned ? ' · baseline traffic, not selectable' : ''}</span>
+              <span class="mtitle">${esc(m.title)}${m.pinned ? '<span class="alwayson">always on</span>' : ''}</span>
+              <span class="mmeta"><code>${esc(m.name)}</code>${m.note ? ' — ' + esc(m.note) : ''}${m.pinned ? ' · baseline traffic, not selectable' : ''}</span>
             </span>
           </label>
           <div class="mside">
-            <span class="mwin">${m.window || ''}</span>
-            <button type="button" class="vizbtn" data-mod="${m.name}"
+            <span class="mwin">${esc(m.window || '')}</span>
+            <button type="button" class="vizbtn" data-mod="${esc(m.name)}"
                     title="">Visualize</button>
           </div>
         </div>`).join('')}</div>
@@ -1017,7 +1023,6 @@ function applyDeps(cb){
 
 function setCat(cat, on){ liveBoxes().forEach(cb => { if(cb.dataset.cat === cat) cb.checked = on; }); updateSelCount(); }
 function setAll(on){ liveBoxes().forEach(cb => cb.checked = on); updateSelCount(); }
-function onlyCat(cat){ liveBoxes().forEach(cb => cb.checked = (cb.dataset.cat === cat)); updateSelCount(); }
 
 // Category rail + scenario cards (scenario-cards.js). The checkboxes stay the single source of truth: the rail,
 // the cards and the bulk actions only set them and fire the same 'change' handler a click would, so the summary
@@ -1152,7 +1157,7 @@ async function loadDiagrams(){
     SCENARIO_DIAGRAMS = d.scenarios || {};
     refreshVizButtons();
     $('diagpick').innerHTML = list.map(x =>
-      `<option value="${x.name}" title="${x.description}">${x.title}</option>`).join('');
+      `<option value="${esc(x.name)}" title="${esc(x.description)}">${esc(x.title)}</option>`).join('');
     $('diagpick').onchange = showDiagHint;
     showDiagHint();
     if(!list.length){ $('diagpick').disabled = $('diagview').disabled = true; }
@@ -1439,21 +1444,22 @@ function todayStr(){
 
 function capdateNote(){
   const v = $('capdate').value;
-  const el = $('capdate-note');
-  if(!v){ el.textContent = ''; return; }
+  if(!v){ hintTip('capdate-note', ''); return; }
   const today = new Date(); const t = todayStr();
+  let m;
   if(v > t){
-    el.innerHTML = '<b>Entirely in the future.</b> Fine for replay; an offline upload would '
-                 + 'place every metric ahead of the sensor&rsquo;s own clock.';
+    m = '<b>Entirely in the future.</b> Fine for replay; an offline upload would '
+      + 'place every metric ahead of the sensor&rsquo;s own clock.';
   } else if(v === t){
     const h = today.getHours();
-    el.innerHTML = h < 21
+    m = h < 21
       ? 'Today. The day runs to 21:00, so roughly <b>' + (21 - h) + (21 - h === 1 ? ' hour' : ' hours') + '</b> of it are '
         + 'still in the future &mdash; harmless for replay, worth knowing for an offline upload.'
       : '';
   } else {
-    el.textContent = 'A past day. The whole capture is complete and in the past.';
+    m = 'A past day. The whole capture is complete and in the past.';
   }
+  hintTip('capdate-note', m);
 }
 function setToday(){
   $('capdate').value = todayStr();
@@ -1552,10 +1558,13 @@ async function generate(){
     try{ Object.assign(body, OGC.generateExtras() || {}); }catch(e){ /* a campaign module fault must not block a normal capture */ }
   }
   $('net-errors').innerHTML = '';
-  const r = await fetch('/api/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  let r, e;
+  try{
+    r = await fetch('/api/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    if(!r.ok) e = await r.json().catch(() => ({}));
+  }catch(err){ r = {ok:false}; e = {error: 'could not reach the app (' + err.message + ')'}; }
   if(!r.ok){
-    const e = await r.json();
-    $('net-errors').innerHTML = `<div class="alert bad"><b>Cannot generate</b><ul><li>${e.error||'could not start'}</li></ul></div>`;
+    $('net-errors').innerHTML = `<div class="alert bad"><b>Cannot generate</b><ul><li>${esc(e.error||'could not start')}</li></ul></div>`;
     $('progress').style.display = 'none';
     genRunning = false; genGate();
     $('net-errors').scrollIntoView({behavior:'smooth', block:'center'});
@@ -1566,7 +1575,24 @@ async function generate(){
   status();
 }
 
-async function status(){
+// Wraps a poll tick: skips a tick while the previous one is in flight; a dropped request is retried on
+// the next tick, and after 5 in a row onLost() runs (it stops the interval and says so).
+function guardedPoll(tick, onLost){
+  let busy = false, fails = 0;
+  return async () => {
+    if(busy) return;
+    busy = true;
+    try{ await tick(); fails = 0; }
+    catch(e){ if(++fails === 5) onLost(); }
+    finally{ busy = false; }
+  };
+}
+const status = guardedPoll(statusTick, () => {
+  if(poll){ clearInterval(poll); poll = null; }
+  genRunning = false; genGate();
+  $('net-errors').innerHTML = '<div class="alert bad"><b>Lost contact with the app</b></div>';
+});
+async function statusTick(){
   const r = await fetch('/api/status'); const s = await r.json();
   $('s-pkts').textContent = s.packets.toLocaleString();
   $('s-mb').textContent = s.mb.toFixed(1);
@@ -1604,14 +1630,14 @@ async function status(){
       $('results-title').innerHTML = '<span class="err">Stopped</span> — generation cancelled';
       $('results-body').innerHTML =
         `<p>Stopped after ${s.packets.toLocaleString()} packets (${s.mb.toFixed(1)} MB).
-            The partial capture and key log were discarded, so <code>${s.out_dir}</code> is as
+            The partial capture and key log were discarded, so <code>${esc(s.out_dir)}</code> is as
             you left it.</p>
          <p class="hint">Press <b>Generate capture</b> to start again — a smaller scale finishes sooner.</p>`;
       nextActions(false);
       if(wasGen) ogAnnounce('Build stopped after ' + s.packets.toLocaleString() + ' packets. The partial capture was discarded.');
     } else if(s.error){
       $('results-title').innerHTML = '<span class="err">Failed</span>';
-      $('results-body').innerHTML = `<p class="err">${s.error}</p><pre id="log2" style="height:auto;max-height:160px">${(s.log||[]).slice(-30).join('\n')}</pre>`;
+      $('results-body').innerHTML = `<p class="err">${esc(s.error)}</p><pre id="log2" style="height:auto;max-height:160px">${esc((s.log||[]).slice(-30).join('\n'))}</pre>`;
       nextActions(false);
       if(wasGen) ogAnnounce('Build failed');
     } else {
@@ -1625,21 +1651,21 @@ async function status(){
       const outs = (s.outputs||[]);
       const certFiles = outs.filter(o => o.name.indexOf('certs/') === 0);
       const rows = outs.filter(o => o.name.indexOf('certs/') !== 0).sort((a, b) => prio(a.name) - prio(b.name))
-          .map(o => `<tr><td class="nm">${o.name}</td><td class="sz">${o.size}</td></tr>`).join('')
+          .map(o => `<tr><td class="nm">${esc(o.name)}</td><td class="sz">${esc(o.size)}</td></tr>`).join('')
         + (certFiles.length ? `<tr><td class="nm">certs/ <span class="hint">${certFiles.length} certificate and key files, one pair per simulated server</span></td><td class="sz">\u2014</td></tr>` : '');
       if(s.pcap) $('rpcap').value = s.pcap;          // point the replay panel at what we just built
       if(s.pcap && !$('pcapcompare').value) $('pcapcompare').value = s.pcap;   // ready for Compare with source
       try{ loadSuggestions(); }catch(e){}
       if(s.stix) $('tcstix').value = s.stix;         // and the collection panel at the exported STIX
       const netline = (sm && sm.nets)
-        ? `<p class="hint" style="margin:-4px 0 10px">Networks: user <code>${sm.nets.user}</code>, server <code>${sm.nets.server}</code></p>` : '';
+        ? `<p class="hint" style="margin:-4px 0 10px">Networks: user <code>${esc(sm.nets.user)}</code>, server <code>${esc(sm.nets.server)}</code></p>` : '';
       $('results-body').innerHTML =
         `<div class="results-tiles"><div class="tile"><b>${s.packets.toLocaleString()}</b><span>packets</span></div>
            <div class="tile"><b>${s.mb.toFixed(0)} MB</b><span>written</span></div>
            <div class="tile"><b>${s.seconds} s</b><span>to build</span></div>
            <div class="tile"><b>16 hours</b><span>of traffic</span></div></div>
-         <p>Written to <code>${s.out_dir}</code></p>
-         ${sm && sm.date ? `<p class="hint">Capture day <b>${sm.date}</b>${sm.scale ? ` &middot; size setting <b>${sm.scale}&times;</b>` : ''}.</p>` : ''}${netline}
+         <p>Written to <code>${esc(s.out_dir)}</code></p>
+         ${sm && sm.date ? `<p class="hint">Capture day <b>${esc(sm.date)}</b>${sm.scale ? ` &middot; size setting <b>${esc(sm.scale)}&times;</b>` : ''}.</p>` : ''}${netline}
          <table><thead><tr><th>File</th><th>Size</th></tr></thead><tbody>${rows}</tbody></table>`;
       nextActions(true);
       try{ renderByScenario(sm, s); }catch(e){ /* the file list above stands on its own */ }
@@ -1774,7 +1800,7 @@ async function checkDeps(){
     det.forEach(x => { const o = document.createElement('option'); o.value = x.name; o.textContent = x.label + (x.recommended ? ' (recommended)' : '');
       if(x.recommended) o.dataset.rec = '1'; sel.appendChild(o); });
     if(!det.length){ const o = document.createElement('option'); o.value = ''; o.textContent = 'no interfaces found'; sel.appendChild(o); }
-    else { const rec = det.filter(x => x.recommended)[0]; if(rec && !sel.dataset.touched) sel.value = rec.name; sel.addEventListener('change', () => { sel.dataset.touched = '1'; }, {once: true}); }
+    else { const rec = det.filter(x => x.recommended)[0]; if(rec && !sel.dataset.touched) sel.value = rec.name; if(!sel.dataset.bound){ sel.dataset.bound = '1'; sel.addEventListener('change', () => { sel.dataset.touched = '1'; }, {once: true}); } }
     renderDepErrors(d);
     // never re-enable Start over a replay that is already running: checkDeps() is async
     // and lands after the page-load rehydrate, so without this it hands back a button that
@@ -1787,10 +1813,10 @@ async function checkDeps(){
 function renderDepErrors(d, title, target){
   let html = '';
   if((d.errors||[]).length)
-    html += `<div class="alert bad"><b>${title || 'Cannot replay yet'}</b><ul>${
-      d.errors.map(e => `<li>${e.replace(/Install it with: (.+)$/, 'Install it with <code>$1</code>')}</li>`).join('')}</ul></div>`;
+    html += `<div class="alert bad"><b>${esc(title || 'Cannot replay yet')}</b><ul>${
+      d.errors.map(e => `<li>${esc(e).replace(/Install it with: (.+)$/, 'Install it with <code>$1</code>')}</li>`).join('')}</ul></div>`;
   if((d.warnings||[]).length)
-    html += `<div class="alert warn"><ul>${d.warnings.map(w => `<li>${w}</li>`).join('')}</ul></div>`;
+    html += `<div class="alert warn"><ul>${d.warnings.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>`;
   $(target || 'dep-errors').innerHTML = html;
 }
 
@@ -1806,9 +1832,12 @@ $('rmode').onchange = () => {
 
 async function startReplay(){
   // re-check with the actual file + interface so problems surface before the password prompt
-  const pre = await (await fetch('/api/replay/preflight', {method:'POST',
+  let pre;
+  try{
+    pre = await (await fetch('/api/replay/preflight', {method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({pcap: $('rpcap').value, iface: $('riface').value})})).json();
+  }catch(err){ pre = {ok:false, errors:['could not reach the app (' + err.message + ')']}; }
   renderDepErrors(pre);
   if(!pre.ok){ $('dep-errors').scrollIntoView({behavior:'smooth', block:'center'}); return; }
 
@@ -1823,16 +1852,19 @@ async function startReplay(){
                 speed_mode: $('rmode').value, speed_value: parseFloat($('rvalue').value)||1,
                 loop: parseInt($('rloop').value, 10)||1,
                 monitor: $('rmonitor').checked};
-  const r = await fetch('/api/replay/start', {method:'POST',
+  let r, e;
+  try{
+    r = await fetch('/api/replay/start', {method:'POST',
       headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    if(!r.ok) e = await r.json().catch(() => ({}));
+  }catch(err){ r = {ok:false}; e = {error: 'could not reach the app (' + err.message + ')'}; }
   if(!r.ok){
-    const e = await r.json();
     renderDepErrors({errors:[e.error||'could not start replay']}, 'Could not start replay');
     replayLive = false;
     setReplayFold(false);
     replayGate(); $('rprogress').style.display = 'none'; return;
   }
-  $('rstop').style.display = 'inline-block';
+  $('rstop').style.visibility = 'visible';
   if(rpoll) clearInterval(rpoll);
   rpoll = setInterval(replayStatus, 700);
   replayStatus();
@@ -1846,7 +1878,12 @@ const PHASE_TEXT = {
   done: 'Whole capture played.', error: 'Replay failed.'
 };
 
-async function replayStatus(){
+const replayStatus = guardedPoll(replayTick, () => {
+  if(rpoll){ clearInterval(rpoll); rpoll = null; }
+  replayLive = false; setReplayFold(false); replayGate(); $('rstop').style.visibility = 'hidden';
+  renderDepErrors({errors:['Lost contact with the app']}, 'Replay status unavailable');
+});
+async function replayTick(){
   const s = await (await fetch('/api/replay/status')).json();
   $('rphase').textContent = PHASE_TEXT[s.phase] || '';
   $('rbar').style.width = (s.percent||0).toFixed(1) + '%';
@@ -1869,7 +1906,7 @@ async function replayStatus(){
     if(replayLive) ogAnnounce(s.phase === 'error' ? 'Replay failed' : s.phase === 'stopped' ? 'Replay stopped' : 'Replay complete');
     replayLive = false;
     setReplayFold(false);
-    replayGate(); $('rstop').style.display = 'none';
+    replayGate(); $('rstop').style.visibility = 'hidden';
     if(s.phase === 'error'){
       $('rprog-title').innerHTML = '<span class="err">Replay failed</span>';
       renderDepErrors({errors:[s.error||'tcpreplay failed — see the log.']}, 'Replay failed');
@@ -1884,8 +1921,9 @@ async function replayStatus(){
 $('rgo').onclick = startReplay;
 $('rstop').onclick = async () => {
   $('rstop').disabled = true;
-  await fetch('/api/replay/stop', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
-  $('rstop').disabled = false;
+  try{ await fetch('/api/replay/stop', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}); }
+  catch(e){ renderDepErrors({errors:['could not reach the app (' + e.message + ')']}, 'Could not stop the replay'); }
+  finally{ $('rstop').disabled = false; }
 };
 
 $('stop').onclick = async () => {
@@ -1894,7 +1932,9 @@ $('stop').onclick = async () => {
   // Cooperative: the engine notices at its next checkpoint, so the run keeps reporting
   // progress for a moment after this returns. Say so rather than look frozen.
   $('stop-hint').textContent = 'Waiting for the generator to reach its next checkpoint…';
-  const r = await fetch('/api/generate/stop', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+  let r;
+  try{ r = await fetch('/api/generate/stop', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}); }
+  catch(e){ r = {ok:false}; }
   if(!r.ok){                                   // already finished between render and click
     $('stop').disabled = false;
     $('stop').textContent = 'Stop';
@@ -1916,8 +1956,10 @@ function setReportReady(ready){
 $('reportview').onclick = () => { if(!$('reportview').disabled) window.open('/report?' + ogThemeParams().toString(), '_blank'); };
 
 $('reveal').onclick = async () => {
-  await fetch('/api/reveal', {method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({out_dir: $('outdir').value})});
+  try{
+    await fetch('/api/reveal', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({out_dir: $('outdir').value})});
+  }catch(e){ ogToast('Could not reach the app'); }
 };
 // Restore the last session only once the scenario grid and diagram list exist: both hold controls it sets.
 Promise.all([loadModules(), loadDiagrams()]).then(sessInit, sessInit);
@@ -1946,7 +1988,7 @@ async function adoptRunningReplay(){
     $('rprogress').style.display = 'block';
     $('rprog-title').textContent = 'Replaying…';
     $('rgo').disabled = true;
-    $('rstop').style.display = 'inline-block';
+    $('rstop').style.visibility = 'visible';
     if(rpoll) clearInterval(rpoll);
     rpoll = setInterval(replayStatus, 700);
     replayStatus();
@@ -1975,11 +2017,11 @@ function syncWhy(){
     const b = $(id); if(!b) return;
     let w = b.nextElementSibling;
     if(!w || !w.classList.contains('whyoff')){
-      w = document.createElement('span'); w.className = 'whyoff'; w.setAttribute('role','status');
+      w = document.createElement('span'); w.className = 'whyoff tiptag'; w.textContent = '?'; w.style.visibility = 'hidden';
       b.insertAdjacentElement('afterend', w);
     }
     const t = b.disabled ? (b.title || '') : '';
-    w.textContent = t; w.hidden = !t;
+    if(t) setTip(w, t); w.style.visibility = t ? 'visible' : 'hidden';
   });
 }
 function sensorGate(){
@@ -2131,28 +2173,37 @@ $('sensorgo').onclick = async () => {
   $('sensorgo').disabled = true;
   labReveal('push');
   $('sensorprogress').style.display = 'block';
-  const r = await fetch('/api/sensor/push', {method:'POST',
+  let r, e;
+  try{
+    r = await fetch('/api/sensor/push', {method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(sensorBody({confirm: 'DELETE-AND-REPLACE'}))});
+    if(!r.ok) e = await r.json().catch(() => ({}));
+  }catch(err){ r = {ok:false}; e = {error: 'could not reach the app (' + err.message + ')'}; }
   if(!r.ok){
-    const e = await r.json();
     renderDepErrors({errors:[e.error || 'could not start the push']}, 'Push failed',
                     'sensor-errors');
     $('sensorprogress').style.display = 'none'; sensorGate(); return;
   }
-  $('sensorstop').style.display = 'inline-block';
+  $('sensorstop').style.visibility = 'visible';
   if(spoll) clearInterval(spoll);
   spoll = setInterval(sensorStatus, 700);
   sensorStatus();
 };
 
 $('sensorstop').onclick = async () => {
-  await fetch('/api/sensor/stop', {method:'POST'});
+  try{ await fetch('/api/sensor/stop', {method:'POST'}); }
+  catch(e){ renderDepErrors({errors:['could not reach the app (' + e.message + ')']}, 'Could not stop the push', 'sensor-errors'); }
 };
 
 const SPHASE = {starting:'Starting…', deleting:'Removing existing keys…',
                 uploading:'Uploading certificates…', done:'Complete.', error:'Failed.'};
-async function sensorStatus(){
+const sensorStatus = guardedPoll(sensorTick, () => {
+  if(spoll){ clearInterval(spoll); spoll = null; }
+  $('sensorstop').style.visibility = 'hidden'; sensorGate();
+  renderDepErrors({errors:['Lost contact with the app']}, 'Push status unavailable', 'sensor-errors');
+});
+async function sensorTick(){
   const s = await (await fetch('/api/sensor/status')).json();
   $('sensor-phase').textContent = SPHASE[s.phase] || s.phase;
   $('s-deleted').textContent  = s.deleted;
@@ -2164,7 +2215,7 @@ async function sensorStatus(){
   $('sensorlog').scrollTop    = $('sensorlog').scrollHeight;
   if(!s.running){
     clearInterval(spoll); spoll = null;
-    $('sensorstop').style.display = 'none';
+    $('sensorstop').style.visibility = 'hidden';
     sensorGate();
     if(s.error) renderDepErrors({errors:[s.error]}, 'Push finished with errors',
                                 'sensor-errors');
@@ -2195,7 +2246,7 @@ fetch('/api/sensor/status').then(r => r.json()).then(s => {
   labReveal('push');
   if(s.sensor) $('sensorip').value = s.sensor;
   $('sensorprogress').style.display = 'block';
-  $('sensorstop').style.display = 'inline-block';
+  $('sensorstop').style.visibility = 'visible';
   $('sensorgo').disabled = true;
   if(spoll) clearInterval(spoll);
   spoll = setInterval(sensorStatus, 700);
@@ -2245,9 +2296,9 @@ function tcGate(){
 $('tctarget').addEventListener('change', () => {
   // Stated because it changes what the upload reaches, not just what it is called: the docs
   // say a console synchronises STIX indicators to its connected sensors.
-  $('tctargethint').textContent = $('tctarget').value === 'console'
+  hintTip('tctargethint', $('tctarget').value === 'console'
     ? 'A console syncs indicators to its connected sensors.'
-    : '';
+    : '');
 });
 
 $('tccheck').onclick = async () => {
@@ -2281,14 +2332,17 @@ $('tcgo').onclick = async () => {
   $('tcgo').disabled = true;
   labReveal('push');
   $('tcprogress').style.display = 'block';
-  const r = await fetch('/api/sensor/collection/push', {method:'POST',
+  let r, e;
+  try{
+    r = await fetch('/api/sensor/collection/push', {method:'POST',
       headers:{'Content-Type':'application/json'}, body: JSON.stringify(tcBody())});
+    if(!r.ok) e = await r.json().catch(() => ({}));
+  }catch(err){ r = {ok:false}; e = {error: 'could not reach the app (' + err.message + ')'}; }
   if(!r.ok){
-    const e = await r.json();
     renderDepErrors({errors:[e.error || 'could not start the push']}, 'Push failed', 'tc-errors');
     $('tcprogress').style.display = 'none'; tcGate(); return;
   }
-  $('tcstop').style.display = 'inline-block';
+  $('tcstop').style.visibility = 'visible';
   if(tcpoll) clearInterval(tcpoll);
   tcpoll = setInterval(tcStatus, 700);
   tcStatus();
@@ -2296,11 +2350,17 @@ $('tcgo').onclick = async () => {
 
 $('tcstop').onclick = async () => {
   $('tcstop').disabled = true;
-  await fetch('/api/sensor/collection/stop', {method:'POST'});
+  try{ await fetch('/api/sensor/collection/stop', {method:'POST'}); }
+  catch(e){ $('tcstop').disabled = false; renderDepErrors({errors:['could not reach the app (' + e.message + ')']}, 'Could not stop the push', 'tc-errors'); }
 };
 
 const TCDETECT = {on:'on', off:'left alone', manual:'set by hand', unknown:'\u2014'};
-async function tcStatus(){
+const tcStatus = guardedPoll(tcTick, () => {
+  if(tcpoll){ clearInterval(tcpoll); tcpoll = null; }
+  $('tcstop').style.visibility = 'hidden'; $('tcstop').disabled = false; tcGate();
+  renderDepErrors({errors:['Lost contact with the app']}, 'Push status unavailable', 'tc-errors');
+});
+async function tcTick(){
   const s = await (await fetch('/api/sensor/collection/status')).json();
   $('tc-phase').textContent      = TCPHASE[s.phase] || s.phase;
   $('tc-indicators').textContent = s.indicators;
@@ -2311,7 +2371,7 @@ async function tcStatus(){
   $('tclog').scrollTop   = $('tclog').scrollHeight;
   if(!s.running){
     clearInterval(tcpoll); tcpoll = null;
-    $('tcstop').style.display = 'none';
+    $('tcstop').style.visibility = 'hidden';
     $('tcstop').disabled = false;
     tcGate();
     if(s.error){
@@ -2336,7 +2396,7 @@ fetch('/api/sensor/collection/status').then(r => r.json()).then(s => {
   labReveal('push');
   if(s.sensor) $('tcip').value = s.sensor;
   $('tcprogress').style.display = 'block';
-  $('tcstop').style.display = 'inline-block';
+  $('tcstop').style.visibility = 'visible';
   if(tcpoll) clearInterval(tcpoll);
   tcpoll = setInterval(tcStatus, 700);
   tcStatus();
@@ -2609,7 +2669,7 @@ function otUpdate(){
   $('otnotebtn').classList.toggle('on', en);
   if (!en){
     ['cpk','cmb','cpkp','cmbp'].forEach(i => $(i).textContent = '\u2014');
-    $('cwarn').style.display = 'none'; $('otsum').textContent = '';
+    $('cwarn').style.visibility = 'hidden'; $('otsum').textContent = '';
     // the pinned OT baseline row hides when the zone is off; the OT SCENARIO rows stay visible
     document.querySelectorAll('.otonly:not(.otscn)').forEach(e => e.style.display = 'none');
     // OT scenarios are not generated without the OT subnet, so they stay shown but are unselectable:
@@ -2641,9 +2701,9 @@ function otUpdate(){
   // With no process protocol selected the subnet still emits LLDP, SNMP, NTP and syslog --
   // the switches and controllers exist whether or not anything is being polled, so saying
   // "no protocols" beside a five-figure packet count would read as a bug it is not.
-  $('protohint').textContent = names.length
+  hintTip('protohint', names.length
       ? ''
-      : 'None selected \u2014 the subnet still emits LLDP, SNMP, NTP and syslog.';
+      : 'None selected \u2014 the subnet still emits LLDP, SNMP, NTP and syslog.');
   document.querySelectorAll('.otonly:not(.otscn)').forEach(e => e.style.display = '');
   // the OT zone is on: the OT scenarios become selectable and are AUTO-SELECTED (the user can
   // deselect any). Only auto-tick on the off->on transition so a deliberate deselect is not undone.
@@ -2653,11 +2713,11 @@ function otUpdate(){
   if (typeof updateSelCount === 'function') updateSelCount();
   const w = $('cwarn');
   if (poll < 1.5){
-    w.style.display = 'block';
+    w.style.visibility = 'visible';
     w.innerHTML = '<b>At ' + poll + ' s this tier dominates the capture.</b> Real plants do poll '
                 + 'this fast, but 12 PLCs at 1 s add 2.07M packets \u2014 a fifth of the whole '
                 + 'capture, from 12 of 238 assets. 2 s is the recommended default.';
-  } else { w.style.display = 'none'; }
+  } else { w.style.visibility = 'hidden'; }
   genGate();
 }
 ['oten','otpoll','otnet','scale'].forEach(i => {
@@ -2797,10 +2857,15 @@ function normNet(v){
   return o[0] + '.' + o[1] + '.' + o[2] + '.0/24';
 }
 function normDir(v){ v = (v || '').trim(); return v.replace(/\/+$/, '') || v; }
-function showNorm(id, msg){
-  const el = $(id), host = el && el.parentElement; if(!host) return;
+function normSlot(host){ // reserved up front so the note never shifts the layout
   let n = host.querySelector('.norm-note');
   if(!n){ n = document.createElement('div'); n.className = 'norm-note'; host.appendChild(n); }
+  return n;
+}
+['usernet','servernet','otnet'].forEach(id => { const el = $(id); if(el && el.parentElement) normSlot(el.parentElement); });
+function showNorm(id, msg){
+  const el = $(id), host = el && el.parentElement; if(!host) return;
+  let n = normSlot(host);
   n.textContent = msg; clearTimeout(n._t); n._t = setTimeout(() => { n.textContent = ''; }, 4000);
 }
 ['usernet','servernet','otnet'].forEach(id => { const el = $(id); if(!el) return;
@@ -2894,13 +2959,44 @@ updateReadyBar();
     await keys(); ogToast('Stored keys forgotten.');
   });
   keys();
+  // agent access: a person creates the token here; a push an agent staged is only ever reviewed and pressed by a person
+  let agentPend = null;
+  const agentPost = (path, o) => fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(o || {})}).then(r => r.json());
+  async function agent(){
+    try{
+      const j = await agentPost('/api/agent/status');
+      $('agentstate').textContent = j.enabled ? 'On.' : 'Off.';
+      $('agentmake').textContent = j.enabled ? 'Replace token' : 'Create token';
+      $('agentoff').disabled = !j.enabled;
+      agentPend = (j.pending || [])[0] || null;
+      $('agentpend').textContent = agentPend ? agentPend.sensor + ' (' + agentPend.certs_dir + ')' : 'None waiting.';
+      $('agentreview').disabled = $('agentdismiss').disabled = !agentPend;
+    }catch(e){ $('agentstate').textContent = 'Could not read the agent settings.'; }
+  }
+  $('agentmake').addEventListener('click', async () => {
+    const j = await agentPost('/api/agent/token');
+    if(j.token){ try{ await navigator.clipboard.writeText(j.token); ogToast('Token copied. Paste it into your agent.'); }catch(e){ ogToast('Token created, but it could not be copied.'); } }
+    agent();
+  });
+  $('agentoff').addEventListener('click', async () => { await agentPost('/api/agent/off'); ogToast('Agent access turned off.'); agent(); });
+  $('agentdismiss').addEventListener('click', async () => { if(agentPend) await agentPost('/api/agent/dismiss', {id: agentPend.id}); agent(); });
+  $('agentreview').addEventListener('click', () => {
+    const p = agentPend; if(!p) return;
+    setLab(true, true); showView('lab'); labShow('push');
+    [['sensorip', p.sensor], ['sensorcerts', p.certs_dir], ['sensorproto', p.protocol], ['sensorport', p.port]].forEach(([id, v]) => { const e = $(id); if(e){ e.value = v; e.dispatchEvent(new Event('input', {bubbles: true})); } });
+    $('sensorfold').scrollIntoView({block: 'start'});
+    ogToast('Check the details, then press the push button yourself.');
+  });
+  agent(); setInterval(() => { if(!document.hidden) agent(); }, 15000);
   window.ogApplyDefaults();
 })();
 
 // ---- Info badges (.tiptag) ------------------------------------------------------------------
 // Explanations live behind a "?" instead of under every field. Text comes from data-tip (a legacy
 // title= is moved there so the native tooltip and this one never both show).
-function setTip(id, text){ const e = $(id); if(!e) return; e.setAttribute('data-tip', text); e.setAttribute('aria-label', text); }
+// Conditional helper text lives in a reserved `?` slot: empty hides it without moving anything.
+function hintTip(id, html){ const e = $(id); if(!e) return; const d = document.createElement('div'); d.innerHTML = html || ''; const t = d.textContent.trim(); if(t) setTip(e, t); else { e.setAttribute('data-tip',''); e.removeAttribute('aria-label'); } e.style.visibility = t ? 'visible' : 'hidden'; }
+function setTip(id, text){ const e = typeof id === 'string' ? $(id) : id; if(!e) return; e.setAttribute('data-tip', text); e.setAttribute('aria-label', text); }
 (function(){
   function adopt(){
     document.querySelectorAll('.tiptag').forEach(t => {
@@ -3071,6 +3167,9 @@ async function sessInit(){
 
 (function(){
   const panel = $('sesspanel'); if(!panel) return;
+  ['input', 'change', 'click'].forEach(ev => document.addEventListener(ev, sessSchedule, true));
+  window.addEventListener('pagehide', sessSaveLast);
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') sessSaveLast(); });
   const esc2 = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   async function refresh(){
     try{

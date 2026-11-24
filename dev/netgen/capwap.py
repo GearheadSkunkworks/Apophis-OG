@@ -470,7 +470,7 @@ class Life:
                 (3, 1180 + int(r.random() * 40), 4, 1700 + int(r.random() * 700), 0.04, 0.5),   # the Response carries the full radio and WLAN configuration: one DTLS record larger than the MTU, IP-fragmented
                 (5, 330 + int(r.random() * 120), 6, 190 + int(r.random() * 120), 0.01, 0.15),
                 (11, 110 + int(r.random() * 40), 12, 24, 0.01, 0.12)):
-            copies, replies, done = exchange(r, ac, t, RETRANSMIT, t + ECHO_DEADLINE, lambda: plo + r.random() * (phi - plo))
+            copies, replies, done = exchange(r, ac, t, RETRANSMIT, t + ECHO_DEADLINE, lambda: plo + r.random() * (phi - plo))  # noqa: B023 closure runs inside the iteration
             for n, tk in enumerate(copies):
                 self._ctrl(new, "ap", tk, (mreq, lreq, "new" if n == 0 else "retx"))
             for rt in replies:

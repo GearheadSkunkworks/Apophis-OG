@@ -129,7 +129,7 @@ def check(path):
         msgs = collections.defaultdict(dict)
         for e in ev:
             if e[2] == "dtls":
-                for ct, ep, ln, info in e[4]:
+                for _ct, _ep, _ln, info in e[4]:
                     if info:
                         msgs[(e[1], info[1], info[0])][info[2]] = info[3]
         if not msgs:

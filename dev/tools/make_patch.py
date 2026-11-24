@@ -75,6 +75,11 @@ def load_key(path):
     try:
         return serialization.load_pem_private_key(data, pw.encode() if pw else None)
     except TypeError:
+        if pw:      # unencrypted key + passphrase in env: the env value is simply unused
+            try:
+                return serialization.load_pem_private_key(data, None)
+            except TypeError:
+                pass
         return serialization.load_pem_private_key(data, getpass.getpass("Signing key passphrase: ").encode())
 
 
@@ -86,7 +91,7 @@ def protect_key(path):
     try:
         key = serialization.load_pem_private_key(data, None)
     except TypeError:
-        raise SystemExit("That key is already passphrase-protected.")
+        raise SystemExit("That key is already passphrase-protected.") from None
     pw = getpass.getpass("New passphrase: ")
     if len(pw) < 12 or pw != getpass.getpass("Again: "):
         raise SystemExit("Passphrases differ, or are shorter than 12 characters; the key was not changed.")

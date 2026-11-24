@@ -19,7 +19,6 @@ Rules that keep it readable
 
 Returns ``{"zones","nodes","edges","height","overflow","width"}``; see the contract for the keys of each part.
 """
-import math
 
 from branding import SAPPHIRE, PLUM, MAGENTA, GRAY, TANGERINE
 
@@ -107,7 +106,6 @@ def place(view, width=1180, max_nodes_per_zone=8, internet="left", max_edges=MAX
     nodes_in = [dict(n) for n in view.get("nodes") or []]
     edges_in = [dict(e) for e in view.get("edges") or []]
     max_n = max(2, int(max_nodes_per_zone))
-    ids = {n["id"] for n in nodes_in}
     first = _first_use(nodes_in, edges_in)
 
     def order_key(n):
@@ -298,7 +296,7 @@ def place(view, width=1180, max_nodes_per_zone=8, internet="left", max_edges=MAX
     placed_pills = []
     out_edges = []
     hidden = 0
-    for i, e in enumerate(elist):
+    for _i, e in enumerate(elist):
         label = ("%s %s" % (e["proto"], e["port"]) if e["port"] else e["proto"]).strip() or "traffic"
         if e["n"] > 1:
             label += " ×%d" % e["n"]

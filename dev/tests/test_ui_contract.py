@@ -19,7 +19,7 @@ LEGACY_IDS = [
     "aboutlink", "appdep", "appdep-errors", "appdep-head", "betaops", "capdate", "capdate-note",
     "capsactive", "capsbuiltins", "capsfold", "capslist", "capstat", "capstestall", "captoday", "certs",
     "cmb", "cmbp", "company", "cpk", "cpkp", "cwarn", "dep", "dep-errors", "diaghint", "diagpick",
-    "diagview", "dl-caps", "dl-recs", "gc-${c.key}", "go", "industry", "iocs", "iocs-help", "log",
+    "diagview", "dl-caps", "dl-recs", "gc-${esc(c.key)}", "go", "industry", "iocs", "iocs-help", "log",
     "log2", "modsum", "net-errors", "ogc-card", "ogc-fold", "ogc-root", "ot-help", "oten", "otf", "otnet",
     "otnote", "otnotebtn", "otpoll", "otsec", "otsum", "ottag", "outdir", "palsel", "pcapcmpbtn",
     "pcapcompare", "pcapfold", "pcapmsg", "pcappath", "pcaprecipe", "pcapuse", "pcapview", "progress",

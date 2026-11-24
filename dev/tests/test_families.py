@@ -7,7 +7,6 @@ import copy
 import inspect
 import json
 import os
-import re
 import sys
 import tempfile
 import unittest
@@ -113,7 +112,6 @@ class ProfileResolution(unittest.TestCase):
     def test_beacon_request_carries_family_look(self):
         # the request builder is pure given the generator, so check the exact bytes it would send
         import netgen
-        from netgen import flows as F
         netgen.reseed_all()
         prof = c2._profile("meterpreter-http")
 

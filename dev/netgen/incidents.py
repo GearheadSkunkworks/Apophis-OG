@@ -28,7 +28,7 @@ import time
 from . import flows as F
 from . import protocols as P
 from . import tls as TLS
-from .core import TcpSession, Host, SYN, ACK, RST, PSH, FIN, eth, ipv4, ETH_IP, same_subnet
+from .core import Host, SYN, ACK, RST, PSH, eth, ipv4, ETH_IP
 from .identity import H, get_current, DEFAULT as _TEMPLATE
 
 SEED = 0xA77AC                 # reseeded per build by netgen.reseed_all()
@@ -1307,7 +1307,7 @@ def recon_ldap_session(ctx, src, ts, dc=None):
             ("spn", None, ["sAMAccountName", "cn", "servicePrincipalName", "dNSHostName"]),
             ("admin", None, ["sAMAccountName", "cn", "memberOf", "adminCount", "description"]),
             ("organizationalUnit", "organizationalUnit", ["ou", "distinguishedName", "gPLink"])]
-    for (key, cls, attrs), (fattr, fval) in zip(plan, RECON_LDAP_FILTERS):
+    for (key, _cls, attrs), (fattr, fval) in zip(plan, RECON_LDAP_FILTERS, strict=False):
         filt = P._filter_present(fattr) if fval == "*" else P._filter_eq(fattr, fval)
         objs = d[key]
         cookie, first = b"\x00", True
@@ -2195,7 +2195,7 @@ def _sql1_user_http_fault(ctx, client, ts, phase):
     else:
         views = _sql1_rng.randint(1, 2)
     first = True
-    for i in range(views):
+    for _i in range(views):
         path = _sql1_rng.choice(["/shipments", "/reports", "/api/shipments?page=1&size=50", "/carriers", "/shipments?page=%d" % _sql1_rng.randint(2, 6)])
         think = _sql1_rng.uniform(0.001, 0.004) if first else _sql1_rng.uniform(1.5, 8.0)   # short = impatient reloads
         hdrs = ["Authorization: Negotiate " + token] if first else ["Cookie: ASP.NET_SessionId=" + os.urandom(12).hex()]
@@ -2642,7 +2642,7 @@ def _web2_pool_open(ctx, ts):
 def _web2_pool_extra_open(ctx, ts):
     gens, saved = _isolated_rng()
     out = F.sql_pool_open(ctx, ts, n=1, web=H('WEB2'), svc="svc_shipping", pool=_web2_pool(ctx))
-    for g, st in zip(gens, saved):
+    for g, st in zip(gens, saved, strict=False):
         g.setstate(st)
     return out
 
@@ -2662,7 +2662,7 @@ def _web2_pool_extra_close(ctx, ts):
         return []
     gens, saved = _isolated_rng()
     out = F.sql_pool_close(ctx, ts, pool=[pool.pop()])
-    for g, st in zip(gens, saved):
+    for g, st in zip(gens, saved, strict=False):
         g.setstate(st)
     return out
 
@@ -2850,7 +2850,7 @@ def npm_wireless_degradation(ctx, eng, tag, win):
                 cl = ctx.h.get(f"{H('WS-')}{homes[ap.name][k]:03d}")
                 if cl:
                     eng.schedule(tc, lambda cl=cl, tc=tc: wireless_client_reconnect(ctx, cl, tc), tag)
-        for fail_t, run_t in life.rejoins:      # the controller's own watchdog notices once it is answering again
+        for fail_t, _run_t in life.rejoins:      # the controller's own watchdog notices once it is answering again
             t = fail_t + 2.0 + rng.uniform(0, 3)
             eng.schedule(t, lambda t=t, ap=ap: _echo_lost(ctx, t, ap), tag)
         if life.dead_from is not None:
@@ -3195,7 +3195,7 @@ def npm_tcp_loss_storm(ctx, eng, tag, win):
     coll, sw = ctx.h.get(C_COLLECTOR), ctx.h.get(H('SWB1'))
     if coll is not None and sw is not None:
         t_admin = lo + rng.uniform(5, 25)
-        eng.schedule(t_admin, (lambda a=coll, r=sw, t=t_admin, d=rng.uniform(60, 150): F.ssh_session(ctx, a, r, t, d, server_banner="SSH-2.0-Cisco-1.25")), tag)
+        eng.schedule(t_admin, (lambda a=coll, r=sw, t=t_admin, d=rng.uniform(60, 150): F.ssh_session(ctx, a, r, t, d, server_banner="SSH-2.0-Cisco-1.25")), tag)  # noqa: B008 draw order is pinned
     pre, post = flanks(lo, hi)
     for t in pre + post:                     # clean downloads flanking the loss storm
         s(t, lossy_download, rng.choice(users), g=0.0)
@@ -4052,10 +4052,7 @@ def _ot_new_laptop(ctx):
     ip = ".".join(scada.ip.split(".")[:3]) + ".23"
     h = Host(H("ENG-LAPTOP"), ip, "de:ad:be:ef:30:5a", "windows",
              "unknown engineering laptop", scada.subnet, H("ENG-LAPTOP").lower())
-    try:
-        h.hops = scada.hops
-    except Exception:                               # noqa: BLE001
-        pass
+    h.hops = scada.hops
     ctx._ot_newlaptop = h
     return h
 
@@ -4535,7 +4532,7 @@ def ra_tunnel_up(ctx, i, ts):
     rtt = rng.uniform(*RA_WAN_RTT)
     u = lambda a, b, sp, dp, pl, t: ctx.udp(a, b, sp, dp, pl, t, vantage=fw)
     zero = b"\x00\x00\x00\x00"
-    sport = st["sport"]
+    _sport = st["sport"]
     out.append(u(w, fw, 500, 500, P.ike_sa_init(st["ispi"], b"\x00" * 8, True), ts))
     out.append(u(fw, w, 500, 500, P.ike_sa_init(st["ispi"], st["rspi"], False), ts + rtt))
     t = ts + rtt + rng.uniform(0.004, 0.02)
@@ -4734,7 +4731,7 @@ def http_err_page(ctx, client, ts, g=1.0):
     out = ctx.arp_for(client, web, ts)
     dep = []
     sx = ctx.tcp(client, web, 80, ts + 0.001).handshake()
-    for i in range(rng.randint(2, 5)):
+    for _i in range(rng.randint(2, 5)):
         path = rng.choice(["/api/orders", "/api/track", "/api/rate", "/dispatch", "/labels"])
         sx.c2s(P.http_request("GET", path, host, ua), think=rng.uniform(0.01, 0.2))
         if rng.random() < 0.65 * g:
@@ -4780,7 +4777,7 @@ def npm_dhcp_exhaustion(ctx, eng, tag, win):
     beach, dc1 = ctx.h.get(C_BEACHHEAD), ctx.h.get(H("DC1"))
     if beach is not None and dc1 is not None:
         t_admin = lo + rng.uniform(5, 25)
-        eng.schedule(t_admin, (lambda a=beach, r=dc1, t=t_admin, d=rng.uniform(90, 200): F.rdp_session(ctx, a, r, t, d)), tag)
+        eng.schedule(t_admin, (lambda a=beach, r=dc1, t=t_admin, d=rng.uniform(90, 200): F.rdp_session(ctx, a, r, t, d)), tag)  # noqa: B008 draw order is pinned
     pre, post = flanks(lo, hi)
     for t in pre + post:
         s(t, dhcp_lease_attempt, rng.choice(users), g=0.0)
@@ -5036,7 +5033,7 @@ def npm_nfs_latency(ctx, eng, tag, win):
     mgmt, nas = ctx.h.get(H("MGMT1")), ctx.h.get(H("BACKUP1"))
     if mgmt is not None and nas is not None:
         t_admin = lo + rng.uniform(5, 25)
-        eng.schedule(t_admin, (lambda a=mgmt, r=nas, t=t_admin, d=rng.uniform(120, 240): F.ssh_session(ctx, a, r, t, d)), tag)
+        eng.schedule(t_admin, (lambda a=mgmt, r=nas, t=t_admin, d=rng.uniform(120, 240): F.ssh_session(ctx, a, r, t, d)), tag)  # noqa: B008 draw order is pinned
     pre, post = flanks(lo, hi)
     for t in pre + post:
         s(t, nfs_slow_read, rng.choice(users), g=0.0)
@@ -5221,7 +5218,7 @@ def npm_mtu_blackhole(ctx, eng, tag, win):
     mgmt, fw = ctx.h.get(H("MGMT1")), ctx.h.get("FW-A")
     if mgmt is not None and fw is not None:
         t_admin = lo + rng.uniform(5, 25)
-        eng.schedule(t_admin, (lambda a=mgmt, r=fw, t=t_admin, d=rng.uniform(60, 150): F.ssh_session(ctx, a, r, t, d)), tag)
+        eng.schedule(t_admin, (lambda a=mgmt, r=fw, t=t_admin, d=rng.uniform(60, 150): F.ssh_session(ctx, a, r, t, d)), tag)  # noqa: B008 draw order is pinned
     pre, post = flanks(lo, hi)
     for t in pre + post:
         s(t, mtu_stall_flow, rng.choice(users), g=0.0)
@@ -5298,12 +5295,11 @@ def mtu_stall_flow(ctx, client, ts, g=1.0):
     t = sx.t + rng.uniform(0.001, 0.005)
     seq0 = sx.cseq
     seq = seq0
-    first = None
     for i in range(MTU_BURST_SEGS):                        # the first flight, back to back
         payload = P.blob(sx.mss)
         frame = segment(t, seq, payload, ACK | (PSH if i == MTU_BURST_SEGS - 1 else 0))
         if i == 0:
-            first, first_payload, t_first = frame, payload, t
+            _, first_payload, t_first = frame, payload, t
             dropped(t, frame)
         seq += len(payload)
         t += rng.uniform(0.00002, 0.00006)
@@ -5484,10 +5480,7 @@ def _ot_rogue_host(ctx):
     ref = plcs[0]
     ip = ".".join(ref.ip.split(".")[:3]) + ".241"
     h = Host(H("ROGUE-OT"), ip, "de:ad:be:ef:30:f1", "linux", "unknown device", ref.subnet, get_current().host("ROGUE-OT").lower())
-    try:
-        h.hops = ref.hops
-    except Exception:                               # noqa: BLE001
-        pass
+    h.hops = ref.hops
     ctx._ot_rogue = h
     return h
 

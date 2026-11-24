@@ -22,6 +22,7 @@ import datetime
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import sys
@@ -102,6 +103,7 @@ if APP_DIR != _BUNDLE_DIR and os.path.dirname(os.path.abspath(__file__)) != APP_
 UI_DIR = os.path.join(APP_DIR, "ui")
 sys.path.insert(0, APP_DIR)                       # so the bundled generator imports cleanly
 import branding                                       # noqa: E402 — product name, platform, palette, logo
+import agent_api                                      # noqa: E402 — /agent/v1/ scope + token + audit, stdlib only
 DEFAULT_OUT = os.path.join(os.path.expanduser("~"), branding.CAPTURES_DIRNAME)
 PCAP_NAME = "example-all-in-one.pcap"
 
@@ -173,6 +175,9 @@ LOCK = threading.Lock()
 # does NOT build (make_diagram.gather uses a local identity and draws no build RNG), so it is not
 # serialized here.
 BUILD_LOCK = threading.Lock()
+# Browser-session secret: handed to the app's own page as an HttpOnly cookie. Replay and sensor-push routes require it,
+# so a client that merely omits the agent token cannot reach them (see agent_api.HUMAN_ONLY).
+UI_SECRET = secrets.token_hex(16)
 
 
 # Preview a campaign for the UI (the board and the capture-size estimate) WITHOUT a full generate:
@@ -368,9 +373,7 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
             STATE["clock"] = time.strftime("%H:%M:%S", time.localtime(last_ts)) if last_ts else ""
             STATE["seconds"] = int(time.time() - STATE["started"])
 
-    cwd0 = os.getcwd()
     try:
-        os.chdir(out_dir)                        # keep all outputs together; single run at a time
         n_sel = len(opengenerator_build.select_modules(modules))
         with LOCK:
             STATE["log"].append(f"generating (scale {scale}) into {out_dir} …")
@@ -398,15 +401,20 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
         # Serialize the build: no other build (another generation, or a module self_test) may run
         # its reseed/identity/RNG against the same process globals at the same time.
         with BUILD_LOCK:
-            summary = opengenerator_build.build(
-                scale=scale, out=None, stats=stats_path,
-                certs_dir="certs" if certs else None,
-                date=date,
-                iocs_prefix=opengenerator_build._DERIVE if iocs else None,
-                inventory="inventory.json", progress=False, on_progress=on_progress,
-                modules=modules, user_net=user_net, server_net=server_net, ot_nets=ot_nets,
-                recipes=recipes, company=company, industry=industry, ot_protocols=ot_protocols,
-                should_cancel=CANCEL.is_set, **campaign_kw)
+            cwd0 = os.getcwd()
+            os.chdir(out_dir)                    # outputs stay together; cwd is process-global, so only inside the lock
+            try:
+                summary = opengenerator_build.build(
+                    scale=scale, out=None, stats=stats_path,
+                    certs_dir="certs" if certs else None,
+                    date=date,
+                    iocs_prefix=opengenerator_build._DERIVE if iocs else None,
+                    inventory="inventory.json", progress=False, on_progress=on_progress,
+                    modules=modules, user_net=user_net, server_net=server_net, ot_nets=ot_nets,
+                    recipes=recipes, company=company, industry=industry, ot_protocols=ot_protocols,
+                    should_cancel=CANCEL.is_set, **campaign_kw)
+            finally:
+                os.chdir(cwd0)
         with LOCK:
             # on_progress fires every N packets, so the last tick it delivered is a ROUND
             # NUMBER below the true total -- the UI was reporting "1,000,000 packets / 517.9 MB"
@@ -479,13 +487,11 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
             STATE["log"].append(traceback.format_exc())
     finally:
         CANCEL.clear()
-        os.chdir(cwd0)
 
 
 def get_modules():
     """List the registry modules (all are always included in single-stage mode)."""
     try:
-        sys.path.insert(0, APP_DIR)
         # scenario windows are shown as offsets from the replay start (05:00 capture start),
         # never as a wall-clock time: a replay can start at any moment and the sensor stamps
         # each packet when it is observed, so only the offset is stable.
@@ -555,6 +561,7 @@ class Handler(BaseHTTPRequestHandler):
         super().end_headers()
 
     def _send(self, code, body, ctype="application/json", headers=None):
+        self._status = code                      # read by the agent audit log
         b = body if isinstance(body, bytes) else body.encode()
         self.send_response(code)
         self.send_header("Content-Type", ctype)
@@ -600,9 +607,89 @@ class Handler(BaseHTTPRequestHandler):
             return True
         return False
 
+    def _guarded(self, fn):
+        """Never drop the socket: a bad body or a handler fault becomes a JSON error reply."""
+        try:
+            fn()
+        except (BrokenPipeError, ConnectionError):
+            raise
+        except Exception as e:                   # noqa: BLE001
+            bad = isinstance(e, (TypeError, ValueError, AttributeError, KeyError, OverflowError))
+            try:
+                self._send(400 if bad else 500, json.dumps({"error": "the request could not be completed" +
+                                                            (": %s" % e if bad else "")}))
+            except Exception:                    # noqa: BLE001 — reply already started or socket gone
+                pass
+
+    # ---- agent scope (see agent_api) ------------------------------------------------------
+    def _ui_session(self):
+        for part in (self.headers.get("Cookie") or "").split(";"):
+            k, _, v = part.strip().partition("=")
+            if k == "og_ui" and v == UI_SECRET:
+                return True
+        return False
+
+    def _agent_gate(self, method):
+        """Apply the agent rules. Returns (done, verb, target): done=True means a reply was sent. A verb with a
+        proxied target is rewritten in place (path, no Authorization header) and falls through to the normal routes."""
+        path = urlparse(self.path).path
+        bearer = self.headers.get("Authorization")
+        if bearer is None:
+            if path.startswith(agent_api.PREFIX):
+                self._send(401, json.dumps({"error": "a valid agent token is required (create one in Settings)"}))
+                return True, None, None
+            if method == "POST" and path in agent_api.HUMAN_ONLY and not self._ui_session():
+                self._send(403, json.dumps({"error": "forbidden: replay and sensor push are done by a person in the app"}))
+                return True, None, None
+            return False, None, None
+        if not path.startswith(agent_api.PREFIX):
+            self._send(403, json.dumps({"error": "forbidden: an agent token only reaches /agent/v1/"}))
+            return True, None, None
+        if not agent_api.check_bearer(bearer):
+            self._send(401, json.dumps({"error": "a valid agent token is required (create one in Settings)"}))
+            return True, None, None
+        hit = agent_api.resolve(method, path)
+        if hit is None:
+            self._send(404, json.dumps({"error": "unknown agent verb"}))
+            agent_api.audit(path[len(agent_api.PREFIX):][:60], 404)
+            return True, None, None
+        verb, target = hit
+        del self.headers["Authorization"]
+        if isinstance(target, str):
+            q = urlparse(self.path).query
+            self.path = target + ("?" + q if q else "")
+        return False, verb, target
+
+    def _agent_done(self, verb, body=None):
+        if verb:
+            agent_api.audit(verb, getattr(self, "_status", 0), body)
+
     def do_GET(self):
+        self._guarded(self._do_GET)
+
+    def _do_GET(self):
         if self._blocked():
             return
+        done, verb, target = self._agent_gate("GET")
+        if done:
+            return
+        if verb:
+            try:
+                if isinstance(target, tuple):
+                    return self._send(*self._run_agent_local(target, {}))
+                return self._do_GET_routes()
+            finally:
+                self._agent_done(verb)
+        return self._do_GET_routes()
+
+    def _run_agent_local(self, target, data):
+        try:
+            status, obj = agent_api.run_local(target[1], data)
+            return status, json.dumps(obj)
+        except agent_api.AgentError as e:
+            return e.status, json.dumps({"error": e.message})
+
+    def _do_GET_routes(self):
         url = urlparse(self.path)
         if url.path.startswith(("/api/intel/", "/api/campaign/", "/ui/")) or url.path == "/campaign/export":
             res = campaign_api.route_get(url.path, url.query, UI_DIR)    # Campaign Builder API + its static files
@@ -738,7 +825,8 @@ class Handler(BaseHTTPRequestHandler):
         if self.path in ("/", "/index.html"):
             try:
                 with open(os.path.join(UI_DIR, "index.html"), "rb") as f:
-                    return self._send(200, f.read(), "text/html; charset=utf-8")
+                    return self._send(200, f.read(), "text/html; charset=utf-8",
+                                      {"Set-Cookie": "og_ui=%s; Path=/; HttpOnly; SameSite=Strict" % UI_SECRET})
             except OSError:
                 return self._send(500, b"UI missing", "text/plain")
         if self.path == "/header-logo.png":
@@ -1096,8 +1184,23 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
+        self._guarded(self._do_POST)
+
+    def _do_POST(self):
         if self._blocked(check_origin=True):
             return
+        done, verb, target = self._agent_gate("POST")
+        if done:
+            return
+        if not verb:
+            return self._do_POST_body(None, None)
+        self._agent_args = None
+        try:
+            return self._do_POST_body(verb, target)
+        finally:
+            self._agent_done(verb, self._agent_args)
+
+    def _do_POST_body(self, verb, target):
         if self.headers.get("Transfer-Encoding"):
             # no chunked bodies: unread chunk data would be parsed as the next request
             self.close_connection = True
@@ -1125,6 +1228,17 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(raw or b"{}")
         except (ValueError, RecursionError):
             data, bad_json = {}, True
+        if verb:                                 # an agent call: local verbs are answered here, sensor verbs get the saved key
+            self._agent_args = data
+            try:
+                if isinstance(target, tuple):
+                    return self._send(*self._run_agent_local(target, data))
+                data = agent_api.prepare(verb, data)
+            except agent_api.AgentError as e:
+                return self._send(e.status, json.dumps({"error": e.message}))
+        if self.path.startswith("/api/agent/"):           # Settings controls; the cookie gate already ran
+            status, obj = agent_api.route_ui(self.path, data)
+            return self._send(status, json.dumps(obj))
         res = campaign_api.route_post(self.path, data, bad_json)
         if res is not None:                      # Campaign Builder endpoints (/api/intel/*, /api/campaign/*)
             status, body, ctype, hdrs = res
@@ -1134,6 +1248,8 @@ class Handler(BaseHTTPRequestHandler):
             # macOS may gate behind a permission prompt) and tell the page where it went.
             if pcapprofile is None:
                 return self._send(503, json.dumps({"error": "The generator engine is not available."}))
+            if not isinstance(data, dict):
+                return self._send(400, json.dumps({"error": "the request body must be a JSON object"}))
             src = os.path.expanduser(str(data.get("path") or "").strip())
             out_dir = os.path.expanduser(str(data.get("out_dir") or "").strip() or DEFAULT_OUT)
             if not src or not os.path.isfile(src):
@@ -1178,6 +1294,8 @@ class Handler(BaseHTTPRequestHandler):
         if res is not None:
             status, body, ctype, hdrs = res
             return self._send(status, body, ctype, hdrs)
+        if not isinstance(data, dict):
+            return self._send(400, json.dumps({"error": "the request body must be a JSON object"}))
         if self.path == "/api/generate":
             if opengenerator_build is None:
                 return self._send(503, json.dumps({
@@ -1188,8 +1306,11 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(409, json.dumps({"error": "a run is already in progress"}))
             # Default matches the GUI field and opengenerator_build.build()'s own default:
             # a full business day. All three agree so an omitted scale never surprises.
-            scale = float(data.get("scale", 1.0))
-            scale = max(0.001, min(1.0, scale))
+            try:
+                scale = float(data.get("scale", 1.0))
+            except (TypeError, ValueError, OverflowError):
+                return self._send(400, json.dumps({"error": "'scale' must be a number"}))
+            scale = 0.001 if scale != scale else max(0.001, min(1.0, scale))
             out_dir = data.get("out_dir") or DEFAULT_OUT
             out_dir = os.path.expanduser(out_dir)
             certs = bool(data.get("certs", True))
@@ -1266,6 +1387,10 @@ class Handler(BaseHTTPRequestHandler):
                         cap_date, ot_nets, recipe_paths or None, company, industry, ot_protocols)
             if campaigns:
                 gen_args += (campaigns, address_mode, confirm_real)
+            with LOCK:                               # claim the run here, atomically, so a second POST gets the 409
+                if STATE["running"]:
+                    return self._send(409, json.dumps({"error": "a run is already in progress"}))
+                STATE["running"] = True
             threading.Thread(target=run_generator, args=gen_args, daemon=True).start()
             return self._send(200, json.dumps({"ok": True, "out_dir": out_dir,
                                                "modules": modules,

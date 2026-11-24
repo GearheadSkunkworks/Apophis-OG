@@ -14,6 +14,7 @@ PY="$(command -v python3.14 || command -v python3)"
 [ -f tools/promote.py ] && "$PY" tools/promote.py --check
 [ -f tools/check_redesign_mapping.py ] && "$PY" tools/check_redesign_mapping.py --quiet
 "$PY" tools/contrast_check.py --quiet
+[ -f tools/gen_action_table.py ] && "$PY" tools/gen_action_table.py --check
 if command -v node >/dev/null 2>&1; then node --test tests/js/*.test.js; fi
 if [ "$1" = "--full" ]; then "$PY" -m unittest discover -s tests -t .; fi
 echo "local gate: OK"

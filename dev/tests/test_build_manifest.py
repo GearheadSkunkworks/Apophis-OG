@@ -1,11 +1,9 @@
 """Per-scenario counters and the build manifest: sums, hashes, verifier, tamper detection, route."""
-import io
 import json
 import os
 import subprocess
 import sys
 import shutil
-import sys
 import tempfile
 import threading
 import unittest

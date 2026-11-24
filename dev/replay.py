@@ -97,6 +97,41 @@ def find_tool(name):
     return None
 
 
+def _brew_prefixes():
+    ps = [os.environ.get("HOMEBREW_PREFIX"), "/opt/homebrew", "/usr/local"]
+    return [p for p in ps if p and os.path.isdir(p)]
+
+
+def root_safe(path, prefixes=None):
+    """True when `path` may be executed as root: its real file and the parent dir are root-owned
+    (or owned by the owner of the package-manager prefix the real path lives in) and neither is
+    group/world-writable. A user-writable ~/.local/bin/tcpreplay therefore never qualifies."""
+    try:
+        real = os.path.realpath(path)
+        pst, dst = os.stat(real), os.stat(os.path.dirname(real))
+    except OSError:
+        return False
+    owners = {0}
+    for p in (_brew_prefixes() if prefixes is None else prefixes):
+        rp = os.path.realpath(p)
+        if real.startswith(rp + os.sep):
+            owners.add(os.stat(rp).st_uid)
+    return all(st.st_uid in owners and not st.st_mode & 0o022 for st in (pst, dst))
+
+
+def privileged_tool(name, found=None, fallback_dirs=("/opt/homebrew/bin", "/usr/local/bin", "/opt/local/bin"),
+                    prefixes=None):
+    """The path to run as root for `name`: `found` if root_safe, else the first safe fallback, else None."""
+    found = found or find_tool(name)
+    if found and root_safe(found, prefixes):
+        return found
+    for d in fallback_dirs:
+        cand = os.path.join(d, name)
+        if os.path.isfile(cand) and os.access(cand, os.X_OK) and root_safe(cand, prefixes):
+            return cand
+    return None
+
+
 def install_hint(name):
     """How to install `name`, phrased for the package manager this Mac actually has.
 
@@ -196,7 +231,7 @@ def index_pcap(path, max_marks=4096, on_progress=None):
     try:
         st = os.stat(path)
     except OSError as e:
-        raise RuntimeError(f"cannot read {path}: {e}")
+        raise RuntimeError(f"cannot read {path}: {e}") from e
     key = (os.path.abspath(path), st.st_size, int(st.st_mtime))
     with _INDEX_LOCK:
         hit = _INDEX_CACHE.get(key)
@@ -501,7 +536,7 @@ def preflight(pcap=None, iface=None):
             "start the server as root (or with sudo) to enable replay.")
 
     for name in missing:
-        hint = INSTALL_HINTS.get(name)
+        hint = install_hint(name)
         report["errors"].append(f"'{name}' was not found." + (f" Install it with: {hint}" if hint else ""))
 
     if pcap:
@@ -641,7 +676,7 @@ def reattach():
 
 STAT_RE = re.compile(r"Actual:\s+(\d+)\s+packets\s+\((\d+)\s+bytes\)\s+sent in\s+([\d.]+)\s+seconds")
 PID_RE = re.compile(r"^PID:\s*(\d+)", re.M)
-EXIT_RE = re.compile(r"^NWTG-EXIT:(-?\d+)", re.M)
+EXIT_RE = re.compile(r"^OGRP-EXIT:(-?\d+)", re.M)
 
 
 def _log(msg):
@@ -713,7 +748,7 @@ def _inner_script(argv, logfile, stopfile):
         "wait $TP\n"
         "EC=$?\n"
         "kill $W 2>/dev/null\n"
-        f'echo "NWTG-EXIT:$EC" >> {log}\n'
+        f'echo "OGRP-EXIT:$EC" >> {log}\n'
     )
 
 
@@ -772,7 +807,7 @@ def _monitor_script(rundir, logfile, stopfile, pcap, iface, speed, loop):
         "tail -f \"$LOG\" 2>/dev/null &",
         "TAILPID=$!",
         "while :; do",
-        "  if grep -q '^NWTG-EXIT:' \"$LOG\" 2>/dev/null; then break; fi",
+        "  if grep -q '^OGRP-EXIT:' \"$LOG\" 2>/dev/null; then break; fi",
         "  if [ ! -f \"$LOG\" ]; then break; fi",
         "  sleep 1",
         "done",
@@ -816,7 +851,7 @@ def _launch_privileged(inner):
     seen by this process. osascript returns as soon as the job is backgrounded, so its fds
     are fully redirected to avoid blocking on an inherited pipe.
     """
-    outer = "nohup /bin/sh -c " + shlex.quote(inner) + " >/dev/null 2>&1 </dev/null & echo NWTG-OK"
+    outer = "nohup /bin/sh -c " + shlex.quote(inner) + " >/dev/null 2>&1 </dev/null & echo OGRP-OK"
     script = f'do shell script "{_osa_escape(outer)}" with administrator privileges'
     r = subprocess.run(["/usr/bin/osascript", "-e", script],
                        capture_output=True, text=True)
@@ -893,7 +928,7 @@ def _pid_alive(pid):
 def _watch(logfile, idx, loop, proc):
     """Tail tcpreplay's output and keep RSTATE current until it exits.
 
-    `NWTG-EXIT:<code>` from the wrapper shell is the authoritative end. If that never
+    `OGRP-EXIT:<code>` from the wrapper shell is the authoritative end. If that never
     arrives (the shell was killed, or the privileged job vanished) we fall back to
     watching the pid, and the run is only called successful if the packet count actually
     reached the total — otherwise it is reported as a failure rather than silently "done".
@@ -914,7 +949,7 @@ def _watch(logfile, idx, loop, proc):
             tail = (tail + chunk)[-8000:]
             for line in chunk.splitlines():
                 line = line.strip()
-                if not line or line.startswith(("Actual:", "Rated:", "NWTG-EXIT:")):
+                if not line or line.startswith(("Actual:", "Rated:", "OGRP-EXIT:")):
                     continue
                 _log(line)
             if not pid_seen:
@@ -1002,6 +1037,13 @@ def _run(pcap, iface, speed_mode, speed_value, loop, speed_desc, write_to=None,
         if not tcpreplay:
             raise RuntimeError("'tcpreplay' was not found. Install it with: %s"
                                % install_hint("tcpreplay"))
+        if privileged:                                 # it will run as root: only from a root-trusted location
+            safe = privileged_tool("tcpreplay", tcpreplay)
+            if not safe:
+                raise RuntimeError(
+                    "tcpreplay was found at %s, but that location is writable by non-administrators, so it "
+                    "will not be run as root. Install it with: %s" % (tcpreplay, install_hint("tcpreplay")))
+            tcpreplay = safe
 
         _log(f"indexing {os.path.basename(pcap)} …")
         idx = index_pcap(pcap)
@@ -1084,13 +1126,19 @@ def _run(pcap, iface, speed_mode, speed_value, loop, speed_desc, write_to=None,
 def start(pcap, iface, speed_mode="multiplier", speed_value=1.0, loop=1, preload=False,
           write_to=None, privileged=True, monitor=True):
     """Begin a replay. Raises if one is already running or preflight fails."""
-    with RLOCK:
+    pcap = os.path.abspath(os.path.expanduser(pcap or ""))
+    with RLOCK:                                        # check-and-claim atomically; roll back below on failure
         if RSTATE["running"]:
             raise RuntimeError("a replay is already in progress")
-    pcap = os.path.expanduser(pcap or "")
-    pre = preflight(pcap, None if write_to else iface)
-    if not pre["ok"]:
-        raise RuntimeError("; ".join(pre["errors"]))
+        RSTATE["running"] = True
+    try:
+        pre = preflight(pcap, None if write_to else iface)
+        if not pre["ok"]:
+            raise RuntimeError("; ".join(pre["errors"]))
+    except BaseException:
+        with RLOCK:
+            RSTATE["running"] = False
+        raise
 
     desc = {"topspeed": "top speed", "pps": f"{speed_value} pps", "mbps": f"{speed_value} Mbps"}.get(
         speed_mode, f"{speed_value}x original timing")

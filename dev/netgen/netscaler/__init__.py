@@ -178,7 +178,7 @@ def build(ctx, eng, tag, win):
 
     # ---- benign interleave: workforce portal traffic across the window ----------
     labels = ["A", "B", "C", "D"]
-    for client, label in zip(wf, labels):
+    for client, label in zip(wf, labels, strict=False):
         visits = max(2, int(round(14 * scale)))
         for _ in range(visits):
             s(lo + phases.rng.uniform(0, max(1.0, hi - lo - 60)), phases.portal_browse, client, vip, label)

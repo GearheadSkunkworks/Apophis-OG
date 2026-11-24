@@ -27,7 +27,6 @@ import gzip
 import io as _io
 import struct
 import tarfile
-import time
 import zlib
 
 CAESAR_SHIFT = 7

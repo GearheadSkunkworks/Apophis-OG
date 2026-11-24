@@ -102,7 +102,7 @@ class _Builder:
             self.by_role.setdefault(ioc["role"], []).append(i)
         # position of an ipv4/domain IOC inside its role list (the N in "c2:N")
         self.pos = {}
-        for role, idxs in self.by_role.items():
+        for _role, idxs in self.by_role.items():
             n = 0
             for i in idxs:
                 if _is_endpoint(iocs[i]):
@@ -196,7 +196,7 @@ class _Builder:
 # ---------------------------------------------------------------- stage rules
 def _initial_access(b):
     acts = []
-    for k, i in enumerate(b.hosts("phishing")[:MAX_PHISH]):
+    for _k, i in enumerate(b.hosts("phishing")[:MAX_PHISH]):
         ioc = b.iocs[i]
         params = {}
         if ioc["type"] == "url":

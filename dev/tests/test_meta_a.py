@@ -73,7 +73,7 @@ class MetaA(unittest.TestCase):
             params = specs[tok].params
             for field in [m["plain"], m["wire"]] + m["tells"] + [x for f in m["filters"] for x in (f[0], f[2])]:
                 self.assertIsNone(PLACEHOLDER.search(field), "%s: placeholder outside a filter: %r" % (tok, field))
-            for what, tmpl, expect in m["filters"]:
+            for _what, tmpl, _expect in m["filters"]:
                 for name in PLACEHOLDER.findall(tmpl):
                     if name in SIMPLE:
                         continue
@@ -105,7 +105,7 @@ class MetaA(unittest.TestCase):
                 fh.write(struct.pack("<IHHiIII", 0xA1B2C3D4, 2, 4, 0, 0, 65535, 1))
             for tok, m in META.items():
                 params = specs[tok].params
-                for what, tmpl, expect in m["filters"]:
+                for _what, tmpl, _expect in m["filters"]:
                     def fill(mt):
                         n = mt.group(1)
                         if n == "src_ip":

@@ -7,12 +7,11 @@ import base64
 import os
 import random
 import struct
-import time
 import zlib
 
 from . import protocols as P
 from .identity import get_current, H
-from .core import TcpSession, udp_frame, udp_bcast, mcast_mac, same_subnet, ipv4, eth, ETH_IP
+from .core import TcpSession, udp_frame, udp_bcast, mcast_mac, ipv4, eth, ETH_IP
 
 SEED = 9001                 # reseeded per build by netgen.reseed_all()
 rng = random.Random(SEED)
@@ -819,7 +818,7 @@ def kerberos_lockout(ctx: Ctx, client, ts, user, tries=None):
     tries = tries or rng.randint(4, 6)
     out = []
     t = ts
-    for i in range(tries):
+    for _i in range(tries):
         out += kerberos_as_outcome(ctx, client, t, user, "bad_password")
         t += rng.uniform(8, 35)
     # threshold reached — the account is now locked and the KDC says so

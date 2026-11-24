@@ -290,7 +290,7 @@ def campaign_actions():
     actions, attack, *_ = _engine()
     specs = actions.load_all()
     out = []
-    for token, sp in specs.items():
+    for _token, sp in specs.items():
         out.append({"token": sp.token, "title": sp.title, "tactic": sp.tactic,
                     "techniques": list(sp.techniques), "protocols": list(sp.protocols),
                     "summary": sp.summary, "params": _json_safe(sp.params),
@@ -485,8 +485,8 @@ def campaign_run(data):
     if not (0 < scale <= 1000):
         raise ApiError(400, "'scale' must be greater than 0")
     norm, errs = _norm_and_validate(data["campaign"])
-    if norm is None:
-        raise ApiError(400, (errs or ["invalid campaign"])[0], errors=[_plain(x) for x in errs[:50]])
+    if errs:                                                          # the UI only reads `errors` from /estimate and /check
+        raise ApiError(400, _plain(errs[0]), errors=[_plain(x) for x in errs[:50]])
     nets = {k: (data.get(k + "_net") or None) for k in ("user", "server")}
     nets["ot"] = data.get("ot_nets") or None
     report, totals = RUN_CAMPAIGN(norm, scale, nets)

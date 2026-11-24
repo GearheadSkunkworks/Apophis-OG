@@ -1,5 +1,4 @@
 """Minimal DER/BER encoders for Kerberos, LDAP and SNMP payloads."""
-import struct
 import time
 
 

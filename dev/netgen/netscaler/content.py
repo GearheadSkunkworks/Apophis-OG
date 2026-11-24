@@ -125,7 +125,7 @@ def netscaler_cmd_output(cmd, n, ns_conf=b"", vip="", snip="", user_pfx="10.10.1
                                      "".join(r.choice("abcdefghijklmnop./0123456789") for _ in range(22)))
     elif "grep EST" in cmd:
         out = ""
-        for i in range(12):
+        for _i in range(12):
             out += "tcp4  0  0  %s.443  %s.%d  ESTABLISHED\n" % (vip or "0.0.0.0", "%s.%d" % (user_pfx, r.randint(20, 90)), r.randint(40000, 60000))
             if len(out) >= n:
                 break

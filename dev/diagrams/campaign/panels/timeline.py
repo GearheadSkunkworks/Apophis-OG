@@ -4,7 +4,7 @@ Run and scored pages label the axis with clock time (the start option plus the p
 it with offsets only. Above 24 stages the rows group consecutive stages of one tactic. Omitted when the campaign
 has no stages with actions."""
 import make_diagram as MD
-from . import (GRAY, SAPPHIRE, alt_table, clock, esc, fmt_dur, fmt_off, tactic_colour, trunc)
+from . import (GRAY, SAPPHIRE, clock, esc, fmt_dur, fmt_off, tactic_colour, trunc)
 
 W = 1180
 L, R = 190, 1160

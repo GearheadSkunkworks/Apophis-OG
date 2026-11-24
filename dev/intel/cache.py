@@ -12,7 +12,9 @@ import json
 import os
 import re
 import tempfile
+import threading
 import time
+import urllib.parse
 
 
 def cache_dir():
@@ -20,6 +22,7 @@ def cache_dir():
     return d
 
 
+_MAN_LOCK = threading.Lock()      # manifest.json is read-modify-written; serialise it
 _SECRET = re.compile(r"key|token|auth|secret|password", re.I)
 
 
@@ -30,6 +33,19 @@ def key_for(feed_id, params=None):
             raise ValueError("refusing to cache a secret-looking parameter %r" % k)
     canon = json.dumps({"f": feed_id, "p": params}, sort_keys=True, default=str)
     return re.sub(r"[^A-Za-z0-9_.-]", "_", feed_id)[:40] + "-" + hashlib.sha256(canon.encode()).hexdigest()[:16]
+
+
+def _recorded(params):
+    """Params as persisted: a typed URL may carry a token in its path/query/userinfo, so keep only
+    scheme://host and a SHA-256 of the whole URL. The cache KEY still hashes the raw URL, so hits
+    for the same URL are unchanged."""
+    p = dict(params or {})
+    u = p.get("url")
+    if isinstance(u, str) and u:
+        h = urllib.parse.urlsplit(u)
+        p["url"] = "%s://%s/..." % (h.scheme, h.hostname or "")
+        p["url_sha256"] = hashlib.sha256(u.encode("utf-8", errors="replace")).hexdigest()
+    return p
 
 
 def _paths(key):
@@ -69,12 +85,14 @@ def put(feed_id, params, payload, now=None):
     _ensure(d)
     key = key_for(feed_id, params)
     now = time.time() if now is None else now
+    rec = _recorded(params)
     _atomic_write(os.path.join(d, key + ".json"),
-                  json.dumps({"feed": feed_id, "params": params or {}, "fetched_at": now, "payload": payload}))
-    man = manifest()
-    man[key] = {"feed": feed_id, "params": params or {}, "fetched_at": now, "bytes": len(payload),
-                "sha256": hashlib.sha256(payload.encode("utf-8", errors="replace")).hexdigest()}
-    _atomic_write(os.path.join(d, "manifest.json"), json.dumps(man, indent=1, sort_keys=True))
+                  json.dumps({"feed": feed_id, "params": rec, "fetched_at": now, "payload": payload}))
+    with _MAN_LOCK:
+        man = manifest()
+        man[key] = {"feed": feed_id, "params": rec, "fetched_at": now, "bytes": len(payload),
+                    "sha256": hashlib.sha256(payload.encode("utf-8", errors="replace")).hexdigest()}
+        _atomic_write(os.path.join(d, "manifest.json"), json.dumps(man, indent=1, sort_keys=True))
     return key
 
 

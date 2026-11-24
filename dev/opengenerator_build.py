@@ -36,7 +36,6 @@ Outputs (defaults, next to --out):
 """
 import argparse
 import ipaddress
-import json
 import os
 import subprocess
 import sys
@@ -87,7 +86,7 @@ def normalize_net(value, label="network"):
     try:
         net = ipaddress.ip_network(text, strict=False)
     except ValueError as e:
-        raise ValueError(f"{label}: '{value}' is not a valid IPv4 network ({e})")
+        raise ValueError(f"{label}: '{value}' is not a valid IPv4 network ({e})") from e
     if net.version != 4:
         raise ValueError(f"{label}: '{value}' is not IPv4")
     if net.prefixlen != 24:
@@ -252,23 +251,29 @@ def preview_campaign(campaign, scale=1.0, date=None, inventory="inventory.json",
                                                 server_net=server_net, ot_nets=ot_nets,
                                                 with_ot=bool(ot_nets))
     pki = PKI(day=cap_day)
-    klpath = tempfile.mktemp(suffix=".log"); kl = open(klpath, "w")
-    ctx = F.Ctx(hosts, link, ArpModel(link), pki, kl, scale=scale)
-    ctx.sites = sites
-    ctx.isp_resolvers = resolvers
-    ctx.recipe = None
-    ctx.recipes = []
-    ctx.campaigns = [campaign]                           # read by the registered 'campaign' scenario
-    ctx.dir = Directory(hosts, P.username_for)
-    pcappath = tempfile.mktemp(suffix=".pcap")
-    writer = PcapWriter(pcappath)
-    eng = Engine(writer)
-    day = Day(ctx, eng, scale)
+    fds = [tempfile.mkstemp(suffix=".log"), tempfile.mkstemp(suffix=".pcap")]
+    for _fd, _ in fds:
+        os.close(_fd)
+    klpath, pcappath = fds[0][1], fds[1][1]
+    kl = writer = None
     try:
+        kl = open(klpath, "w")  # noqa: SIM115 handle outlives this scope
+        ctx = F.Ctx(hosts, link, ArpModel(link), pki, kl, scale=scale)
+        ctx.sites = sites
+        ctx.isp_resolvers = resolvers
+        ctx.recipe = None
+        ctx.recipes = []
+        ctx.campaigns = [campaign]                       # read by the registered 'campaign' scenario
+        ctx.dir = Directory(hosts, P.username_for)
+        writer = PcapWriter(pcappath)
+        eng = Engine(writer)
+        day = Day(ctx, eng, scale)
         INC.build("campaign", day, ctx, eng)             # schedules ONLY the campaign
         eng.run()                                        # executes it; _wrap fills packets/bytes
     finally:
-        writer.close(); kl.close()
+        for _h in (writer, kl):
+            if _h is not None:
+                _h.close()
         for _p in (pcappath, klpath):
             try:
                 os.remove(_p)
@@ -400,7 +405,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
                                                 server_net=server_net, ot_nets=ot_nets,
                                                 with_ot=bool(ot_nets))
     pki = PKI(day=cap_day)
-    kl = open(keylog, "w")
+    kl = open(keylog, "w")  # noqa: SIM115 handle outlives this scope
     ctx = F.Ctx(hosts, link, ArpModel(link), pki, kl, scale=scale)
     ctx.sites = sites
     ctx.isp_resolvers = resolvers
@@ -437,9 +442,10 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
             INC.build(name, day, ctx, eng)
         eng.run(progress=prog,
                 should_continue=None if should_cancel is None else (lambda: not should_cancel()))
-    except Cancelled:
+    except BaseException:
         # A partial pcap is a valid file full of an incomplete business day — exactly the kind
-        # of thing that gets replayed by accident six months later. Discard it.
+        # of thing that gets replayed by accident six months later. Discard it (Cancelled or any
+        # engine failure alike), then re-raise unchanged.
         writer.close()
         kl.close()
         for path in (out, keylog):
@@ -456,7 +462,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
 
     if stats:
         import json
-        json.dump(eng.stats, open(stats, "w"), indent=1)
+        json.dump(eng.stats, open(stats, "w"), indent=1)  # noqa: SIM115 handle outlives this scope
 
     by_cat = {}
     for n in selected:
@@ -818,7 +824,7 @@ def main():
               confirm_real_addresses=args.confirm_real_addresses)
     except ValueError as e:                      # a bad recipe: say so plainly, no traceback
         if args.recipe:
-            raise SystemExit("error: %s" % e)
+            raise SystemExit("error: %s" % e) from e
         raise
 
 

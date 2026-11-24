@@ -38,8 +38,9 @@ def _engine_modules():
             continue
         try:
             mods.append(import_module("." + name, __name__))
-        except Exception:                                  # noqa: BLE001 — an unimportable submodule just isn't reseeded
-            pass
+        except Exception as e:                             # noqa: BLE001 — an unimportable submodule just isn't reseeded
+            import sys
+            print("netgen: skipped %s: %s" % (name, e), file=sys.stderr)
     return mods
 
 

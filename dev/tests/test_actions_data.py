@@ -13,7 +13,6 @@ import subprocess
 import tempfile
 import unittest
 
-from netgen import flows as F
 from netgen.core import PcapWriter
 from netgen.identity import H
 from netgen.campaign import actions as A
@@ -118,7 +117,7 @@ class ActionsData(unittest.TestCase):
         self.assertNotEqual(req[0][2][:16], bytes(range(0x61, 0x61 + 16)), "not a ping pattern")
         # steady cadence
         ts = [t for t, f in self.res["icmp_tunnel"] if f[12:14] == b"\x08\x00" and f[23] == 1 and f[34] == 8]
-        gaps = [b - a for a, b in zip(ts, ts[1:])]
+        gaps = [b - a for a, b in zip(ts, ts[1:], strict=False)]
         self.assertTrue(all(0.7 <= g <= 1.3 for g in gaps), gaps)
 
     def test_icmp_size_limits(self):

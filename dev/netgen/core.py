@@ -367,7 +367,6 @@ class TcpSession:
         self.open = False
         self._c_unacked = 0
         self._s_unacked = 0
-        self._last_dir = None
         self.ip_opts_c2s = b""      # opt-in IP options put on every client->server / server->client packet (set before the packet is emitted)
         self.ip_opts_s2c = b""
         self.streaming = False      # True: bulk data keeps flowing while the receiver's ACKs travel back
@@ -487,7 +486,6 @@ class TcpSession:
                     self._ack_from_server(hold=not self.streaming)
                 else:
                     self._ack_from_client(hold=not self.streaming)
-        self._last_dir = from_c
 
     def c2s(self, data: bytes, think=0.0):
         self._send(True, data, think)
@@ -697,7 +695,6 @@ class TcpSession:
         self.t += self.rtt / 2 * rng.uniform(0.6, 1.2)
         self._emit(self.c, self.s, self.sport, self.dport, self.cseq, self.sseq, ACK, self.cwin)
         self._s_unacked = 0
-        self._last_dir = False
         return self
 
     def tail_loss_rto(self, data: bytes, rto=0.3, think=0.0):
@@ -723,7 +720,6 @@ class TcpSession:
         self.t += self.rtt / 2 * rng.uniform(0.6, 1.2)
         self._emit(self.c, self.s, self.sport, self.dport, self.cseq, self.sseq, ACK, self.cwin)
         self._s_unacked = 0
-        self._last_dir = False
         return self
 
     def syn_only(self, retries=3):
@@ -731,7 +727,7 @@ class TcpSession:
         c, s = self.c, self.s
         copts = struct.pack("!BBH", 2, 4, self.mss) + b"\x01\x03\x03" + bytes([self.ws_c]) + b"\x01\x01\x04\x02"
         delay = 1.0 if c.ttl == 128 else 1.0
-        for i in range(retries + 1):
+        for _i in range(retries + 1):
             self._emit(c, s, self.sport, self.dport, self.cseq, 0, SYN, 64240, b"", copts)
             self.t += delay
             delay *= 2
@@ -854,7 +850,7 @@ def record_bytes(n: int) -> int:
 
 class PcapWriter:
     def __init__(self, path):
-        self.f = open(path, "wb", buffering=8 * 1024 * 1024)
+        self.f = open(path, "wb", buffering=8 * 1024 * 1024)  # noqa: SIM115 handle outlives this scope
         self.f.write(struct.pack("<IHHiIII", 0xA1B2C3D4, 2, 4, 0, 0, 262144, 1))
         self.n = 0
         self.bytes = 0

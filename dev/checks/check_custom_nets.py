@@ -2,13 +2,12 @@
 internal packet on the configured /24s, and (2) the run summary must label each network correctly. (The
 other versions of this check also cover a detection bundle and diagrams, which OpenGenerator does not have.) Nothing may fall back to the stock 10.10.10 /
 10.10.20 / 10.10.30 addresses. Self-contained: builds into a temp dir, reads the files itself."""
-import json, os, re, struct, subprocess, sys, tempfile
+import os, re, struct, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 USER, SERVER, OT = "10.10.100", "10.10.200", "10.10.250"
 STOCK = {"10.10.10", "10.10.20"}
 STOCK_PAYLOAD_RX = re.compile(rb"(?<![\d.])10\.10\.(?:10|20|30)\.\d{1,3}")
-STOCK_RX = re.compile(r"(?<![\d.])10\.10\.(?:10|20|30)(?!\d)")
 NETS = dict(user_net=USER + ".0/24", server_net=SERVER + ".0/24",
             ot_nets={"ot": OT + ".0/24", "ops": None, "idmz": None})
 

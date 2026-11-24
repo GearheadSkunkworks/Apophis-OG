@@ -96,11 +96,11 @@ def parse_color(s, over=None):
     m = re.fullmatch(r"color-mix\(in srgb,\s*(.+?)\s+([\d.]+)%\s*,\s*(.+)\)", s)
     if m:
         a, pct, b = parse_color(m.group(1)), float(m.group(2)) / 100.0, parse_color(m.group(3))
-        return tuple(pct * x + (1 - pct) * y for x, y in zip(a, b))
+        return tuple(pct * x + (1 - pct) * y for x, y in zip(a, b, strict=False))
     m = re.fullmatch(r"color-mix\(in srgb,\s*(.+?)\s*,\s*(.+)\)", s)
     if m:
         a, b = parse_color(m.group(1)), parse_color(m.group(2))
-        return tuple(0.5 * x + 0.5 * y for x, y in zip(a, b))
+        return tuple(0.5 * x + 0.5 * y for x, y in zip(a, b, strict=False))
     raise ValueError("cannot compute colour: " + s)
 
 

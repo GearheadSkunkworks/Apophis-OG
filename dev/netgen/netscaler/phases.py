@@ -16,7 +16,6 @@ import struct
 from netgen import flows as F
 from netgen import protocols as P
 from netgen import asn1 as A
-from netgen.core import SYN, ACK, PSH, FIN, RST
 
 from . import wire
 from . import content
@@ -316,7 +315,7 @@ def ldap_enum_run(ctx, snip, dc, queries, offsets, ts=None, bind=None):
     mid = 1
     s.c2s(P.ldap_bind_request_simple(mid, "%s\\%s" % (P.NETBIOS, bind or BIND_ACCOUNT), _BIND_PW.encode()), think=0.002)
     s.s2c(_simple_bind_success(mid), think=rng.uniform(0.001, 0.006))
-    for (attr, value), off in zip(queries, offsets):
+    for (attr, value), off in zip(queries, offsets, strict=False):
         mid += 1
         if attr == "__SPN__":
             filt = P._filter_present("servicePrincipalName")

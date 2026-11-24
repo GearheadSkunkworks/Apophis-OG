@@ -218,7 +218,7 @@ def _path_points(d):
 
 def _points_attr(s):
     n = [float(x) for x in _NUM.findall(s or "")]
-    return list(zip(n[0::2], n[1::2]))
+    return list(zip(n[0::2], n[1::2], strict=False))
 
 
 def _dist_rect(p, r):
@@ -355,7 +355,7 @@ def lint_svg(svg_text):
                 findings.append(Finding("overlap", "text '%s' / '%s'" % (a["t"][:32], c["t"][:32]),
                                         "boxes intersect %.0fx%.0f px near (%.0f,%.0f)" % (ow, oh, max(ab[0], cb[0]), max(ab[1], cb[1]))))
 
-    for tag, p, which, el in arrows:
+    for tag, p, which, _el in arrows:
         if not rects:
             continue
         d = min(_dist_rect(p, r) for r in rects)

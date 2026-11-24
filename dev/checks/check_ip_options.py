@@ -18,8 +18,8 @@ BASE_COMMIT = "848f757"      # the commit before the ip_options / linux SYN-ACK 
 def load_old():
     r = subprocess.run(["git", "show", f"{BASE_COMMIT}:dev/netgen/core.py"], cwd=HERE, capture_output=True, text=True)
     if r.returncode != 0:      # a shallow clone (CI) does not have that commit
-        print("check_ip_options: skipped (history before %s not available)" % BASE_COMMIT)
-        sys.exit(0)
+        print("check_ip_options: old-engine comparison skipped (%s not in history); byte-level checks still run" % BASE_COMMIT)
+        return None
     src = r.stdout
     spec = importlib.util.spec_from_loader("core_old", loader=None)
     m = importlib.util.module_from_spec(spec)
@@ -48,24 +48,25 @@ def hs(m, client_os="Windows 11", server_os="Linux", **kw):
 
 old = load_old()
 
-# 1. default ipv4() byte-identical to the old build
-for m in (old, core):
-    m.rng.seed(5)
 a, b = hosts(core)
-ao, bo = hosts(old)
-for pl in (b"", b"x" * 33, b"y" * 1400):
-    assert core.ipv4(a, b, 6, pl, ttl=64, df=True) == old.ipv4(ao, bo, 6, pl, ttl=64, df=True)
-    assert core.ipv4(a, b, 17, pl, ipid=7, tos=8) == old.ipv4(ao, bo, 17, pl, ipid=7, tos=8)
+if old is not None:
+    # 1. default ipv4() byte-identical to the old build
+    for m in (old, core):
+        m.rng.seed(5)
+    ao, bo = hosts(old)
+    for pl in (b"", b"x" * 33, b"y" * 1400):
+        assert core.ipv4(a, b, 6, pl, ttl=64, df=True) == old.ipv4(ao, bo, 6, pl, ttl=64, df=True)
+        assert core.ipv4(a, b, 17, pl, ipid=7, tos=8) == old.ipv4(ao, bo, 17, pl, ipid=7, tos=8)
 
-# 2. default handshakes byte-identical for the Windows and macOS client layouts against a Windows server.
-# A Linux or embedded host now sends the Linux kernel's own SYN / SYN-ACK option layout by default (the
-# the kernel-layout fix, adopted when the no-module baseline was re-pinned), and a FreeBSD host its own, so
-# those are deliberately not compared with the earlier engine.
-for cos in ("Windows 11", "macOS 14"):
-    assert hs(core, cos, "Windows Server") == hs(old, cos, "Windows Server"), cos
-core.rng.seed(77); _c, _s = hosts(core, "Linux", "Windows Server")
-_t = core.TcpSession(StubLink(), _c, _s, 80, 1.0, rtt=0.01, sport=40000); _t.handshake()
-assert [p for _, p in _t.pkts] != hs(old, "Linux", "Windows Server"), "Linux SYN should now use the kernel layout"
+    # 2. default handshakes byte-identical for the Windows and macOS client layouts against a Windows server.
+    # A Linux or embedded host now sends the Linux kernel's own SYN / SYN-ACK option layout by default (the
+    # the kernel-layout fix, adopted when the no-module baseline was re-pinned), and a FreeBSD host its own, so
+    # those are deliberately not compared with the earlier engine.
+    for cos in ("Windows 11", "macOS 14"):
+        assert hs(core, cos, "Windows Server") == hs(old, cos, "Windows Server"), cos
+    core.rng.seed(77); _c, _s = hosts(core, "Linux", "Windows Server")
+    _t = core.TcpSession(StubLink(), _c, _s, 80, 1.0, rtt=0.01, sport=40000); _t.handshake()
+    assert [p for _, p in _t.pkts] != hs(old, "Linux", "Windows Server"), "Linux SYN should now use the kernel layout"
 
 # 3. options: IHL, total length, checksum
 for opt, want in ((b"\x01", 24), (b"\x94\x04\x00\x00", 24), (b"\x07\x07\x04" + b"\x00" * 4, 28), (b"\x01" * 40, 60)):

@@ -3,7 +3,6 @@
 This package file holds the helpers the panels share: escaping, text fitting, tactic colours and the one
 small stylesheet the page embeds. Nothing here runs a script or loads an external resource.
 """
-import html
 import zlib
 
 import make_diagram as MD
@@ -36,16 +35,6 @@ def trunc(text, px, size=9.0):
 
 def fmt_int(n):
     return "n/a" if n is None else format(int(n), ",")
-
-
-def fmt_bytes(n):
-    if n is None:
-        return "n/a"
-    n = float(n)
-    for u in ("B", "KB", "MB", "GB"):
-        if n < 1024 or u == "GB":
-            return ("%d %s" % (n, u)) if u == "B" else ("%.1f %s" % (n, u))
-        n /= 1024.0
 
 
 def fmt_dur(sec):
@@ -86,10 +75,6 @@ def when(view, sec):
 def node_label(view, nid):
     n = next((x for x in view["nodes"] if x["id"] == nid), None)
     return n["label"] if n else str(nid)
-
-
-def node_of(view, nid):
-    return next((x for x in view["nodes"] if x["id"] == nid), None)
 
 
 def action_name(view, i):

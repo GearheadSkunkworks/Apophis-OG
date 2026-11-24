@@ -206,11 +206,7 @@ def _nl(s):
     return struct.pack("!I", len(b)) + b
 
 
-def _ssh_packet(payload: bytes) -> bytes:
-    pad = 8 - (len(payload) + 5) % 8
-    if pad < 4:
-        pad += 8
-    return struct.pack("!IB", len(payload) + 1 + pad, pad) + payload + os.urandom(pad)
+from netgen.protocols import ssh_packet as _ssh_packet  # noqa: E402  (identical framing)
 
 
 def ssh_kexinit(client=True) -> bytes:

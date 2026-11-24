@@ -3,7 +3,7 @@
 Plan pages show expected and planned techniques; run pages add emitted; scored pages colour the chips by
 detected, related or missed. Omitted when the campaign has neither techniques nor vulnerabilities."""
 import make_diagram as MD
-from . import CYAN, GRAY, PLUM, SAPPHIRE, TANGERINE, alt_table, esc, tactic_colour, trunc
+from . import CYAN, GRAY, PLUM, SAPPHIRE, TANGERINE, esc, tactic_colour, trunc
 
 W = 1180
 PER_ROW = 7

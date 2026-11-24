@@ -69,7 +69,7 @@ class SnapshotCoverage(unittest.TestCase):
     def test_one_snapshot_per_feed(self):
         self.assertEqual(sorted(EXPECTED), sorted(sources.FEEDS))
         self.assertEqual(len(sources.FEEDS), 27)
-        for fid, (fn, *_rest) in EXPECTED.items():
+        for _fid, (fn, *_rest) in EXPECTED.items():
             self.assertTrue(os.path.isfile(os.path.join(SNAP, fn)), fn)
 
     def test_snapshots_are_neutral(self):

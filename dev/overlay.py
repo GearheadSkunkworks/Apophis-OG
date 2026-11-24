@@ -114,6 +114,15 @@ def activate(bundle_dir, base=None, frozen=None):
     if not (getattr(sys, "frozen", False) if frozen is None else frozen) or os.environ.get("OG_NO_OVERLAY"):
         return _ROOT
     _BASE = base = base or base_dir()
+    try:
+        return _activate(bundle_dir, base)
+    except OSError:                                              # unwritable settings dir: run the bundled copy
+        _ROOT = bundle_dir
+        return _ROOT
+
+
+def _activate(bundle_dir, base):
+    global _ROOT
     cur, marker = os.path.join(base, "current"), os.path.join(base, ".booting")
     if not os.path.isdir(cur):
         return _ROOT

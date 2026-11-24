@@ -20,7 +20,7 @@ class TestResolve(unittest.TestCase):
         self.assertEqual(V.resolve("Quantum Frobnicator"), ("unknown", []))
 
     def test_every_alias_kind_is_valid(self):
-        for k, (kind, names) in V.ALIASES.items():
+        for k, (kind, _names) in V.ALIASES.items():
             self.assertIn(kind, ("direct", "carrier", "l4", "none"), k)
             self.assertEqual(k, k.lower())
 

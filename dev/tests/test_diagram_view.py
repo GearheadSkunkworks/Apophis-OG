@@ -2,7 +2,6 @@
 
     python3 -m unittest tests.test_diagram_view
 """
-import copy
 import json
 import os
 import sys

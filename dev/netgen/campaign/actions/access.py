@@ -9,7 +9,7 @@ of the traffic so a network sensor can be tested.
 import struct
 
 from . import ActionSpec, register
-from .recon import (deterministic, vantage_for, arp_between, own_user, account_names, is_external)
+from .recon import (deterministic, vantage_for, arp_between, own_user, account_names)
 from ... import flows as F
 from ... import protocols as P
 from ...core import TcpSession, rng
@@ -89,7 +89,7 @@ def kerberos_spray(ctx, src, dst, *, ts, accounts=25, unknown_ratio=0.15, gap_s=
     names = account_names(ctx, int(accounts))
     out, t = arp_between(ctx, src, dst, ts), ts
     vant = vantage_for(ctx, src, dst)
-    for i, u in enumerate(names):
+    for _i, u in enumerate(names):
         s = TcpSession(ctx.link, src, dst, 88, t + 0.001, vantage=vant).handshake()
         unknown = rng.random() < float(unknown_ratio)
         if unknown:

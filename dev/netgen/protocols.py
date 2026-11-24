@@ -116,7 +116,7 @@ def pe_blob(n: int, dll=False) -> bytes:
     opt = opt + b"\x00" * (240 - len(opt))
     sect = b""
     raw = hdr_size
-    for nm, sz, ch in zip(names, sizes, chars):
+    for nm, sz, ch in zip(names, sizes, chars, strict=False):
         sect += struct.pack("<8sIIIIIIHHI", nm, sz, va, sz, raw, 0, 0, 0, 0, ch)
         va += (sz + 0xFFF) // 0x1000 * 0x1000
         raw += sz
@@ -808,14 +808,6 @@ def cname_rdata(name: str) -> bytes:
     return _dns_name(name)
 
 
-def txt_rdata(*strings) -> bytes:
-    out = b""
-    for s in strings:
-        b = s.encode() if isinstance(s, str) else s
-        out += bytes([len(b)]) + b
-    return out
-
-
 def ocsp_request(serial=None) -> bytes:
     """Minimal well-formed DER OCSPRequest (RFC 6960) so the OCSP dissector parses cleanly."""
     import os as _os
@@ -962,7 +954,7 @@ def tds_result(cols: list, rows: list) -> bytes:
     body = cm
     for r in rows:
         body += b"\xd1"
-        for (name, t), v in zip(cols, r):
+        for (_name, t), v in zip(cols, r, strict=False):
             if t == "int":
                 body += b"\x04" + struct.pack("<i", v)
             elif t == "nvarchar":
@@ -2253,7 +2245,7 @@ def _ike_payload(next_type: int, body: bytes) -> bytes:
 def ike_message(ispi: bytes, rspi: bytes, exch: int, msgid: int, initiator: bool, payloads, first: int) -> bytes:
     """payloads: list of (type, body); `first` is the first payload type (the chain is built here)."""
     chain = b""
-    for i, (t, body) in enumerate(payloads):
+    for i, (_t, body) in enumerate(payloads):
         nxt = payloads[i + 1][0] if i + 1 < len(payloads) else 0
         chain += _ike_payload(nxt, body)
     flags = 0x08 if initiator else 0x20

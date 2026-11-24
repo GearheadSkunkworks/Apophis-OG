@@ -82,9 +82,10 @@ def by_tech(res):
 
 class NoNetwork(unittest.TestCase):
     def setUp(self):
-        p = mock.patch.object(urllib.request, "urlopen", _no_network)
-        p.start()
-        self.addCleanup(p.stop)
+        for p in (mock.patch.object(urllib.request, "urlopen", _no_network),
+                  mock.patch("sensorops.providers.network_sensor._urlopen", _no_network)):
+            p.start()
+            self.addCleanup(p.stop)
 
 
 # ---------------------------------------------------------------- scoring
@@ -462,8 +463,8 @@ class TestSensorRoutes(NoNetwork):
         self.assertEqual((s, d["ok"]), (200, False))
 
     def test_check_real_provider_with_failing_transport(self):
-        with mock.patch.object(urllib.request, "urlopen",
-                               side_effect=urllib.error.URLError("refused " + KEY)):
+        with mock.patch("sensorops.providers.network_sensor._urlopen",
+                        side_effect=urllib.error.URLError("refused " + KEY)):
             s, d = post("/api/sensor/check", {"sensor": "sensor.example.net", "key": KEY})
         self.assertEqual((s, d["ok"]), (200, False))
         self.assertNotIn(KEY, json.dumps(d))
@@ -506,7 +507,7 @@ class TestSensorRoutes(NoNetwork):
         self.assertNotIn(KEY, json.dumps(d))
 
     def test_feedback_honours_offset_lookahead_and_min_risk(self):
-        prov = self.patch(FakeProvider(raw=fixture()))
+        self.patch(FakeProvider(raw=fixture()))
         s, d = post("/api/campaign/feedback", body(offset_s=100, lookahead_s=0, min_risk=50))
         self.assertEqual(d["window"]["until_ms"], (T0 + 760 + 100 + 60) * 1000)
         self.assertEqual(d["count"], 3)                           # only risk >= 50: 101, 102, 105

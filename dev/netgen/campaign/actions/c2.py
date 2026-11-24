@@ -181,7 +181,7 @@ def https_beacon(ctx, src, dst, *, ts, count=4, interval_s=60.0, jitter=0.2, siz
             s.c2s(tls.app_data(True, req), think=F.rng.uniform(0.0008, 0.004) if i == 0 else _gap(interval_s, jitter))
             s.s2c(tls.app_data(False, _resp("200 OK", rb, prof["ctype"], s.t)), think=F.rng.uniform(0.02, 0.12))
         return _tls_close(s, tls, pre, 0.4)
-    for i in range(count):
+    for _i in range(count):
         pre, s, tls = _tls_open(ctx, src, dst, t, profile=prof["tls"], rate=50e6)
         req, rb = _beacon_exchange(ctx, src, host, prof, size_min, size_max, s.t)
         s.c2s(tls.app_data(True, req), think=F.rng.uniform(0.0008, 0.004))
@@ -292,7 +292,7 @@ def _dns_stream(ctx, src, ns, domain, ts, names, qtype, gaps, ans_size=(24, 90))
     out = ctx.arp_for(src, dc, ts)
     pre, t = _delegation_walk(ctx, dc, domain, ns, ts)
     out += pre
-    for nm, g in zip(names, gaps):
+    for nm, g in zip(names, gaps, strict=False):
         out += _ns_exchange(ctx, src, dc, ns, domain, nm, qtype, t, _answer_for(qtype, ns, _sz(*ans_size)))
         t += g
     return F.merged(out)
@@ -321,7 +321,7 @@ def dns_tunnel(ctx, src, dst, *, ts, bursts=2, per_burst=25, burst_gap_s=30.0, q
     ll = min(63, max(8, int(label_len)))
     nl = max(1, min(int(labels), (253 - len(dom) - 1) // (ll + 1)))
     names, gaps = [], []
-    for b in range(max(1, int(bursts))):
+    for _b in range(max(1, int(bursts))):
         for i in range(max(1, int(per_burst))):
             names.append(".".join(_b32(ll) for _ in range(nl)) + "." + dom)
             last = i == int(per_burst) - 1

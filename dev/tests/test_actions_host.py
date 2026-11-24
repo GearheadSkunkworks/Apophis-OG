@@ -14,7 +14,6 @@ import subprocess
 import tempfile
 import unittest
 
-from netgen import flows as F
 from netgen import protocols as P
 from netgen.core import PcapWriter
 from netgen.identity import H
@@ -241,7 +240,7 @@ class ActionsHost(unittest.TestCase):
 
         def shape(pk):
             out = []
-            for ts, f in pk:
+            for _ts, f in pk:
                 ihl = (f[14] & 0xF) * 4 if len(f) > 34 and f[12:14] == b"\x08\x00" else 0
                 out.append((f[12:14], f[26:34] if ihl else b"", f[14 + ihl + 2:14 + ihl + 4] if ihl else b"",
                             f[14 + ihl + 13] if ihl and f[23] == 6 else 0))
@@ -274,9 +273,7 @@ class ActionsHost(unittest.TestCase):
                 self.assertEqual(check_packet(f), [], tok)
 
     def test_other_identity(self):
-        from netgen.identity import Identity
-        import netgen.identity as ident
-        from netgen.model import build_hosts, set_capture_day
+        from netgen.model import set_capture_day
         ctx = make_world()
         # same actions on the default network with a different capture day
         set_capture_day("2025-11-02")

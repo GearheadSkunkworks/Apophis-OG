@@ -38,7 +38,7 @@ def _campaign_page(path):
                 score = data
     if isinstance(camp, list):
         sums = summary if isinstance(summary, list) else [summary] * len(camp)
-        return "\n".join(page.render(c, summary=s, score=score) for c, s in zip(camp, sums))
+        return "\n".join(page.render(c, summary=s, score=score) for c, s in zip(camp, sums, strict=False))
     return page.render(camp, summary=summary, score=score)
 
 

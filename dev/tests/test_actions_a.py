@@ -17,7 +17,6 @@ from unittest import mock
 
 import netgen
 from netgen import flows as F
-from netgen import protocols as P
 from netgen.core import Host, ArpModel, PcapWriter
 from netgen.identity import H
 from netgen.model import build_hosts, set_capture_day
@@ -226,7 +225,7 @@ class ActionsA(unittest.TestCase):
         for tok, pk in self.res.items():
             self.assertTrue(pk, tok)
             self.assertEqual([p[0] for p in pk], sorted(p[0] for p in pk), tok + " not time-sorted")
-            for ts, f in pk:
+            for _ts, f in pk:
                 self.assertEqual(check_packet(f), [], tok)
 
     def test_ports(self):
@@ -244,7 +243,7 @@ class ActionsA(unittest.TestCase):
     def test_dns_parses(self):
         for tok in ("dns_beacon", "dns_tunnel", "dga_lookup", "dns_exfil", "https_beacon", "phishing_visit"):
             n = 0
-            for sp, dp, payload in dns_messages(self.res[tok]):
+            for _sp, _dp, payload in dns_messages(self.res[tok]):
                 parse_dns(payload)
                 n += 1
             self.assertGreater(n, 1, tok)
@@ -304,7 +303,7 @@ class ActionsA(unittest.TestCase):
         a, b = sig(), sig()
         def shape(pk):
             out = []
-            for ts, f in pk:
+            for _ts, f in pk:
                 ihl = (f[14] & 0xF) * 4 if len(f) > 34 and f[12:14] == b"\x08\x00" else 0
                 out.append((f[12:14], f[26:34] if ihl else b"", f[14 + ihl + 2:14 + ihl + 4] if ihl else b"",
                             f[14 + ihl + 13] if ihl and f[23] == 6 else 0))

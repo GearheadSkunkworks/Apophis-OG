@@ -50,7 +50,7 @@ import sys
 # diagrams render byte-identically. APP_DIR still resolves the bundled data files (ui/,
 # assets/, inventory.json, netgen/), under sys._MEIPASS when frozen by PyInstaller.
 from branding import (                                 # noqa: E402
-    APP_DIR, LOGO_CANDIDATES, load_logo, PRODUCT_TITLE, CODENAME,
+    APP_DIR, LOGO_CANDIDATES, load_logo, PRODUCT_TITLE, CODENAME,  # noqa: F401 re-exported
     VERSION as BRANDING_VERSION,
     SAPPHIRE, PLUM, CYAN, TANGERINE, GRAY, MAGENTA, VIOLET, FADE,
 )
@@ -145,7 +145,7 @@ class DiagramContext:
 def load_modules(selection=None):
     """Read the incident registry. Returns (all_modules, selected_names)."""
     try:
-        sys.path.insert(0, APP_DIR)
+        _app_path()
         from netgen import incidents as INC
         mods = []
         for n, i in INC.REGISTRY.items():
@@ -171,7 +171,7 @@ def gather(inventory, user_net=None, server_net=None, ot_nets=None):
     if not ot_nets:
         inv["hosts"] = [h for h in inv["hosts"] if not h.get("purdue")]
     if user_net or server_net or ot_nets:
-        sys.path.insert(0, APP_DIR)
+        _app_path()
         from netgen.model import remap_inventory
         remap_inventory(inv, user_net, server_net, ot_nets)
 
@@ -284,7 +284,6 @@ def topology(c):
 
 def _topology_svg(d):
     u_pfx = d["gw"]["user"].rsplit(".", 1)[0]
-    s_pfx = d["gw"]["server"].rsplit(".", 1)[0]
     parts = []
     A = parts.append
 
@@ -1105,7 +1104,7 @@ def ndr_recon_diagram(c):
           f'{i + 1}. {esc(label)}</text>')
         A(f'<text x="{lx + 16:.0f}" y="{TY - 52}" font-size="8.5" fill="{GRAY}" '
           f'font-family="ui-monospace,Menlo,monospace">starts +{off}s</text>')
-    for i, (off, label) in enumerate(phases):
+    for i, (off, _label) in enumerate(phases):
         end = phases[i + 1][0] if i + 1 < len(phases) else span
         x1, x2 = X(off), X(end)
         col = [PLUM, TANGERINE, CYAN, SAPPHIRE][i % 4]
@@ -1183,7 +1182,7 @@ def ndr_recon_diagram(c):
             f"{INC.RECON_LDAP_SESSIONS} LDAP session, {INC.RECON_LDAP_QUERIES} paged searches against "
             f"EXL-DC1 — users, computers, groups, SPNs, adminCount, OUs",
             "srvsvc NetShareEnumAll over SMB against each server, authenticating as svc_backup",
-        ])))
+        ], strict=False)))
     srvnet = d["nets"]["server"]
     filters = [
         ("Host-discovery sweep", f'icmp.type == 8 && ip.src == {atk_ip}',
@@ -1255,13 +1254,19 @@ PHASE_COLORS = [PLUM, TANGERINE, CYAN, SAPPHIRE, "#8a5cf0", "#1a8a4a"]
 CAPTURE_START_MIN = 5 * 60
 
 
+def _app_path():
+    if APP_DIR not in sys.path:
+        sys.path.insert(0, APP_DIR)
+
+
 def _off(mins):
-    """A signed offset from the replay start, e.g. +45m, +2h, +2:30."""
+    """A signed offset from the replay start, e.g. +45m, -30m, +2h, +2:30."""
     m = int(round(mins))
+    sign, m = ("-" if m < 0 else "+"), abs(m)
     if m < 60:
-        return "+%dm" % m
+        return "%s%dm" % (sign, m)
     h, mm = divmod(m, 60)
-    return "+%dh" % h if mm == 0 else "+%d:%02d" % (h, mm)
+    return "%s%dh" % (sign, h) if mm == 0 else "%s%d:%02d" % (sign, h, mm)
 
 
 def _dur(mins):
@@ -1305,7 +1310,7 @@ def _phase_bar(A, x0, y0, w, span, marks, legend=True, axis_every=None):
     ly = y0
     if legend:
         lw = (R - x0) / max(1, len(marks))
-        for i, (a, b, label) in enumerate(marks):
+        for i, (_a, _b, label) in enumerate(marks):
             col = PHASE_COLORS[i % len(PHASE_COLORS)]
             lx = x0 + i * lw
             A(f'<rect x="{lx:.0f}" y="{ly}" width="10" height="10" rx="3" fill="{col}"/>')
@@ -1570,7 +1575,7 @@ def d_lateral(c):
 
     _panel_title(A, 14, 208, "EVERY REMOTE-EXECUTION EVENT", "in the order the attacker issues them")
     rows = []
-    for off, s_name, tgt, tech, dur in plan:
+    for off, s_name, tgt, tech, _dur in plan:
         h = c.host(tgt)
         rows.append((f"+{off}s", tcol[tech], f"{s_name}  \u2192  {tgt}", tech,
                      h["ip"] if h else ""))
@@ -1583,7 +1588,7 @@ def d_lateral(c):
     _actor_box(A, 700, 300, INC.ATTACKER_WS, a1["ip"] if a1 else "?")
     _actor_box(A, 700, 392, INC.LATERAL_SECOND_HOST, a2["ip"] if a2 else "?", "popped at +620s")
     seen = []
-    for off, s_name, tgt, tech, _d in plan:
+    for _off, _s_name, tgt, _tech, _d in plan:
         if tgt not in seen:
             seen.append(tgt)
     for i, tgt in enumerate(seen):
@@ -1815,7 +1820,7 @@ def _w3_flow(A, x0, y0, w, edges, accent, pitch=54):
     for i, j, n, ip in runs(2):
         box(rx, i, j, n, ip, accent)
     mx = (lx + nw + rx) / 2
-    for i, (sn, sip, dn, dip, label, note, dashed) in enumerate(edges):
+    for i, (_sn, _sip, _dn, _dip, label, note, dashed) in enumerate(edges):
         y = y0 + i * pitch + pitch / 2
         dash = ' stroke-dasharray="6 4"' if dashed else ""
         A(f'<line x1="{lx + nw}" y1="{y:.0f}" x2="{rx - 1}" y2="{y:.0f}" stroke="{accent}" stroke-width="1.8"{dash} marker-end="url(#w3ar)"/>')
@@ -1950,7 +1955,7 @@ def _netflow_panel(A, c, x0, y0, w, h, title, sub, edges, accent=PLUM):
       f'<path d="M0,0 L8,4 L0,8 Z" fill="{accent}"/></marker></defs>')
     top = y0 + 26
     srcs, dsts = [], []
-    for sl, sip, dl, dip, pr, da in edges:
+    for sl, sip, dl, dip, _pr, _da in edges:
         if (sl, sip) not in srcs:
             srcs.append((sl, sip))
         if (dl, dip) not in dsts:
@@ -2001,70 +2006,14 @@ CLASSIFY_NOTE = ("warn", "Device role may shift in the platform",
                  "to its baseline role once the scenario window passes.")
 
 
-def _campaign_diagram(c, module, spec):
-    from netgen import incidents as INC
-    inc = INC.REGISTRY[module]
-    (h1, m1), (h2, m2) = inc.window
-    frm, to = f"{h1:02d}:{m1:02d}", f"{h2:02d}:{m2:02d}"
-    span = ((h2 * 60 + m2) - (h1 * 60 + m1)) * 60
-    rstart, rwin, dur = _rel_start(h1 * 60 + m1), _rel_win(h1 * 60 + m1, h2 * 60 + m2), _dur((h2*60+m2)-(h1*60+m1))
-    foot = c.host(spec.get("foothold")) if spec.get("foothold") else None
-    foot_ip = foot["ip"] if foot else spec.get("foothold_ip", "")
-    accent = spec.get("accent", PLUM)
-    has_net = bool(spec.get("net"))
-    div_bottom = 388 if has_net else None
-    W, H = 1180, (600 if has_net else 470)
-    if div_bottom is None:
-        div_bottom = H - 10
-    P = []; A = P.append
-    A(_svg_open(W, H, f'{spec["title"]} over {rwin}'))
-    _panel_title(A, 14, 20, spec["strip_title"], spec["strip_sub"].format(frm=frm, to=to, span=span // 60, rwin=rwin))
-    # a simple time strip with the window marked
-    L, R = 120, W - 30
-    ay = 96
-    A(f'<line x1="{L}" y1="{ay}" x2="{R}" y2="{ay}" stroke="#d5d6dc" stroke-width="1.4"/>')
-    for mm in range(0, span // 60 + 1, max(20, (span // 60) // 8 or 20)):
-        x = L + (R - L) * min(1.0, mm * 60 / span)
-        A(f'<line x1="{x:.1f}" y1="{ay-4}" x2="{x:.1f}" y2="{ay+4}" stroke="#c9cad0"/>')
-        A(f'<text x="{x:.1f}" y="{ay+16}" text-anchor="middle" font-size="9" fill="{GRAY}">+{mm}m</text>')
-    A(f'<line x1="14" y1="128" x2="{W-14}" y2="128" stroke="#e4e4e8"/>')
-    if foot:
-        _actor_box(A, 120, 150, spec["foothold"], foot_ip, sub=spec.get("foothold_sub", "campaign-C foothold"))
-        A(f'<text x="120" y="206" text-anchor="middle" font-size="9" fill="{GRAY}">{esc(spec.get("foothold_note",""))}</text>')
-    if spec.get("infra_keys"):
-        _infra_panel(A, c, 300, 142, 430, spec["infra_keys"], spec.get("infra_title","EXTERNAL INFRASTRUCTURE"),
-                     spec.get("infra_sub","real, published indicators — never contacted"))
-        A(f'<line x1="770" y1="140" x2="770" y2="{div_bottom}" stroke="#e4e4e8"/>')
-        tx = 794
-    else:
-        A(f'<line x1="300" y1="140" x2="300" y2="{div_bottom}" stroke="#e4e4e8"/>')
-        tx = 324
-    _panel_title(A, tx, 150, "THE TELLS", spec.get("tells_sub",""))
-    rows = [(str(i+1), [accent, PLUM, TANGERINE, CYAN, SAPPHIRE, "#8a5cf0"][i % 6], t[0], t[1], "")
-            for i, t in enumerate(spec["tells"])]
-    _rows(A, tx, 190, W - tx - 20, rows, pitch=32)
-    if has_net:
-        A(f'<line x1="14" y1="396" x2="{W-14}" y2="396" stroke="#e4e4e8"/>')
-        _netflow_panel(A, c, 14, 414, W - 28, H - 426,
-                       spec.get("net_title", "HOW THE TRAFFIC MOVES"),
-                       spec.get("net_sub", "source hosts → targets, across the firewall / sensor SPAN"),
-                       spec["net"], accent)
-    A('</svg>')
-    return {
-        "svg": "".join(P),
-        "kpis": [(rstart, "Window opens", "mono"), (dur, "Duration")] + spec.get("kpis", []),
-        "sections": [("Finding it in a capture", _filters_table(spec["filters"]))],
-        "notes": spec["notes"],
-    }
-
-
 @register("ndr-edge-exploit", "Edge-device exploit", "Inbound VPN exploit, then the edge device pivots inward",
           order=115, scenario="ndr-edge-exploit")
 def d_edge(c):
     ip = lambda n: _w3_ip(c, n)
-    fw = "10.10.20.1"
+    fw = c.gw["server"]
+    srv = [ip(n) for n in ("EXL-DC1", "EXL-FILE1", "EXL-MGMT1")]
     net = [("external attacker", "203.0.113.66", "EXL-FW1 (VPN portal)", fw, "HTTPS :443 exploit", "3 POSTs in the first seconds; crafted SESSID cookie", False)]
-    net += [("EXL-FW1 (inside)", fw, "DC1 / FILE1 / MGMT1", "10.10.20.10, .20, .110", "SMB :445 ADMIN$", "one server per pivot, picked at random, every 8–18 min", False),
+    net += [("EXL-FW1 (inside)", fw, "DC1 / FILE1 / MGMT1", ", ".join([srv[0]] + ["." + a.rsplit(".", 1)[1] for a in srv[1:]]), "SMB :445 ADMIN$", "one server per pivot, picked at random, every 8–18 min", False),
             ("EXL-WS-009", ip("EXL-WS-009"), "flux C2 node", "91.211.247.42", "HTTPS :443 /gate.php", "beachhead beacons out from +90s", False)]
     return _w3_campaign(c, "ndr-edge-exploit", {
         "net": net, "title": "Edge-device exploitation", "accent": "#b23f0f",
@@ -2291,7 +2240,7 @@ def d_volt(c):
         "kpis": [("none", "Malware"), ("valid", "Accounts"), ("baseline", "The detection")],
         "filters": [("Admin protocols from the beachhead", 'ip.src == %s && (tcp.port == 445 || tcp.port == 3389)' % w, 'SMB/RDP it does not normally originate'),
                     ("Directory touches", 'ip.src == %s && (tcp.port == 88 || tcp.port == 389)' % w, 'Kerberos tickets and LDAP searches'),
-                    ("To the servers", 'ip.src == %s && ip.dst == 10.10.20.0/24' % w, 'a workstation reaching the server tier')],
+                    ("To the servers", 'ip.src == %s && ip.dst == %s' % (w, c.nets["server"]), 'a workstation reaching the server tier')],
         "notes": [("warn", "There is nothing to signature", "No malware, no C2, no known indicator. The detection is behavioural: a host doing what it has never done, measured against a baseline."),
                   ("", "Pre-positioning", "Volt Typhoon is reported to pre-position inside critical infrastructure for future disruption.")]})
 
@@ -2535,11 +2484,11 @@ def d_ransom(c):
              ("3", CYAN, f'CREATE <name>{ext}', "the encrypted artifact appears alongside", ""),
              ("4", SAPPHIRE, f'Drop {note}', "once per directory", "")]
     _rows(A, 14, 210, 520, steps, pitch=34)
-    A(f'<rect x="14" y="356" width="520" height="34" rx="8" fill="#fff8f3" stroke="#f6d3bd"/>')
+    A('<rect x="14" y="356" width="520" height="34" rx="8" fill="#fff8f3" stroke="#f6d3bd"/>')
     A(f'<text x="28" y="{377}" font-size="10" font-weight="700" fill="{TANGERINE}">'
       f'{lo}\u2013{hi} files per share at scale 1.0 \u2014 read and rewritten back to back</text>')
 
-    A(f'<line x1="576" y1="162" x2="576" y2="404" stroke="#e4e4e8"/>')
+    A('<line x1="576" y1="162" x2="576" y2="404" stroke="#e4e4e8"/>')
     _panel_title(A, 600, 172, "TARGETS", "the attacker authenticates as svc_backup")
     rows = []
     for o, h, sh in INC.RANSOM_TARGETS:
@@ -2627,7 +2576,7 @@ def d_cobalt(c):
             ("PIPE", SAPPHIRE, "\\\\PIPE\\msagent_*",
              "the default Cobalt Strike pipe-name pattern", "")]
     _rows(A, 14, 244, 540, rows, pitch=36)
-    A(f'<line x1="596" y1="196" x2="596" y2="426" stroke="#e4e4e8"/>')
+    A('<line x1="596" y1="196" x2="596" y2="426" stroke="#e4e4e8"/>')
     _infra_panel(A, c, 620, 206, W - 640, ["cobaltc2"],
                  "TEAM SERVER", "the address the HTTPS beacon calls (documented Cobalt Strike indicator)")
     _panel_title(A, 620, 300, "PEER TARGETS", "3 of the 7 victim servers are picked at random per run (5 shown)")
@@ -2936,8 +2885,6 @@ def d_fw_update(c):
     at once -- an easy-to-see cliff in the requests ANSWERED by the auth, database and web servers,
     then a reconnect storm. It answers WHEN the update ran, IF it completed, and what it cost."""
     from netgen import incidents as INC
-    inc = INC.REGISTRY["npm-fw-update"]
-    mgmt = c.host("EXL-MGMT1"); mgmt_ip = mgmt["ip"] if mgmt else "10.10.20.110"
     dc = c.host("EXL-DC1"); dc_ip = dc["ip"] if dc else "10.10.20.10"
     sql = c.host("EXL-SQL1"); sql_ip = sql["ip"] if sql else "10.10.20.30"
     web = c.host("EXL-WEB2"); web_ip = web["ip"] if web else "10.10.20.41"
@@ -3039,7 +2986,7 @@ def d_fw_update(c):
         "sections": [("Finding it in a capture", _filters_table([
             ("Update ran (SNI)", 'tls.handshake.extensions_server_name contains "paloaltonetworks"',
              'when the jump host pulled the update from the vendor\u2019s update hosts'),
-            ("Commit completed (keylog)", f'http.response.code == 200 && ip.src == 10.10.20.1',
+            ("Commit completed (keylog)", f'http.response.code == 200 && ip.src == {c.gw["server"]}',
              "decrypted API replies; the last job poll reports FIN / OK — the IF answer and the outage's start"),
             ("Remote auth requests", f'tcp.port == 88 && ip.src == {INC.RA_IP0}0/24',
              'KDC requests from the VPN pool — steady, then zero through the outage'),
@@ -3709,9 +3656,9 @@ def _npm_diagram(c, module):
     A(_svg_open(W, H, f'{module}: {spec["blurb"]}'))
     _panel_title(A, 14, 20, "SEVERITY ENVELOPE",
                  f'window {k["rwin"]} \u00b7 {k["span"] // 60} minutes \u00b7 '
-                 + (f'fixed phases of the fault, as the generator schedules them; healthy traffic runs for up to two minutes before and after the window'
+                 + ('fixed phases of the fault, as the generator schedules them; healthy traffic runs for up to two minutes before and after the window'
                   if spec.get("phases") else
-                  f'ramp up, plateau, recover: how bad the fault is over time (the shape the generator uses); healthy traffic runs for up to two minutes before and after the window'))
+                  'ramp up, plateau, recover: how bad the fault is over time (the shape the generator uses); healthy traffic runs for up to two minutes before and after the window'))
     if spec.get("phases"):
         _w5_phase_curve(A, 110, 56, W - 150, 78, k["start"], k["span"], spec["phases"])
     else:
@@ -3783,8 +3730,6 @@ def _npm_diagram(c, module):
 
 
 def _mk_npm(module):
-    inc_title = None
-
     def builder(c, _m=module):
         return _npm_diagram(c, _m)
     builder.__name__ = "d_" + module.replace("-", "_")
@@ -3932,7 +3877,7 @@ def _crp_diagram(c, module):
               .replace("{FTP_N_INT}", str(INC.FTP_INTERNAL_SESSIONS))
               .replace("{FTP_N_EXT}", str(INC.FTP_EXTERNAL_SESSIONS))
               .replace("{FTP_TOTAL}", str(INC.FTP_INTERNAL_SESSIONS + INC.FTP_EXTERNAL_SESSIONS)))
-        for i, (kind, host, proto, _d) in enumerate(INC.CRP_PLAINTEXT):
+        for i, (_kind, host, proto, _d) in enumerate(INC.CRP_PLAINTEXT):
             t = t.replace("{PT%d}" % i, f'{host} \u00b7 {proto}')
         return t
 
@@ -4638,7 +4583,7 @@ def generation_report(protocols, meta):
 # name can never disagree. _FALLBACK_VERSION is used only when that file is absent or unreadable;
 # a test fails if it drifts from dev/VERSION. REVISIONS below is the narrative history and its
 # letter-series labels (5d, ...) are history entries, not the current version.
-_FALLBACK_VERSION = "5.5.0"
+_FALLBACK_VERSION = "5.5.1"
 
 
 def _read_version(app_dir=None):
@@ -4925,7 +4870,7 @@ def about_page(c, revisions=None):
     # only the NEW subnets the OT zone introduces (its jump host sits on the existing server net).
     try:
         import json as _json
-        _inv = _json.load(open(os.path.join(APP_DIR, "inventory.json")))["hosts"]
+        _inv = _json.load(open(os.path.join(APP_DIR, "inventory.json")))["hosts"]  # noqa: SIM115 handle outlives this scope
         _ot = [h for h in _inv if h.get("ip") and h.get("purdue")]
         n_ot = len(_ot)
         n_otsubs = len({h.get("subnet") for h in _ot
@@ -5102,11 +5047,12 @@ def _relabel_identity(page, company=None, industry=None):
     returned unchanged."""
     if not (company or industry):
         return page
-    sys.path.insert(0, APP_DIR)
+    _app_path()
     from netgen.identity import Identity, DEFAULT as T
     ident = Identity(company or None, industry or None)
     if ident.name == T.name and ident.industry == T.industry:
         return page
+    esc = html.escape
     for a, b in ((T.domain, ident.domain),              # corp.example.local
                  (T.namespace, ident.namespace),        # Example.Web.Data
                  (T.ca, ident.ca),                      # Example Demo Root CA
@@ -5116,7 +5062,7 @@ def _relabel_identity(page, company=None, industry=None):
                  (T.prefix, ident.prefix),              # EXL-
                  (T.prefix.lower(), ident.prefix.lower())):  # exl-
         if a != b:
-            page = page.replace(a, b)
+            page = page.replace(a, esc(b))
     return page
 
 
@@ -5168,7 +5114,7 @@ def main():
             print(f"  {d['name']:<12} {d['title']:<22} {d['description']}")
         return
 
-    sys.path.insert(0, APP_DIR)
+    _app_path()
     if args.user_net or args.server_net:
         from opengenerator_build import validate_nets
         try:
@@ -5213,7 +5159,7 @@ def d_baseline_ot(c):
     inventory, the ports from netgen.protocols. Nothing here is written down twice, so changing
     the poll interval in the UI redraws this page rather than leaving it lying.
     """
-    sys.path.insert(0, APP_DIR)
+    _app_path()
     from netgen import model as _M
     from netgen import protocols as _P
     d = c.data
@@ -5386,7 +5332,7 @@ def _jump_ip(d):
           order=40, scenario=None)
 def d_campaign_builder(c):
     """How the Campaign Builder works, drawn from the registries so no count is typed in twice."""
-    sys.path.insert(0, APP_DIR)
+    _app_path()
     from collections import Counter
     from netgen.campaign import actions as _act, attack as _atk, families as _fam
     from intel import sources as _src
@@ -5408,7 +5354,7 @@ def d_campaign_builder(c):
     steps = [
         ("1", "Indicator sources", [f"{n_feed} feeds ({n_key} need a key)", "pasted list or file", "text, CSV, STIX, MISP"], SAPPHIRE),
         ("2", "Classify and role", ["type, defang, score", "role from nearby words", "c2, payload, scanner..."], SAPPHIRE),
-        ("3", "Compile", [f"stages by ATT&CK tactic", f"{n_act} actions to choose from", f"{n_fam} family profiles"], PLUM),
+        ("3", "Compile", ["stages by ATT&CK tactic", f"{n_act} actions to choose from", f"{n_fam} family profiles"], PLUM),
         ("4", "Run", ["each action emits real", "packets into the capture", "inert bodies only"], PLUM),
         ("5", "Exports", ["campaign JSON", "STIX of what is on the wire", "Navigator, reports"], CYAN),
         ("6", "Replay", ["capture sent to the", "sensor's interface", "(tcpreplay, optional)"], TANGERINE),
@@ -5441,7 +5387,7 @@ def d_campaign_builder(c):
     ]
     # draw the three boundary cards in one row, each tied to its step by a dashed leader
     cw, cgap = 372, 20
-    for k, (a, b, title, body) in enumerate(bounds):
+    for k, (a, _b, title, body) in enumerate(bounds):
         x = 12 + k * (cw + cgap)
         y = by + 16
         A(f'<rect x="{x}" y="{y}" width="{cw}" height="74" rx="10" fill="#fdf2f8" stroke="{MAGENTA}" stroke-width="1.5"/>')

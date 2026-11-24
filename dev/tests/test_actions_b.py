@@ -20,7 +20,7 @@ if DEV not in sys.path:
 
 import netgen                                            # noqa: E402
 from netgen import flows as F                            # noqa: E402
-from netgen.core import ArpModel, Host, PcapWriter, rng  # noqa: E402
+from netgen.core import ArpModel, Host, PcapWriter  # noqa: E402
 from netgen.identity import H                            # noqa: E402
 from netgen.model import build_hosts, set_capture_day    # noqa: E402
 from netgen.tls import PKI                               # noqa: E402
@@ -188,7 +188,7 @@ class ActionsBTest(unittest.TestCase):
             self.assertIn(t, specs)
             sp = specs[t]
             self.assertTrue(sp.summary and sp.tactic and sp.techniques and sp.protocols and sp.title)
-            for name, meta in sp.params.items():
+            for _name, meta in sp.params.items():
                 self.assertIn("type", meta)
                 self.assertIn("default", meta)
                 self.assertIn("help", meta)
@@ -203,7 +203,7 @@ class ActionsBTest(unittest.TestCase):
             self.assertEqual(declared - accepted, set(), t)
 
     def test_nonempty_and_valid(self):
-        for (i, tok), (s, d, p, pk) in self.out.items():
+        for (_i, tok), (_s, _d, _p, pk) in self.out.items():
             self.assertTrue(pk, tok)
             bad = [(n, validate_frame(f)) for n, (_, f) in enumerate(pk) if validate_frame(f)]
             self.assertEqual(bad[:3], [], "%s: invalid frames" % tok)
