@@ -45,6 +45,11 @@ HUMAN_ONLY = frozenset((
     "/api/agent/status", "/api/agent/token", "/api/agent/off", "/api/agent/dismiss",    # the app's own controls
 ))
 
+# Routes that can use the stored sensor key (use_stored). A client with no agent token must carry the page cookie, so another
+# local program cannot drive them. Unlike HUMAN_ONLY, an agent verb may proxy to these (sensor/check), because that call
+# arrives with a token and is audited.
+PAGE_ONLY = frozenset(("/api/sensor/check", "/api/campaign/feedback"))
+
 # (method, verb) -> internal path, or ("local", name) for verbs answered here that run no existing handler.
 VERBS = {
     ("GET", "catalog/actions"): "/api/campaign/actions",

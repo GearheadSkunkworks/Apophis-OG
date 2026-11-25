@@ -116,6 +116,24 @@ class Deny(Base):
         self.assertEqual(len(agent_api.pending()), 1)
         agent_api.dismiss(js["pending"]["id"])
 
+    def test_a8_page_only_routes_need_the_page_cookie(self):
+        """Sensor check and detection scoring can use the stored sensor key: no cookie, no entry (5.5.5)."""
+        self.assertEqual(sorted(agent_api.PAGE_ONLY), ["/api/campaign/feedback", "/api/sensor/check"])
+        for p in sorted(agent_api.PAGE_ONLY):
+            self.assertEqual(self.call("POST", p, {"use_stored": True})[0], 403, p)                    # bare local client
+            self.assertEqual(self.call("POST", p, {}, cookie="og_ui=nope")[0], 403, p)                 # wrong cookie
+            self.assertEqual(self.call("POST", p, {}, bearer=self.token)[0], 403, p)                   # a token alone
+            st, _ = self.call("POST", p, b"[]", cookie="og_ui=" + self.server.UI_SECRET)
+            self.assertNotEqual(st, 403, p)                                                            # the app page reaches the handler
+
+    def test_a9_the_agent_sensor_check_verb_still_works(self):
+        self.assertEqual(agent_api.VERBS[("POST", "sensor/check")], "/api/sensor/check")
+        st, js = self.call("POST", "/agent/v1/sensor/check", {}, bearer=self.token)
+        self.assertNotIn(st, (401, 403, 404), (st, js))       # reaches the handler, which answers 400 for an empty body
+        for target in agent_api.VERBS.values():
+            if isinstance(target, str):
+                self.assertNotIn(target, agent_api.HUMAN_ONLY)
+
 
 class Scope(Base):
     def test_b1_requires_a_valid_token(self):
@@ -127,12 +145,20 @@ class Scope(Base):
         self.assertEqual(st, 200, js)
         self.assertIn("running", js)
         path = os.path.join(self.tmp, agent_api.AUDIT_FILE)
-        for _ in range(40):                                  # the server writes the line just after it replies
-            if os.path.exists(path):
+        # The server replies first and writes the line just after. The log file exists (empty) before the line is written,
+        # so wait for the line itself, not the file, and read only whole lines; allow plenty of time on a loaded machine.
+        last = None
+        for _ in range(200):
+            try:
+                with open(path) as fh:
+                    lines = [ln for ln in fh.read().splitlines() if ln.strip()]
+                last = json.loads(lines[-1]) if lines else None
+            except (OSError, ValueError):
+                last = None
+            if last and (last.get("verb"), last.get("status")) == ("build/status", 200):
                 break
             time.sleep(0.05)
-        with open(path) as fh:
-            last = json.loads(fh.read().splitlines()[-1])
+        self.assertIsNotNone(last, "no audit line was written")
         self.assertEqual((last["verb"], last["status"]), ("build/status", 200))
 
     def test_b3_unknown_verb_and_method(self):

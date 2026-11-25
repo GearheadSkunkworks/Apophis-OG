@@ -652,8 +652,8 @@ class Handler(BaseHTTPRequestHandler):
             if path.startswith(agent_api.PREFIX):
                 self._send(401, json.dumps({"error": "a valid agent token is required (create one in Settings)"}))
                 return True, None, None
-            if method == "POST" and path in agent_api.HUMAN_ONLY and not self._ui_session():
-                self._send(403, json.dumps({"error": "forbidden: replay and sensor push are done by a person in the app"}))
+            if method == "POST" and (path in agent_api.HUMAN_ONLY or path in agent_api.PAGE_ONLY) and not self._ui_session():
+                self._send(403, json.dumps({"error": "forbidden: replay, sensor push, sensor check and detection scoring are done by a person in the app"}))
                 return True, None, None
             return False, None, None
         if not path.startswith(agent_api.PREFIX):

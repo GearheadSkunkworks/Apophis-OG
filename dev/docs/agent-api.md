@@ -2,7 +2,7 @@
 
 An outside assistant (an AI client, a script, a CI job) can drive the app through `/agent/v1/`. It can build and
 validate campaigns, run builds, and read captures. It cannot replay traffic to a network and it cannot push to a
-sensor: those two stay with a person in the app.
+sensor: those two stay with a person in the app. Scoring a replay against a sensor's detections is also done by a person in the app; an agent can run the read-only `sensor/check` verb.
 
 ## Turn it on
 
@@ -51,5 +51,5 @@ Agent access, presses **Review**, and presses the push button in the app. A stag
 ## Limits
 
 The replay and push routes also require the browser session the app gives its own page, so a client that leaves the
-token off cannot call them. That check stops an agent tool that speaks HTTP. It does not stop a process that can run
+token off cannot call them. From 5.5.5 the same holds for `POST /api/sensor/check` and `POST /api/campaign/feedback`, the two routes that can use the stored sensor key: a script or program that calls them without the page cookie gets 403. The `sensor/check` verb still works, because it arrives with a token and is audited. A token cannot reach those two routes directly, or any route outside `/agent/v1/`. That check stops an agent tool that speaks HTTP. It does not stop a process that can run
 programs on the same machine, which can start replay tools directly.
