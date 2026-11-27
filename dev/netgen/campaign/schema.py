@@ -27,6 +27,7 @@ IOC_TYPES = ["ipv4", "ipv6", "domain", "url", "md5", "sha1", "sha256", "email", 
 ROLES = ["c2", "payload", "exfil", "scanner", "brute", "phishing", "tor", "compromised", "vulnerability", "unknown"]
 ADDRESS_MODES = ["mapped", "real"]
 SPEEDS = ["realistic", "fast"]
+IP_FAMILIES = ["v4", "v6", "dual"]           # v4 default; v6 runs every action over IPv6; dual alternates per action
 INCLUDES = ["discovery", "credential_access", "lateral_movement", "exfiltration", "impact"]
 # M3 adds one option per further tactic; they are opt-in (the default list below is unchanged)
 INCLUDES_M3 = ["execution", "persistence", "privilege_escalation", "stealth", "defense_impairment", "collection",
@@ -43,6 +44,7 @@ OPTIONS = {
     "address_mode": ("string", "mapped", {"enum": ADDRESS_MODES}),
     "start": ("string", "10:00", {"pattern": r"^([01][0-9]|2[0-3]):[0-5][0-9]$"}),
     "speed": ("string", "realistic", {"enum": SPEEDS}),
+    "ip_family": ("string", "v4", {"enum": IP_FAMILIES}),
     "compromised": ("string", "ws", {"pattern": r"^[A-Za-z][A-Za-z0-9_:-]{0,39}$"}),
     "lateral_target": ("string", "server", {"pattern": r"^[A-Za-z][A-Za-z0-9_:-]{0,39}$"}),
     "beacons_per_c2": ("integer", 4, {"minimum": 1, "maximum": 50}),

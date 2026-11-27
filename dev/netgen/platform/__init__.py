@@ -120,7 +120,7 @@ class Kernel:
         for kind, fn in self._sources.items():
             try:
                 out[kind] = fn()
-            except Exception as e:                           # noqa: BLE001
+            except Exception as e:                           # noqa: BLE001 - failure is reported per kind in the result
                 out[kind] = {"error": str(e)}
         return out
 
@@ -215,7 +215,7 @@ class Kernel:
                 for fn in reversed(entry["undo"]):           # undo any partial wiring
                     try:
                         fn()
-                    except Exception:                        # noqa: BLE001
+                    except Exception:                        # noqa: BLE001 - best-effort unload, state is cleaned up regardless
                         pass
                 self._loaded.pop(name, None)
                 sys.modules.pop(modname, None)
@@ -250,7 +250,7 @@ class Kernel:
             if callable(extra):
                 try:
                     extra()
-                except Exception:                            # noqa: BLE001
+                except Exception:                            # noqa: BLE001 - best-effort unload, state is cleaned up regardless
                     pass
             sys.modules.pop("modules.%s" % entry["manifest"]["_pkg"], None)
             del self._loaded[name]
@@ -290,7 +290,7 @@ class Kernel:
         for name in names:
             try:
                 results[name] = self.self_test(name)
-            except Exception as e:                           # noqa: BLE001
+            except Exception as e:                           # noqa: BLE001 - module self-test failure is reported as not ok
                 results[name] = {"ok": False, "detail": "error: %s" % e}
         passed = sum(1 for r in results.values() if r.get("ok"))
         return {"ok": all(r.get("ok") for r in results.values()),

@@ -28,8 +28,8 @@ APP_DIR = os.path.dirname(os.path.dirname(HERE))
 if APP_DIR not in sys.path:
     sys.path.insert(0, APP_DIR)
 
-from netgen.identity import DEFAULT as _T                     # noqa: E402
-from netgen.campaign import hosts as _H                       # noqa: E402
+from netgen.identity import DEFAULT as _T                     # noqa: E402 - sys.path is set up before the import
+from netgen.campaign import hosts as _H                       # noqa: E402 - sys.path is set up before the import
 
 _FIXED = {"dc": "DC1", "file": "FILE1", "sql": "SQL1", "web": "WEB1"}
 _SERVER_ORDER = ("FILE1", "WEB1", "SQL1", "DC1")

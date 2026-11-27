@@ -81,6 +81,7 @@
   "compromised": "ws",
   "family": "cobalt-strike",
   "include": [],
+  "ip_family": "v4",
   "lateral_target": "server",
   "speed": "realistic",
   "start": "10:00"

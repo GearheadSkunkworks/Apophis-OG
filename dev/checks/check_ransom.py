@@ -12,8 +12,8 @@ import sys
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import opengenerator_build  # noqa: E402
-from netgen import incidents  # noqa: E402
+import opengenerator_build  # noqa: E402 - sys.path is set up before the import
+from netgen import incidents  # noqa: E402 - sys.path is set up before the import
 
 WS = bytes([10, 10, 10, 147])
 CODE = incidents.AKIRA_CHAT_CODE.encode()

@@ -20,7 +20,6 @@ from .delivery import FILETYPES, inert_file
 from .recon import arp_between, vantage_for, own_user, account_names
 from ... import flows as F
 from ... import protocols as P
-from ...core import TcpSession
 from ...identity import H
 
 rng = F.rng
@@ -101,7 +100,7 @@ def winrm_exec(ctx, src, dst, *, ts, command="hostname", mode="plain", user=None
     if encrypted:
         tgs, t = F.kerberos_tgs(ctx, src, "http", dst, t, user=None if acct == own_user(src) else acct)
     out = arp_between(ctx, src, dst, t)
-    s = TcpSession(ctx.link, src, dst, int(port), t + 0.001, vantage=vantage_for(ctx, src, dst)).handshake()
+    s = ctx.tcp(src, dst, int(port), t + 0.001, vantage=vantage_for(ctx, src, dst)).handshake()
     host = "%s:%d" % (dst.fqdn or dst.ip, int(port))
     to = "http://%s/wsman" % host
     ua = "Microsoft WinRM Client"
@@ -190,7 +189,7 @@ def ssh_remote_exec(ctx, src, dst, *, ts, sessions=3, commands=1, gap_s=6.0):
     banner = rng.choice([b"SSH-2.0-OpenSSH_9.2p1 Debian-2", b"SSH-2.0-OpenSSH_8.9p1 Ubuntu-3", b"SSH-2.0-OpenSSH_9.6"])
     for _ in range(max(1, int(sessions))):
         out += arp_between(ctx, src, dst, t)
-        s = TcpSession(ctx.link, src, dst, 22, t + 0.001, vantage=vantage_for(ctx, src, dst)).handshake()
+        s = ctx.tcp(src, dst, 22, t + 0.001, vantage=vantage_for(ctx, src, dst)).handshake()
         s.c2s(banner + b"\r\n", think=0.002)
         s.s2c(b"SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.5\r\n", think=0.003)
         s.c2s(P.ssh_kexinit(True), think=0.002)

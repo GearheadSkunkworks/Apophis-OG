@@ -49,8 +49,8 @@ import sys
 # in branding.py so the de-brand can swap it in one place. The values are unchanged, so
 # diagrams render byte-identically. APP_DIR still resolves the bundled data files (ui/,
 # assets/, inventory.json, netgen/), under sys._MEIPASS when frozen by PyInstaller.
-from branding import (                                 # noqa: E402
-    APP_DIR, LOGO_CANDIDATES, load_logo, PRODUCT_TITLE, CODENAME,  # noqa: F401 re-exported
+from branding import (                                 # noqa: E402 - sys.path is set up before the import
+    APP_DIR, LOGO_CANDIDATES, load_logo, PRODUCT_TITLE, CODENAME,  # noqa: F401  - re-exported for callers of this module
     VERSION as BRANDING_VERSION,
     SAPPHIRE, PLUM, CYAN, TANGERINE, GRAY, MAGENTA, VIOLET, FADE,
 )
@@ -1756,7 +1756,7 @@ def _w3_ip(c, name):
             with open(os.path.join(APP_DIR, "inventory.json")) as f:
                 for x in json.load(f)["hosts"]:
                     _W3_INV.setdefault(x["hostname"], x["ip"])
-        except Exception:                                   # noqa: BLE001
+        except Exception:                                   # noqa: BLE001 - optional lookup, falls back to an empty string
             _W3_INV["?"] = ""
     return _W3_INV.get(name, "")
 
@@ -2656,7 +2656,7 @@ def _actor_facts(c, module, INC):
         ext_keys = [k for k in {"ndr-akira": ["rmm", "cloudflared", "c2", "ngrok"],
                                 "ndr-medusa": ["medusa_c2", "cloudflared", "ngrok"],
                                 "ndr-handala": ["telegram", "ipcheck"]}.get(module, [])]
-    except Exception:                      # noqa: BLE001
+    except Exception:                      # noqa: BLE001 - optional data, falls back to an empty network list
         pass
     net = []
     if own:
@@ -4654,8 +4654,8 @@ for _m in CRP_SPEC:
 # of the normal day (Day.smartboards()). It is pinned into the NPM group in the selector,
 # always on and not selectable, and this is the diagram its Visualize button opens.
 # =======================================================================================
-from netgen import flows as F                        # noqa: E402
-from netgen import protocols as P                    # noqa: E402
+from netgen import flows as F                        # noqa: E402 - sys.path is set up before the import
+from netgen import protocols as P                    # noqa: E402 - sys.path is set up before the import
 
 INK = "#1c1830"
 
@@ -5048,6 +5048,7 @@ def render_page(diagram, c, logo):
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="script-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{esc(out.get("h1") or d['org'])} | {esc(diagram.title)}</title>
 <style>
@@ -5243,7 +5244,7 @@ def generation_report(protocols, meta):
 # name can never disagree. _FALLBACK_VERSION is used only when that file is absent or unreadable;
 # a test fails if it drifts from dev/VERSION. REVISIONS below is the narrative history and its
 # letter-series labels (5d, ...) are history entries, not the current version.
-_FALLBACK_VERSION = "5.5.5"
+_FALLBACK_VERSION = "6.0.0"
 
 
 def _read_version(app_dir=None):
@@ -5522,7 +5523,7 @@ def about_page(c, revisions=None):
         from netgen import incidents as _INC
         n_ot_mod = sum(1 for m in c.modules if m.get("name") in getattr(_INC, "OT_SCENARIOS", set())
                        and m.get("prefix") not in ("CUSTOM", "CAMPAIGN"))
-    except Exception:                                  # noqa: BLE001
+    except Exception:                                  # noqa: BLE001 - optional count, falls back to zero
         n_ot_mod = 0
     n_hosts = c.data["n_total"]
     # OT counts read straight from the inventory (the About context is built OT-off, so c.data holds
@@ -5535,7 +5536,7 @@ def about_page(c, revisions=None):
         n_ot = len(_ot)
         n_otsubs = len({h.get("subnet") for h in _ot
                         if not str(h.get("ip", "")).startswith(("10.10.10.", "10.10.20."))})
-    except Exception:                                  # noqa: BLE001
+    except Exception:                                  # noqa: BLE001 - optional count, falls back to the documented defaults
         n_ot, n_otsubs = 94, 3
     ot_note = (", of which %d appear only when the optional OT environment is on, so the "
                "scenario list shows %d by default" % (n_ot_mod, n_mod - n_ot_mod)) if n_ot_mod else ""

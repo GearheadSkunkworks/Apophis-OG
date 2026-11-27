@@ -44,7 +44,7 @@ _CSS = """
 def page(title, heading, body_html, theme=None, palette=None):
     """A full static page. `title` and `heading` are plain text (escaped here); `body_html` is trusted markup."""
     t = html.escape(title)
-    doc = ('<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n'
+    doc = ('<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta http-equiv="Content-Security-Policy" content="script-src \'none\'">\n'
            '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
            '<title>%s</title>\n<style>%s</style>\n<link rel="stylesheet" href="/ui/theme.css">\n</head>\n<body>\n'
            '<div class="page">\n  <div class="masthead">%s<span class="mh-title">%s</span></div>\n'

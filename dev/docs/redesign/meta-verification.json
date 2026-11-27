@@ -2638,6 +2638,74 @@
    },
    "seconds": 1.5,
    "error": null
+  },
+  "ndr-ipv6-rogue-ra": {
+   "id": "ndr-ipv6-rogue-ra",
+   "family": "SEC",
+   "verdict": "pass",
+   "reason": "",
+   "declared": [
+    "ICMPv6",
+    "DHCPv6",
+    "DNS",
+    "HTTP",
+    "NTLM",
+    "SMB"
+   ],
+   "packets": 1573,
+   "verified": [
+    "DNS",
+    "HTTP",
+    "SMB"
+   ],
+   "carrier_only": [
+    "NTLM"
+   ],
+   "missing": [],
+   "unverifiable": [
+    "ICMPv6",
+    "DHCPv6"
+   ],
+   "extra": [
+    "ICMPv6",
+    "UDP-other"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ICMPv6": 61,
+    "UDP-other": 8,
+    "DNS": 8,
+    "HTTP": 38,
+    "ARP": 4,
+    "SMB2": 1454
+   },
+   "seconds": 0.4,
+   "error": null
+  },
+  "ndr-ipv6-nd-flood": {
+   "id": "ndr-ipv6-nd-flood",
+   "family": "SEC",
+   "verdict": "inconclusive",
+   "reason": "no declared protocol could be checked against the protocol table",
+   "declared": [
+    "ICMPv6"
+   ],
+   "packets": 1266,
+   "verified": [],
+   "carrier_only": [],
+   "missing": [],
+   "unverifiable": [
+    "ICMPv6"
+   ],
+   "extra": [
+    "ICMPv6"
+   ],
+   "baseline_only": [],
+   "observed": {
+    "ICMPv6": 1266
+   },
+   "seconds": 0.6,
+   "error": null
   }
  },
  "baseline_protocols": {

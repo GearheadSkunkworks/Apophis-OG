@@ -194,7 +194,7 @@ def _inject_hosts(ctx):
 
 
 def _uid(h):
-    digits = "".join(c for c in h.name if c.isdigit())
+    digits = "".join(c for c in h.name if c.isascii() and c.isdigit())
     return 10000 + (int(digits[-3:]) if digits else 1)
 
 

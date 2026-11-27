@@ -55,7 +55,10 @@ def check_tree(tree, manifest):
     """The tree holds exactly the files the signed manifest lists, byte for byte (ValueError otherwise)."""
     want = manifest["files"]
     have = {}
-    for d, _dirs, files in os.walk(tree):
+    for d, dirs, files in os.walk(tree):
+        for sub in dirs:                      # os.walk lists a symlinked directory here and does not follow it
+            if os.path.islink(os.path.join(d, sub)):
+                raise ValueError("symbolic link in the update")
         for f in files:
             p = os.path.join(d, f)
             if os.path.islink(p):

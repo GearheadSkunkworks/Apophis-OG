@@ -35,6 +35,8 @@ MAX_CAPTURE_BYTES = 1 << 30  # 1 GiB: the largest capture the importer accepts
 MAX_CONVOS = 200_000         # table caps: memory grows with flows, not bytes, so bound them and
 MAX_HOSTS = 100_000          # count what was left out rather than run out of memory
 MAX_PORTS = 50_000
+MAX_MINUTES = 200_000        # distinct minute buckets (peak-minute stat) and source MACs: hostile timestamps and
+MAX_MACS = 200_000           # addresses would otherwise grow these without bound (about 200 bytes per packet)
 MAX_NAMES = 5_000            # distinct SNI / DNS / file-name style strings kept
 _LINK_NAMES = {0: "BSD loopback", 1: "Ethernet", 9: "PPP", 105: "802.11", 113: "Linux cooked (SLL)",
                127: "802.11 + radiotap", 143: "DOCSIS", 147: "user-defined", 228: "raw IPv4",
@@ -199,6 +201,8 @@ def _iter_pcapng(f):
     while off + 8 <= n:
         # block_type(4), block_total_length(4) in the file's endianness
         if data[off:off + 4] == PCAPNG_MAGIC:          # Section Header: read byte-order magic
+            if off + 12 > n:
+                return                                 # truncated inside the section header: nothing readable follows
             bom = data[off + 8:off + 12]
             endian = "<" if bom == b"\x1a\x2b\x3c\x4d"[::-1] or bom == b"\x4d\x3c\x2b\x1a" else ">"
             # the standard BOM is 0x1A2B3C4D; detect endianness by matching it either way
@@ -485,7 +489,7 @@ def embedded_addrs(proto, payload):
         elif proto in ("DNS", "mDNS", "LLMNR"):
             for m in _IPV4_RE.finditer(payload):         # A-record answers (rough)
                 found.add((m.group(1).decode(), "dns-answer"))
-    except Exception:
+    except Exception:  # a malformed or truncated payload keeps the facts found so far; parsing capture data must never abort the import
         pass
     return found
 
@@ -499,7 +503,7 @@ def _http_facts(payload, http):
             return
         parts = payload[:le].decode("latin-1", "replace").split(" ")
         if parts and parts[0].startswith("HTTP/"):
-            if len(parts) >= 2 and parts[1].isdigit():
+            if len(parts) >= 2 and parts[1].isascii() and parts[1].isdigit():
                 http["status"][parts[1]] = http["status"].get(parts[1], 0) + 1
         elif len(parts) >= 3 and parts[2].startswith("HTTP/"):
             http["methods"][parts[0]] = http["methods"].get(parts[0], 0) + 1
@@ -515,7 +519,7 @@ def _http_facts(payload, http):
             else:
                 ct = v.split(";")[0]
                 http["ctypes"][ct] = http["ctypes"].get(ct, 0) + 1
-    except Exception:
+    except Exception:  # a malformed or truncated payload keeps the facts found so far; parsing capture data must never abort the import
         pass
 
 
@@ -548,7 +552,7 @@ def _smb2_facts(payload, smb):
                     if fn and len(smb["files"]) < 200:
                         smb["files"].add(fn)
             i = payload.find(b"\xfeSMB", i + 4)
-    except Exception:
+    except Exception:  # a malformed or truncated payload keeps the facts found so far; parsing capture data must never abort the import
         pass
 
 
@@ -638,7 +642,7 @@ def _ssh_facts(payload, ssh):
                 ssh["kex"].add(kex.split(",")[0])
             if _alg(enc):
                 ssh["cipher"].add(enc.split(",")[0])
-    except Exception:
+    except Exception:  # a malformed or truncated payload keeps the facts found so far; parsing capture data must never abort the import
         pass
 
 
@@ -661,9 +665,9 @@ def _smtp_facts(payload, smtp):
             elif up.split(" ", 1)[0] in ("DATA", "QUIT", "AUTH", "STARTTLS", "NOOP", "RSET", "VRFY"):
                 c = up.split(" ", 1)[0]
                 smtp["cmds"][c] = smtp["cmds"].get(c, 0) + 1
-            elif len(line) >= 3 and line[:3].isdigit():
+            elif len(line) >= 3 and line[:3].isascii() and line[:3].isdigit():
                 smtp["codes"][line[:3]] = smtp["codes"].get(line[:3], 0) + 1
-    except Exception:
+    except Exception:  # a malformed or truncated payload keeps the facts found so far; parsing capture data must never abort the import
         pass
 
 
@@ -685,7 +689,7 @@ def _nfs_facts(payload, nfs, is_tcp):
             proc = int.from_bytes(payload[o + 20:o + 24], "big")
             nm = NFS3_PROC.get(proc, "proc%d" % proc)
             nfs["procs"][nm] = nfs["procs"].get(nm, 0) + 1
-    except Exception:
+    except Exception:  # a malformed or truncated payload keeps the facts found so far; parsing capture data must never abort the import
         pass
 
 
@@ -732,7 +736,7 @@ def _ntp_facts(payload, ntp):
         ntp["modes"][m] = ntp["modes"].get(m, 0) + 1
         if len(payload) >= 2:
             ntp["stratum"].add(payload[1])
-    except Exception:
+    except Exception:  # a malformed or truncated payload keeps the facts found so far; parsing capture data must never abort the import
         pass
 
 
@@ -791,7 +795,7 @@ def profile(path, cap=None):
     check_size(path)
     skips = {}                     # reason -> frames left out of the profile (shown in the report)
     unsupported_links = {}          # link type -> frames, for captures the parser cannot read
-    overflow = {"hosts": 0, "convos": 0, "ports": 0}   # items refused once a table hit its cap
+    overflow = {"hosts": 0, "convos": 0, "ports": 0, "minutes": 0, "macs": 0}   # items refused once a table hit its cap
     protos, bytes_by = {}, {}
     hosts = {}                      # ip -> [pkts, bytes]
     convos = {}                     # (a,b,dport,proto) -> [pkts, bytes]
@@ -847,14 +851,21 @@ def profile(path, cap=None):
         if ts:
             first_ts = ts if first_ts is None else min(first_ts, ts)
             last_ts = ts if last_ts is None else max(last_ts, ts)
-            minute_pkts[int(ts // 60)] = minute_pkts.get(int(ts // 60), 0) + 1
+            minute = int(ts // 60)
+            if minute in minute_pkts or len(minute_pkts) < MAX_MINUTES:
+                minute_pkts[minute] = minute_pkts.get(minute, 0) + 1
+            else:
+                overflow["minutes"] += 1
         try:
             name = classify(eth)
         except (IndexError, struct.error):          # runt frame the classifier cannot read
             skips["truncated frame"] = skips.get("truncated frame", 0) + 1
             continue
         if len(eth) >= 14 and eth[0:6] != b"\x00\x00\x00\x00\x00\x00":
-            macs.add(eth[6:12].hex())
+            if len(macs) < MAX_MACS or eth[6:12].hex() in macs:
+                macs.add(eth[6:12].hex())
+            else:
+                overflow["macs"] += 1
 
         # ---- layer 3: IPv4 and IPv6 (no v6 extension headers), else count and skip ----
         et = eth[12:14]
@@ -1154,6 +1165,10 @@ def coverage_html(prof):
         rows.append((k, v))
     notes = []
     ov = p["overflow"]
+    if ov["minutes"] or ov["macs"]:
+        notes.append("Limits were reached: %d packets fell in minutes beyond the first %d, and %d packets came from source "
+                     "addresses beyond the first %d. Totals and protocol counts are still complete."
+                     % (ov["minutes"], MAX_MINUTES, ov["macs"], MAX_MACS))
     if ov["hosts"] or ov["convos"] or ov["ports"]:
         notes.append("Table limits were reached (%d hosts, %d conversations, %d server-port entries left out of the "
                      "tables). Totals and protocol counts are still complete." % (ov["hosts"], ov["convos"], ov["ports"]))
@@ -1588,7 +1603,7 @@ def _load_inventory(path):
                 for v in o:
                     walk(v)
         walk(inv)
-    except Exception:
+    except Exception:  # a malformed inventory yields the names found so far, which is the documented partial result
         pass
     return sorted(ws), servers
 

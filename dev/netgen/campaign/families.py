@@ -112,7 +112,7 @@ FAMILIES = {
         "repeatedly from a workstation and a non-browser TLS hello behind a browser user agent."),
     "emotet": _fam(
         "Emotet", ["heodo", "geodo", "emotet c2"], "http",
-        _prof(_MSIE7, "POST", ["/wp-content/", "/cgi-bin/", "/images/", "/news/", "/admin/", "/tmp/"],
+        _prof(_MSIE7, "POST", ["/wp-content/", "/cgi-bin/", "/images/", "/news/", "/admin/", "/tmp/"],  # lint-ok: URL paths in a simulated HTTP request, not filesystem paths
               ["Content-Type: multipart/form-data"], "application/octet-stream", "winhttp", "session", True),
         45.0, 0.4, 200, 4000,
         "Imitates the loader's HTTP check-in publicly documented: POSTs of opaque form-data bodies to bare "

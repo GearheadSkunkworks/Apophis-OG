@@ -12,8 +12,8 @@ from unittest import mock
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import settings_store as ss  # noqa: E402
-import server  # noqa: E402
+import settings_store as ss  # noqa: E402 - sys.path is set up before the import
+import server  # noqa: E402 - sys.path is set up before the import
 
 
 class TmpDirCase(unittest.TestCase):
@@ -23,6 +23,52 @@ class TmpDirCase(unittest.TestCase):
         p = mock.patch.dict(os.environ, {"OG_SETTINGS_DIR": self.tmp.name})
         p.start()
         self.addCleanup(p.stop)
+
+
+class TestPrivateDir(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+
+    def mode(self, p):
+        return stat.S_IMODE(os.lstat(p).st_mode)
+
+    def test_new_folder_is_0700_and_the_settings_write_uses_it(self):
+        d = os.path.join(self.tmp.name, "a", "b")
+        with mock.patch.dict(os.environ, {"OG_SETTINGS_DIR": d}):
+            ss.update({"theme": "light"})
+        self.assertEqual(self.mode(d), 0o700)
+
+    def test_default_folder_is_tightened_when_ours(self):
+        env = {k: v for k, v in os.environ.items() if k != "OG_SETTINGS_DIR"}
+        env.update(HOME=self.tmp.name, XDG_CONFIG_HOME=os.path.join(self.tmp.name, ".config"))
+        with mock.patch.dict(os.environ, env, clear=True):
+            d = ss.settings_dir()
+            os.makedirs(d, mode=0o755)
+            os.chmod(d, 0o755)
+            ss.ensure_private_dir()
+        self.assertEqual(self.mode(d), 0o700)
+
+    def test_a_chosen_folder_is_left_alone(self):
+        d = os.path.join(self.tmp.name, "mine")
+        os.mkdir(d, 0o755)
+        os.chmod(d, 0o755)
+        with mock.patch.dict(os.environ, {"OG_SETTINGS_DIR": d}):
+            ss.ensure_private_dir()
+        self.assertEqual(self.mode(d), 0o755)
+
+    def test_a_symlinked_default_folder_is_not_chmodded(self):
+        target = os.path.join(self.tmp.name, "elsewhere")
+        os.mkdir(target, 0o755)
+        os.chmod(target, 0o755)
+        env = {k: v for k, v in os.environ.items() if k != "OG_SETTINGS_DIR"}
+        env.update(HOME=self.tmp.name, XDG_CONFIG_HOME=os.path.join(self.tmp.name, ".config"))
+        with mock.patch.dict(os.environ, env, clear=True):
+            d = ss.settings_dir()
+            os.makedirs(os.path.dirname(d), exist_ok=True)
+            os.symlink(target, d)
+            ss.ensure_private_dir()
+        self.assertEqual(self.mode(target), 0o755)
 
 
 class TestStore(TmpDirCase):
@@ -104,7 +150,8 @@ class TestRoute(TmpDirCase):
     def call(self, method, body=None, raw=None):
         c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=30)
         data = raw if raw is not None else (None if body is None else json.dumps(body).encode())
-        c.request(method, "/api/settings", body=data, headers={"Content-Type": "application/json"})
+        c.request(method, "/api/settings", body=data, headers={"Content-Type": "application/json",
+                                                          "Cookie": "og_ui=" + server.UI_SECRET})
         r = c.getresponse()
         out = r.read()
         c.close()

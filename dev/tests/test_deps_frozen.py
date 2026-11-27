@@ -6,7 +6,7 @@ import unittest
 from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import deps  # noqa: E402
+import deps  # noqa: E402 - sys.path is set up before the import
 
 ADVICE = re.compile(r"pip3?\b|brew\b|python\.org|python3\b|inventory\.py|requirements\.txt", re.I)
 KEYS = {"name", "required", "found", "why", "version", "hint", "detail"}
@@ -66,7 +66,7 @@ class FrozenDepsTest(unittest.TestCase):
 class TzFallbackTest(unittest.TestCase):
     def test_bundled_tzdata_used_when_system_db_missing(self):
         try:
-            import tzdata  # noqa: F401
+            import tzdata  # noqa: F401 - imported only to prove the package is bundled
         except ImportError:
             self.skipTest("tzdata package not installed")
         import zoneinfo

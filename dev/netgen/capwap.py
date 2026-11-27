@@ -33,9 +33,10 @@ import random
 import struct
 
 from .identity import get_current, H
+from .keypool import next_key
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa
+from cryptography.hazmat.primitives.asymmetric import ec, padding
 from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 
 CTRL_PORT, DATA_PORT = 5246, 5247
@@ -324,7 +325,7 @@ class Plane:
         """A client certificate for the AP, issued by the same CA (EKU clientAuth)."""
         if ap.name not in self.certs:
             pki = self.ctx.pki
-            key = rsa.generate_private_key(65537, 2048)
+            key = next_key()
             now = pki.anchor - datetime.timedelta(days=pki.LEAF_BEFORE_DAYS)
             subj = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "%s.%s" % (ap.name.lower(), get_current().domain))])
             cert = (x509.CertificateBuilder().subject_name(subj).issuer_name(pki.ca_cert.subject)

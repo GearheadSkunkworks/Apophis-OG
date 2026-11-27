@@ -14,12 +14,13 @@ def _err(status, exc):
 
 
 def keys_status(data):
-    if not keystore.available():
-        return 200, {"available": False, "stored": []}
+    info = keystore.status()
+    if not info["available"]:
+        return 200, {"available": False, "stored": [], "storage": info}
     try:
-        return 200, {"available": True, "stored": keystore.stored_ids()}
+        return 200, {"available": True, "stored": keystore.stored_ids(), "storage": info}
     except keystore.KeystoreError:
-        return 200, {"available": True, "stored": []}
+        return 200, {"available": True, "stored": [], "storage": info}
 
 
 def keys_save(data):

@@ -10,7 +10,7 @@ import unittest
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import scenario_meta  # noqa: E402
+import scenario_meta  # noqa: E402 - sys.path is set up before the import
 
 with open(scenario_meta.PATH, encoding="utf-8") as _f:
     META = {e["id"]: e for e in json.load(_f)["scenarios"]}

@@ -8,7 +8,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from netgen import ftpfiles as FF  # noqa: E402
+from netgen import ftpfiles as FF  # noqa: E402 - sys.path is set up before the import
 
 
 def valid_png(b):

@@ -12,7 +12,7 @@ import sys
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import opengenerator_build  # noqa: E402
+import opengenerator_build  # noqa: E402 - sys.path is set up before the import
 
 WLC = bytes([10, 10, 20, 50])
 FIXED_GAPS = (3.0, 6.0, 12.0, 15.0)           # RETRANSMIT offsets 0, 3, 9, 21, 36, 51 -> gaps between copies

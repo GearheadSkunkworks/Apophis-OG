@@ -5,7 +5,7 @@ import unittest
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import make_diagram as MD  # noqa: E402
+import make_diagram as MD  # noqa: E402 - sys.path is set up before the import
 
 
 class T(unittest.TestCase):

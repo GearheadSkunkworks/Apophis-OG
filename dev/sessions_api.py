@@ -269,7 +269,7 @@ def route_get(path, query_string):
         return _reply(status, obj)
     except ApiError as e:
         return _reply(e.status, dict(e.extra, error=e.message))
-    except Exception:                                                  # noqa: BLE001
+    except Exception:                                                  # noqa: BLE001 - last-resort handler returns a generic 500 reply
         return _reply(500, {"error": "the request could not be completed"})
 
 
@@ -286,5 +286,5 @@ def route_post(path, data, bad_json=False):
         return _reply(status, obj)
     except ApiError as e:
         return _reply(e.status, dict(e.extra, error=e.message))
-    except Exception:                                                  # noqa: BLE001
+    except Exception:                                                  # noqa: BLE001 - last-resort handler returns a generic 500 reply
         return _reply(500, {"error": "the request could not be completed"})

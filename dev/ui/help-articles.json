@@ -86,7 +86,362 @@
     "baseline-and-scale",
     "settings-and-lab-switch"
    ],
-   "body": "Replay needs tcpreplay, which you install separately.\n\n## Before you start\n\n- Have a capture. See [[build-a-capture]].\n- Know which network card is cabled to the sensor's monitoring port or SPAN or TAP feed.\n- Expect a macOS administrator prompt. The password goes to macOS, not to this app.\n\n## Steps\n\n1. Click Replay in the top bar, or Replay this capture in Captures after a build. Use for replay on an earlier capture does the same for that file.\n2. Check the dependency chips under Replay on the wire. If tcpreplay is missing, a red message gives the install command. Install it, then reload the page.\n3. Capture file holds your last build. Type another path to replay a different file.\n4. Choose the card in Replay interface. The app marks one as recommended.\n5. Choose a Speed. Original timing x multiplier is the default: 1 is real time, 2 is twice as fast, 0.5 is half speed. Top speed, Fixed packets/sec and Fixed Mbps ignore the capture's timing.\n6. Set Loops to the number of times to play the capture. 1 plays it once.\n7. Leave Open a monitor window ticked to get a Terminal window showing tcpreplay's output. Control-C there stops the replay without a password.\n8. Tick I understand - start the replay. Start replay stays greyed out until you do.\n9. Click Start replay and approve the macOS prompt. The progress panel shows Played as a percentage, send rate and elapsed time. The top bar chip changes to Replaying.\n10. When it ends the title reads Replay complete. Click Stop replay to end it early; the title then reads Stopped, noting the capture was partly played.\n\n- The replay runs as a separate process. Reloading the page, opening a second tab or restarting the app does not stop it. Quitting the app on purpose does.\n- A sensor with the matching threat collection raises threat matches during replay. See [[lab-sensor-pushes]].\n\n## If something goes wrong\n\n- Start replay stays disabled: tick the acknowledgement, install tcpreplay, or wait for a running replay to finish.\n- It says a replay is already in progress. Only one replay runs at a time. Wait for it to end or press Stop replay.\n- It says tcpreplay will not be run as root. Replay runs it as administrator, so the app does so only for a `tcpreplay` kept in a protected place, such as a Homebrew or system folder. One in your home folder is refused. Install it with the command shown.\n- Could not start replay: read the message under the form. The app re-checks the file and interface before it asks for a password."
+   "body": "Replay needs tcpreplay, which you install separately.\n\n## Before you start\n\n- Have a capture. See [[build-a-capture]].\n- Know which network card is cabled to the sensor's monitoring port or SPAN or TAP feed.\n- Expect a macOS administrator prompt. The password goes to macOS, not to this app.\n\n## Steps\n\n1. Click Replay in the top bar, or Replay this capture in Captures after a build. Use for replay on an earlier capture does the same for that file.\n2. Check the dependency chips under Replay on the wire. If tcpreplay is missing, a red message gives the install command. Install it, then reload the page.\n3. Capture file holds your last build. Type another path to replay a different file.\n4. Choose the card in Replay interface. The app marks one as recommended.\n5. Choose a Speed. Original timing x multiplier is the default: 1 is real time, 2 is twice as fast, 0.5 is half speed. Top speed, Fixed packets/sec and Fixed Mbps ignore the capture's timing.\n6. Set Loops to the number of times to play the capture. 1 plays it once.\n7. Leave Open a monitor window ticked to get a Terminal window showing tcpreplay's output. Control-C there stops the replay without a password.\n8. Tick I understand - start the replay. Start replay stays greyed out until you do.\n9. Click Start replay and approve the macOS prompt. The progress panel shows Played as a percentage, send rate and elapsed time. The top bar chip changes to Replaying.\n10. When it ends the title reads Replay complete. Click Stop replay to end it early; the title then reads Stopped, noting the capture was partly played.\n\n- The replay runs as a separate process. Reloading the page, opening a second tab or restarting the app does not stop it. Quitting the app on purpose does.\n- A sensor with the matching threat collection raises threat matches during replay. See [[lab-sensor-pushes]].\n\n## If something goes wrong\n\n- Start replay stays disabled: tick the acknowledgement, install tcpreplay, or wait for a running replay to finish.\n- It says a replay is already in progress. Only one replay runs at a time. Wait for it to end or press Stop replay.\n- It says tcpreplay will not be run as root. Replay runs it as administrator, so from 6.0 the app does so only for a `tcpreplay` whose file and folder are both owned by root and not writable by anyone else. One in your home folder is refused, and the message gives a one-time command that puts a root-owned copy in `/usr/local/bin`, where the app looks. On macOS every library the tool loads must also sit in a root-owned folder that others cannot write. Homebrew's `tcpreplay` loads `libdnet` from a folder you own, so it is refused even as a root-owned copy, and the message names the library. Install `tcpreplay` with MacPorts (`sudo port install tcpreplay`) or use a statically linked build, or run the app as root. Replay without administrator rights is not affected.\n- The interface and tool checks on the Replay page are reused for a few seconds, so a fix you made a moment ago can take a few seconds to show. Start still re-checks before it sends.\n- Could not start replay: read the message under the form. The app re-checks the file and interface before it asks for a password."
+  },
+  {
+   "id": "vlan-tagging",
+   "kind": "note",
+   "title": "VLAN tagging",
+   "summary": "An opt-in setting that puts an 802.1Q tag on every frame. Off by default.",
+   "keywords": [
+    "802.1ad",
+    "802.1q",
+    "compose",
+    "network options",
+    "qinq",
+    "span port",
+    "tag",
+    "trunk",
+    "vantage",
+    "vid",
+    "vlan"
+   ],
+   "where": "Compose",
+   "related": [
+    "build-a-capture",
+    "addressing-and-networks",
+    "ipv6-dual-stack",
+    "tunnel-carriers"
+   ],
+   "body": "A capture is untagged by default. VLAN tagging is an option for sensors that expect frames from a trunk or a mirror port. It changes nothing unless you ask for it, and the default day and its packet count stay as they were.\n\nIn Compose, open Network options and turn on VLAN tagging. Choose one VLAN per subnet or one fixed ID, and add an outer tag if you want QinQ. On the command line it is `--vlan` and `--vlan-qinq`.\n\n## Choices\n\n- `--vlan` or `--vlan subnet`: each flow gets one VLAN ID, taken from the segment where the capture sees it. The ID is the third number of that subnet, so 10.10.20.0/24 becomes 20. A third number of 0 becomes 1. Both directions of a flow carry the same ID.\n- `--vlan 120`: every frame gets the one ID you give, 1 to 4094.\n- `--vlan-qinq` or `--vlan-qinq 300`: adds an outer 802.1ad service tag over the 802.1Q tag. The outer ID defaults to 100. It implies `--vlan`.\n\n## What to expect\n\n- The 4-byte tag is added before the frame is padded to the 60-byte minimum. A tagged frame is therefore not always exactly 4 bytes longer than the same frame untagged. A short frame can absorb the tag in its padding.\n- Byte counts in the manifest and the report are bytes as written to the file, tags included.\n- The setting is part of the build parameters. A tagged and an untagged build of the same scenarios never count as the same build, so one does not replace the other. See [[earlier-builds]].\n- The manifest records the setting, how many frames were tagged and how many tag bytes that added.\n- The Zeek-style TLS and HTTP logs still read tagged captures. The flow truth file and the flow export do not: they read untagged IPv4 only, so on a tagged capture every frame is counted as unflowed and they hold no flows. See [[build-exports]].\n\n## Not covered\n\nWith tunnels on as well, a tunneled frame between two hosts on the same subnet gets the default VLAN ID. See [[tunnel-carriers]].\n\nThe per-subnet choice reads IPv4 and ARP addresses. IPv6 frames from the dual-stack option are tagged too: the segment comes from the sending host, or from the subnet part of a private IPv6 address. A link-local frame from an unknown sender gets the default segment. See [[ipv6-dual-stack]]."
+  },
+  {
+   "id": "build-exports",
+   "kind": "note",
+   "title": "Build exports",
+   "summary": "Opt-in files beside the pcap: a flow truth file, Zeek-style logs and a pcapng copy.",
+   "keywords": [
+    "exports",
+    "truth",
+    "truth.jsonl",
+    "zeek-style",
+    "ssl.log",
+    "x509",
+    "http.log",
+    "pcapng",
+    "tag sidecar",
+    "flow",
+    "key log"
+   ],
+   "where": "Compose",
+   "related": [
+    "captures-and-files",
+    "generation-report",
+    "earlier-builds",
+    "flow-export-ipfix"
+   ],
+   "body": "Exports are extra files written beside the pcap after a build. All are off by default and cost nothing unless asked for. In Compose, open Exports and turn on the ones you want. Each shows a rough size. On the command line use `--exports` once for each: `truth`, `ssl`, `http` and `pcapng`. Flow export (`ipfix`, `netflow9`) is command line and API only. See [[flow-export-ipfix]].\n\nAny export also writes a small tag file, `<name>.tags`, with one byte per packet naming the scenario that made it.\n\n## Zeek-style, not Zeek\n\nThe logs use Zeek's column names, types and header block, filled by this app's own rules. They have not been compared with a real Zeek run, so treat a field as approximate unless it is listed as exact below.\n\n## The files\n\n- **`<name>-truth.jsonl`.** One line per flow, with the scenario that produced it, whether it is normal-day traffic, packet and byte counts, TCP flags and first and last packet numbers. The packet numbers match the pcap. A flow ends after 300 s idle for TCP (Zeek's published value), 60 s for UDP and 30 s for ICMP. The UDP and ICMP values are placeholders and not measured against any sensor. A SYN after a FIN or RST starts a new flow. The file reads untagged IPv4 only. IPv6 and VLAN-tagged frames are counted as unflowed.\n- **`<name>-ssl.log` and `<name>-x509.log`.** TLS handshakes and the certificates seen in the clear. A real TLS 1.3 handshake is encrypted, so those rows carry no certificate chain. The `cert_dates` column is not a Zeek column. It says whether the leaf was valid at the flow time.\n- **`<name>-http.log`.** One row per plain HTTP request. Sizes are bytes on the wire, not decoded sizes. HTTPS content is not read.\n- **`<name>.pcapng`.** The pcap converted, with the same packets and times. `--pcapng-comments` adds each packet's scenario as a comment. `--pcapng-embed-keys` embeds the TLS key log so one file decrypts in Wireshark. Embedding is off by default.\n\n## What is exact and what is approximate\n\nThe Zeek-style logs follow IPv4 TCP only, so the dual-stack IPv6 traffic does not appear in them. Exact: packet and flow counts, times, packet numbers, the scenario tags and the pcapng contents. Approximate: connection states, the history string, services named by port, and everything that Zeek derives from payload.\n\n## Reproducibility\n\nThe exports are a fixed function of the pcap and its tag file, so the same pcap gives the same export. Two rebuilds are not byte-identical: certificates and some payload bytes are random.\n\nAn export that fails is recorded in the manifest and the capture is kept. The tag file stops at 256 different tags. Past that the truth export is skipped."
+  },
+  {
+   "id": "slice-a-capture",
+   "kind": "workflow",
+   "title": "Cut a slice out of a capture",
+   "summary": "Copy one scenario's time window or packets into a smaller pcap, from the Captures page or the command line.",
+   "keywords": [
+    "captures",
+    "cut slice",
+    "pure slice",
+    "replay one scenario",
+    "scenario only",
+    "slice",
+    "slice_pcap",
+    "slicer",
+    "smaller pcap",
+    "tcpreplay",
+    "window slice"
+   ],
+   "where": "Captures",
+   "related": [
+    "replay-a-capture",
+    "build-exports",
+    "replay-record-and-resume"
+   ],
+   "body": "A full day at 1x takes about 16 hours to replay. A slice holds one scenario's traffic so you can replay it in less time. A slice copies packets exactly as they are and never changes the original files.\n\n## Steps\n\n1. Open Captures and expand Cut a slice of one scenario.\n2. Choose a capture. The list holds classic pcap files from the output folder, and never a slice of a slice. A capture needs its build manifest beside it.\n3. Choose a scenario. Only scenarios that put packets in the file are listed.\n4. Choose the kind. A takes every packet in the scenario's time window, plus the padding each side. B takes the scenario's own packets and baseline packets near them. C takes only the scenario's packets.\n5. Set the padding in seconds (default 300). For B and C, set Background to None, Inside the padded spans, or The whole capture's background.\n6. Read the preview line, then press Cut slice.\n7. Find `<name>.slice.<scenario>.<kind>.pcap` and its `.json` sidecar beside the capture. The result shows the packets kept and the original packet numbers of each kept span. Use for replay opens the Replay page with the slice chosen.\n\nThe sidecar names the source pcap's hash, the spans used and the original packet numbers. The command line does the same from a source copy: `python3 tools/slice_pcap.py <name>.pcap --scenario <scenario> --kind A`, with `--ctx` and `--baseline`.\n\n## Which kind to use\n\n- **A** is the faithful one. It is the same traffic the sensor sees in the full day, including other scenarios running at the same time. It needs no tag file.\n- **B and C** are experiments. The sensor sees a different traffic mix than in the full capture, so an alert may appear or vanish. They need the build's tag file, which any export switched on in Compose writes. The slice file says which kind it is.\n\n## Caveats\n\n- Timestamps are copied unchanged. A replay shifts packets by their gaps, so a live sensor stamps its own time. A sensor that reads the file reads its original dates. Moving dates by days with a rebase makes certificate and ticket times inside the payloads disagree with the packet times.\n- Replay at 1x. Capping gaps with `--maxsleep` shortens the run but breaks the rhythm that beacon and brute-force detections watch for.\n- A resumed replay is not one continuous 1x run. See [[replay-record-and-resume]].\n- The slicer refuses a manifest whose hash does not match its content.\n\n## If something goes wrong\n\n- It says the tag file is missing for B or C. Rebuild with an export, or use kind A.\n- It says the manifest was edited. Use the manifest the build wrote.\n- It says the slicer is not part of this build of the app. The slicer is a file in the source tree's `tools` folder. The packaged apps that have been checked do not include it, so cut from a source copy.\n"
+  },
+  {
+   "id": "replay-record-and-resume",
+   "kind": "note",
+   "title": "The replay record and resume",
+   "summary": "Each replay leaves a small record beside the capture. A stopped run can pick up where it left off.",
+   "keywords": [
+    "continuous 1x",
+    "include range",
+    "overlap",
+    "record",
+    "records list",
+    "replay id",
+    "replay record",
+    "resume",
+    "resume button",
+    "sensor label",
+    "stopped replay"
+   ],
+   "where": "Replay",
+   "related": [
+    "replay-a-capture",
+    "slice-a-capture",
+    "captures-and-files"
+   ],
+   "body": "Each replay that starts traffic writes one small file beside the capture, `<name>.replay-<id>.json`. It lets a later result on the sensor be tied to what was sent.\n\n## What the record holds\n\n- The file replayed, by name, size and sha256. A full capture takes its hash from its manifest. A slice names its source capture.\n- The speed, loop count, packet range, any rebase and any pause cap.\n- When it started and stopped, how many packets went out, and whether it finished, was stopped or failed.\n- The kind of interface, such as wired or file. Never its name.\n- A label you chose for the sensor and a note.\n- Whether the run was a continuous 1x run.\n\nIt never holds a sensor address, key, token or provider setting, a file path, or the text of an error. The label cannot be an address. A record that cannot be written does not fail the replay.\n\n## Resume\n\nA run that was stopped or failed can continue. The app finds the next packet that was not sent and starts a few packets earlier, so nothing is lost at the join. The overlap is 500 packets unless you set another, 0 to 100,000.\n\n- Only a single pass (loop 1) can be resumed.\n- A finished run, or a run whose position is unknown, cannot.\n- The file must be the one that run replayed. A pcapng file cannot be resumed.\n- A resume sets its own packet range, so it cannot also take one.\n\nA resumed run is not a continuous 1x run. Its record says so and names the run it continued.\n\n## Where this is available\n\nRecords and resume belong to the person at the app. An agent has no verb for them.\n\nOn the Replay page, Replay records for this capture lists each record for the capture in the file field, oldest first. View shows its facts and the full JSON. A run that can resume shows Resume from packet N. That button only fills the form: it sets Resume an earlier run under More replay options and reminds you that a resumed run is not continuous. Press Start replay to go ahead. A record marked as changed since cannot be resumed from the list. The same options hold a packet range, a longest-pause cap, a sensor label and a note."
+  },
+  {
+   "id": "scenario-expectations",
+   "kind": "note",
+   "title": "Scenario expectations",
+   "summary": "A data file that says what each scenario's traffic does and what a sensor could raise.",
+   "keywords": [
+    "expectations",
+    "scenario_expectations",
+    "answer key",
+    "detections",
+    "att&ck",
+    "validator",
+    "check_expectations",
+    "expected detections"
+   ],
+   "where": "Command line",
+   "related": [
+    "scenarios-and-categories",
+    "incident-replays",
+    "cve-profiles-and-exploit-probe"
+   ],
+   "body": "`scenario_expectations.json` describes every scenario, all 81 of them, in plain data. There is no screen for it yet, and nothing in the app scores a sensor against it.\n\n## What each entry has\n\n- A summary of what the traffic does.\n- The roles involved: attacker, victim and infrastructure. They are inventory role names, never addresses.\n- The ATT&CK techniques the traffic shows, with a tactic and a note, and industrial-control techniques where they apply.\n- How much the result depends on the baseline.\n- Expected detections. Each has a class from a fixed vocabulary of 49, a strength and a status.\n\n## Strength and status\n\nStrength is expected, plausible or informational. There is no stronger level, because that needs evidence from a live sensor. Every entry starts at status authored. The later statuses (reviewed, run-observed, run-confirmed, disputed) are for a person to set when evidence exists.\n\n## The validator\n\nFrom a source copy, `python3 tools/check_expectations.py` lists every problem and exits 1 if there are any. It checks that every scenario has an entry and none is stale, that technique ids exist and fit their tactic, that classes, strengths and statuses come from the fixed lists, that timing hints fit each scenario's window, and that no name or path breaks the neutrality list. The test suite runs it, so a new scenario without an entry fails the gate."
+  },
+  {
+   "id": "replay-on-linux",
+   "kind": "note",
+   "title": "Replay on Linux",
+   "summary": "How replay picks an interface and gets raw-socket rights on Linux, and the one-time setcap fix.",
+   "keywords": [
+    "linux",
+    "replay",
+    "setcap",
+    "cap_net_raw",
+    "pkexec",
+    "sudo",
+    "tcpreplay install",
+    "interface",
+    "elevation"
+   ],
+   "where": "Replay",
+   "related": [
+    "replay-a-capture",
+    "replay-record-and-resume",
+    "install-on-linux"
+   ],
+   "body": "Replay needs `tcpreplay`, which is installed separately. On Linux the app names the command for your distribution: `sudo apt install tcpreplay` on Debian and Ubuntu, `sudo dnf install tcpreplay` on Fedora, `sudo dnf install epel-release && sudo dnf install tcpreplay` on RHEL-family systems, and the matching command for openSUSE, Arch and Alpine. The app never runs it for you.\n\n## Choosing an interface\n\nInterfaces are ranked. Loopback, virtual interfaces (containers, VMs, bridges, tunnels) and the interface that carries this computer's default route are listed last and carry a warning. Replaying on the default route can put traffic on a production network. They stay selectable. The suggestion is the fastest wired link that is up and not warned about.\n\n## How it gets permission\n\nSending raw packets needs rights. The app tries these in order and says which it chose:\n\n1. Already running as root.\n2. `tcpreplay` has the `cap_net_raw` capability. No prompt.\n3. Passwordless `sudo` for that exact `tcpreplay` binary. The app checks with `sudo -n` and never prompts.\n4. `pkexec`, when a desktop session is present. A system dialog asks for an administrator password, and the password goes to that dialog, never to the app. Stop cannot end a replay started this way before it finishes.\n5. None of these. The message gives the fix.\n\n## The one-time fix\n\nAs an administrator, run `sudo setcap cap_net_raw+ep $(command -v tcpreplay)`. Run it again after `tcpreplay` is upgraded. This avoids the password dialog and keeps Stop working.\n\n## Status\n\nThis is new in 6.0. It was written and tested with simulated system answers, and has not yet been confirmed on a Linux machine. For the app itself, see [[install-on-linux]]."
+  },
+  {
+   "id": "ipv6-dual-stack",
+   "kind": "note",
+   "title": "Add dual-stack IPv6 traffic",
+   "summary": "An opt-in slice of IPv6 traffic added on top of the IPv4 day. Off by default; the default capture is unchanged.",
+   "keywords": [
+    "ipv6",
+    "dual stack",
+    "ndp",
+    "router advertisement",
+    "dhcpv6",
+    "mld",
+    "ula",
+    "slaac",
+    "network options"
+   ],
+   "where": "Command line",
+   "related": [
+    "vlan-tagging",
+    "ipv6-scenarios",
+    "addressing-and-networks",
+    "build-exports"
+   ],
+   "body": "The default capture is IPv4. The dual-stack option adds a slice of IPv6 traffic on top of it, for sensors that should see both. It is off by default. A default build and its packet count do not change.\n\nUse `--ipv6` or `--ipv6 0.4` on the command line. In the API, send `network_options` with `ipv6` set to `true`, a share, or an object such as `{\"share\": 0.4, \"chatter\": false}`. The Compose page has no control for it.\n\n## What it adds\n\n- Neighbour discovery, Router Advertisements, multicast listener queries and reports, and DHCPv6, as background chatter. `\"chatter\": false` leaves these out and keeps only the flows.\n- DNS, HTTPS and SMB flows over IPv6 from a share of the workstations. The share is a number above 0 and at most 1. The default is 0.25.\n- Servers and gateways are always dual-stack. A workstation is dual-stack when a hash of its name falls under the share, so the same name is chosen every time.\n\n## Addresses\n\nInternal hosts get a private (ULA) address built from the company identity, the subnet and the host's own MAC. External hosts get an address in 2001:db8::/32, the documentation range. Addresses are derived, never drawn at random, so they are stable.\n\n## What stays the same\n\nEverything in the IPv6 slice is scheduled after the day and the scenarios, and carries its own `v6:` tags. It uses private random streams. Remove those frames and the rest of the capture has the same packet count, protocol mix, 5-tuples and times as a build without the option. The manifest records the option and a block for it, with packets and bytes per tag.\n\n## Limits\n\n- The IPv6 traffic is a slice, not a second copy of the day. Scenarios run over IPv4 unless you pick the IPv6 variants. See [[ipv6-scenarios]].\n- The flow truth file, the flow export and the Zeek-style logs read IPv4 only. IPv6 frames are counted as unflowed in the first two and absent from the logs.\n- With VLAN tagging on, IPv6 frames are tagged too. See [[vlan-tagging]].\n- It was checked in the tests with independent IPv6 checks and, where available, Wireshark's command-line dissector. It has not been compared with a real dual-stack network or run against a sensor.\n"
+  },
+  {
+   "id": "ipv6-scenarios",
+   "kind": "note",
+   "title": "IPv6 scenario variants",
+   "summary": "A campaign option that runs actions over IPv6, plus two IPv6 link-local attack scenarios.",
+   "keywords": [
+    "ipv6",
+    "ip_family",
+    "rogue ra",
+    "mitm6",
+    "nd flood",
+    "router advertisement",
+    "dhcpv6",
+    "wpad",
+    "campaign option"
+   ],
+   "where": "Campaigns",
+   "related": [
+    "ipv6-dual-stack",
+    "build-a-campaign",
+    "scenarios-and-categories",
+    "scenario-expectations"
+   ],
+   "body": "Two additions put attack traffic on IPv6: a campaign option and two scenarios.\n\n## Campaign option ip_family\n\nA campaign has an option `ip_family` with three values:\n\n- `v4`, the default. A campaign without the option is the campaign it always was.\n- `v6`. Every action runs over IPv6.\n- `dual`. Actions alternate: the first over IPv4, the second over IPv6, and so on in order.\n\nSet it in the campaign file or the API. The Campaign Builder page has no control for it. Each action in the campaign summary records its family and, for IPv6, the addresses the capture carries. Actions run on private random streams, so the rest of the day does not move. IPv6 indicators in a feed are still carried but not placed in the capture.\n\n## Two scenarios\n\nBoth are ordinary entries in the scenario list, in the NDR group. Pick them like any scenario. They do not need the dual-stack option.\n\n- **IPv6 rogue RA and DHCPv6 takeover** (11:00 to 11:30). A workstation sends Router Advertisements, answers victims' DHCPv6 requests with its own address as the DNS server, serves a proxy-discovery file over IPv6 and collects NTLM from the fetch. It then reuses that identity against a file server over IPv4. This follows the public description of the mitm6 technique. The relay leg is SMB with the victim's account name, not an LDAP relay.\n- **IPv6 neighbour-discovery flood** (11:40 to 12:10). A workstation floods the segment with Router Advertisements from random source addresses, each with a new prefix, then solicits addresses nobody holds, so the gateway retries each three times. It is filed under Impact. Some taxonomies call it discovery abuse.\n\nBoth have confidence medium in the scenario data. See [[scenario-expectations]].\n\n## What was checked\n\nThe tests check that the default is unchanged, that the output is deterministic and that the shared random streams end where they started. They run the IPv6 checker and, where available, Wireshark's command-line dissector. No sensor was run against these scenarios, so what a sensor raises is expected, not observed.\n"
+  },
+  {
+   "id": "flow-export-ipfix",
+   "kind": "note",
+   "title": "Flow export: IPFIX and NetFlow v9",
+   "summary": "Opt-in exports that write flow records as exporter packets plus a CSV. Collector acceptance is not verified.",
+   "keywords": [
+    "ipfix",
+    "netflow",
+    "netflow v9",
+    "flow export",
+    "exporter",
+    "collector",
+    "flow records",
+    "exports",
+    "rfc 7011"
+   ],
+   "where": "Command line",
+   "related": [
+    "build-exports",
+    "vlan-tagging",
+    "ipv6-dual-stack",
+    "captures-and-files"
+   ],
+   "body": "Two more exports write flow records the way a router or switch would send them. They are off by default. Use `--exports ipfix` or `--exports netflow9` once for each. In the API, put the names in `exports`. Compose has no control for them yet.\n\n## The files\n\n- `<name>-ipfix.pcap` and `<name>-ipfix.csv`: IPFIX (RFC 7011), to UDP port 4739.\n- `<name>-netflow9.pcap` and `<name>-netflow9.csv`: NetFlow v9 (RFC 3954), to UDP port 2055.\n\nThe pcap holds UDP datagrams from a synthetic exporter to a synthetic collector, both in 192.0.2.0/24, the documentation range. Each packet is stamped with the latest flow end time in its message, so the file replays in capture order. The CSV holds the same records. Both are listed in the manifest with their hashes, and `earlier-builds` moves them with their capture.\n\n## The records\n\n- One record per direction that carried packets, originator first. Both directions share the flow's one start and one end.\n- Fields: addresses, ports, protocol, TCP flags, packets, octets, start and end times, ingress and egress interface, the VLAN ID when a record has one, and the scenario tag. For ICMP, the destination port field carries type times 256 plus code.\n- Interface numbers, addresses, the observation domain and the tag element are synthetic values. The tag is enterprise element 1 of number 32473, the documentation number, so it is not a registered field. NetFlow v9 has no tag, so it is in the CSV only.\n- Templates go out first, when first needed, and every 20 messages or 600 seconds of export time.\n\n## Limits\n\n- A flow is exported once, after it ends. There is no active-timeout splitting.\n- Not implemented: bidirectional records, sampling, options templates, next hop, AS numbers, application ids.\n- The flow table reads untagged IPv4 only. With VLAN tagging or the IPv6 option, those frames produce no records. See [[vlan-tagging]].\n- The records are held in memory before writing, roughly 100 MB per million records. That figure is an estimate, not measured at full scale.\n- It was decoded in the tests with Wireshark's command-line dissector and an independent decoder. No real collector has accepted these files. Acceptance by a collector is not verified.\n\nThe output is a fixed function of the pcap and its tag file. Two rebuilds are not byte-identical, as for the other exports.\n"
+  },
+  {
+   "id": "where-keys-are-stored",
+   "kind": "note",
+   "title": "Where keys are stored",
+   "summary": "API keys and the agent token go to the macOS Keychain, the Linux desktop keyring, or a private file.",
+   "keywords": [
+    "keychain",
+    "keyring",
+    "secret service",
+    "secret-tool",
+    "libsecret",
+    "keystore",
+    "api keys",
+    "agent token",
+    "linux"
+   ],
+   "where": "Settings",
+   "related": [
+    "settings-and-lab-switch",
+    "campaign-feeds",
+    "what-is-the-agent-api",
+    "replay-on-linux"
+   ],
+   "body": "A key you choose to keep, and the agent token, go to one store. The app picks it when it starts, so the choice does not depend on what you click.\n\n## The three stores\n\n- **macOS Keychain.** Used on macOS. It behaves as it did before 6.0.\n- **Desktop keyring on Linux.** Used when the `secret-tool` command is found in a system folder and a keyring answers a quick test. A locked keyring that waits for a prompt counts as not answering.\n- **A private file.** Used on Linux when neither of the above works. It is `keystore.json` in the settings folder, mode 0600, in plain text. The app refuses to read it if another user owns it or others can read it, and tells you to run `chmod 600`.\n\nThe store in use and the reason are reported by the key status route, so a page can show whether keys are in a keyring or a file. A key never goes on a command line: it travels on the standard input of the helper.\n\n## Things to know\n\n- `secret-tool` is found only in fixed system folders, never through your PATH, because the secret passes through it. On Debian and Ubuntu it comes with `libsecret-tools`. A locked or missing keyring falls back to the file.\n- The agent token lives in the same store. An older token kept in a separate token file is no longer read. Create a new token if an assistant stops being accepted after an update. See [[what-is-the-agent-api]].\n- The settings folder is created private to you (mode 0700). A folder you chose with `OG_SETTINGS_DIR` is left as you made it.\n- A plain file is weaker than a keyring: anything running as you can read it. Use a keyring if you can.\n\n## Status\n\nThe three stores are tested with simulated system answers and a real private file. The keyring path has not been run against a live desktop keyring on a Linux machine. See [[replay-on-linux]] for the other Linux status notes.\n"
+  },
+  {
+   "id": "install-on-linux",
+   "kind": "workflow",
+   "title": "Install the Linux app",
+   "summary": "Check, unpack and run the Linux tarball, and add a launcher entry.",
+   "keywords": [
+    "linux",
+    "tarball",
+    "install",
+    "x86_64",
+    "aarch64",
+    "sha256sums",
+    "desktop entry",
+    "apophis",
+    "download"
+   ],
+   "where": "Command line",
+   "related": [
+    "replay-on-linux",
+    "where-keys-are-stored",
+    "linux-packages",
+    "update-on-linux"
+   ],
+   "body": "The Linux build is a tarball that holds the app and its own Python. It needs no root and writes nothing next to itself. The name is `apophis-<version>-linux-<arch>.tar.gz`, with `x86_64` or `aarch64`, and a `SHA256SUMS` file comes with it.\n\n## Steps\n\n1. Put the tarball and `SHA256SUMS` in one folder.\n2. Run `sha256sum -c --ignore-missing SHA256SUMS` there. It must say OK for the tarball. If it does not, fetch it again.\n3. Unpack it with `tar -xzf apophis-<version>-linux-<arch>.tar.gz`.\n4. Run `apophis` inside the new folder, `apophis-<version>-linux-<arch>/`. The launcher starts the local server, prints its address and opens your browser. Closing the tab or pressing Ctrl-C stops it.\n5. For a menu entry, run `./apophis --install-desktop` in that folder. It adds a launcher and icon for you under `~/.local/share` that point at this copy.\n\nOther launcher options are `--no-browser`, which only prints the address, and `--version`. With no display it prints the address and does not look for a browser.\n\n## Where things go\n\n- Settings: `$XDG_CONFIG_HOME/opengenerator`, or `~/.config/opengenerator`.\n- The launcher's log: `$XDG_STATE_HOME/apophis/server.log`, or `~/.local/state/apophis`.\n- Captures: the folder named in the app's page.\n\n## Requirements\n\n- It was built on AlmaLinux 9, so it needs glibc 2.34 or newer. RHEL 9 and Ubuntu 22.04 and anything newer qualify.\n- Replay needs `tcpreplay` and raw-socket rights. See [[replay-on-linux]].\n- Keys go to the desktop keyring or a private file. See [[where-keys-are-stored]].\n\n## Status and limits\n\n- The build recipe runs in containers and was checked by building the pinned baseline inside the bundle, on Ubuntu 22.04 and AlmaLinux 9, for x86_64. An aarch64 module list exists. Whether an aarch64 bundle has been run is not confirmed here.\n- It has not been tried on every desktop. Packages for it are in [[linux-packages]].\n- A tarball copy can update itself in the app. See [[update-on-linux]] for what is and is not verified.\n- The slice picker does not work in this bundle, because the slicer is not included. See [[slice-a-capture]].\n"
+  },
+  {
+   "id": "linux-packages",
+   "kind": "note",
+   "title": "Linux packages: deb, rpm, AppImage and Docker",
+   "summary": "The Linux app also comes as a .deb, an .rpm, an AppImage and a Docker recipe. What each needs, and what is unverified.",
+   "keywords": [
+    "deb",
+    "rpm",
+    "appimage",
+    "docker",
+    "dockerfile",
+    "linux",
+    "package",
+    "apt",
+    "dnf",
+    "unsigned",
+    "sha256sums"
+   ],
+   "where": "Command line",
+   "related": [
+    "install-on-linux",
+    "replay-on-linux",
+    "where-keys-are-stored",
+    "update-on-linux"
+   ],
+   "body": "Besides the tarball, each Linux release has packages for both x86_64 and aarch64. One `SHA256SUMS` covers every Linux file in the release, both architectures. Download the files you want and `SHA256SUMS` into one folder, then run `sha256sum -c --ignore-missing SHA256SUMS`. Each file you have must say OK.\n\n## The files\n\n- `apophis_<version>_<amd64|arm64>.deb`: install with `sudo apt install ./<file>`. It depends on a minimum glibc and recommends `tcpreplay`, which apt installs by default.\n- `apophis-<version>-<release>.<arch>.rpm`: install with `sudo dnf install ./<file>`. It recommends `tcpreplay`, but `tcpreplay` is in EPEL, so a stock RHEL-family system skips it. See [[replay-on-linux]].\n- `apophis-<version>-<arch>.AppImage`: make it executable and run it. Where FUSE is missing, run it with `--appimage-extract-and-run`.\n\nThe deb and rpm put the app in `/usr/lib/apophis`, with `apophis` in `/usr/bin`, a menu entry and an icon. Every installed file is owned by root and none is writable by group or others. Settings and captures stay in your own home folder.\n\n## Docker\n\n`Dockerfile.app` builds an image from the .deb in Ubuntu 22.04 and runs as an unprivileged user. It is a recipe, not a published image. Build it with the `.deb` file named in a build argument, then run `docker run --rm --network host apophis`.\n\n- The server listens on 127.0.0.1 only. The interface works only with `--network host`, on a Linux host. A published port (`-p`) cannot reach it.\n- Replay does not work in the container. `tcpreplay` is left out on purpose. Make captures in the container and replay them from the host.\n- Captures and settings live in the container user's home folder. Mount a volume there to keep them.\n\n## Unverified\n\n- The packages are unsigned. The in-app updater has its own signed manifest, which is separate. See [[update-on-linux]]. The checksums show a file arrived intact, not who made it.\n- On the build host, the x86_64 AppImage runtime was not started under emulation. Its contents were unpacked and the baseline was run from them.\n- RHEL 9 itself was not tried. AlmaLinux 9, a rebuild of it, stood in.\n- Docker was not run on a real x86_64 host.\n- The package checks are scripted. They were not rerun for this note."
+  },
+  {
+   "id": "update-on-linux",
+   "kind": "note",
+   "title": "Update the app on Linux",
+   "summary": "How the in-app update works for a tarball or AppImage copy, why a deb or rpm copy refuses, and what is unverified.",
+   "keywords": [
+    "update",
+    "linux",
+    "tarball",
+    "appimage",
+    "deb",
+    "rpm",
+    "package manager",
+    "signed manifest",
+    "app-previous",
+    "restart"
+   ],
+   "where": "",
+   "related": [
+    "updates",
+    "install-on-linux",
+    "linux-packages"
+   ],
+   "body": "On Linux the update dialog works as on macOS for patches. A newer full release is installed by the app only for a copy that you own and can write to: the tarball or the AppImage. A copy installed with a package manager is refused. See [[updates]] for the dialog.\n\n## What the app checks\n\nThe release carries a signed manifest for your architecture (`og-app-<version>-linux-<arch>.json` and `.sig`). The app checks, in order, and changes nothing if any step fails:\n\n1. The signature on the manifest.\n2. The sha256 of the download against the signed manifest.\n3. For a tarball, the sha256 of every unpacked file against the signed list. The new copy must also report the version the manifest names.\n\nThen it swaps the new copy in and restarts. The old copy is kept in `app-previous` in the settings folder. An AppImage restarts through its own file path. The app never asks for a password and never escalates.\n\n## Which copies can update\n\n- **Tarball or AppImage in a folder you can write to:** yes.\n- **Installed with apt, dnf or zypper (under `/usr/lib/apophis`):** no. The dialog says it was installed by your package manager and cannot update itself. Update it with the package manager, or install the newer release. See [[linux-packages]].\n- **A folder you cannot write to:** no. The dialog tells you to download the newer release.\n\n## For maintainers\n\n`og-proof-linux` in `packaging/linux` runs the update against an unpacked tarball on a real Linux machine, with a throwaway signing key. It checks that a bad signature, a tampered manifest, a tampered download, a wrong per-file hash and a package-managed copy are all refused with nothing changed, then that an honest update applies and the baseline pin holds after it.\n\n## Unverified\n\n- The proof drives the updater from the source tree against a frozen 5.5 bundle, and its \"new\" bundle is the old one re-versioned. It shows the swap works, not that 6.0 code runs after it. The AppImage is swapped, not started.\n- No real RHEL 9, and no x86_64 AppImage under emulation, was tried."
+  },
+  {
+   "id": "tunnel-carriers",
+   "kind": "note",
+   "title": "Carry a scenario in a GRE, VXLAN or 6in4 tunnel",
+   "summary": "An opt-in setting that wraps chosen scenarios in a tunnel, for sensors that must decode one. Off by default.",
+   "keywords": [
+    "tunnel",
+    "gre",
+    "vxlan",
+    "6in4",
+    "encapsulation",
+    "decap",
+    "mtu",
+    "fragmentation",
+    "network options"
+   ],
+   "where": "Command line",
+   "related": [
+    "build-a-capture",
+    "vlan-tagging",
+    "ipv6-dual-stack",
+    "build-exports"
+   ],
+   "body": "Some sensors see traffic inside a tunnel. The tunnel option wraps the frames of the scenarios you name in GRE, VXLAN or 6in4. It is off by default, and a default build and its packet count do not change.\n\nOn the command line, repeat `--tunnel CARRIER:SCENARIO[,SCENARIO]`, for example `--tunnel gre:ndr-data-exfil`. `*` means every scenario and `normal-day` means the baseline. In the API, send `network_options` with `tunnels` as a list of `{\"carrier\", \"scenarios\", \"mtu\"}` objects. The Compose page has no control for it. A misspelled scenario name is an error, not a plain build.\n\n## The carriers\n\n- `gre`: IP protocol 47. It carries IPv4 and IPv6 packets. ARP and other non-IP frames pass through unwrapped.\n- `vxlan`: UDP port 4789 with a network ID derived from the rule. It carries the whole Ethernet frame, ARP included.\n- `6in4`: IP protocol 41. It carries IPv6 packets only. IPv4 and ARP frames pass through.\n\nA scenario rides one tunnel. Each rule gets a pair of tunnel endpoints in 172.16.x.1 and 172.17.x.1, derived from the rule. The outer frame keeps the inner frame's MAC addresses. The manifest records `network.tunnels`: per rule, the frames wrapped, frames written, how many were fragmented, bytes added and frames passed through.\n\n## Size and fragmenting\n\nThe outer packet never sets the Don't Fragment bit. A packet longer than the rule's `mtu` is split into IPv4 fragments, so one inner frame can become several. The default is 1500, and the range is 576 to 9000. A larger `mtu` leaves frames whole. A wrapped build therefore has more frames than the same build without it.\n\n## What stays the same\n\nThe wrapper draws no random numbers. The inner frames are the same as in a build without the option, and every other scenario is untouched.\n\n## Checking it\n\n`check_rfc791.py` and `check_ipv6.py` take `--decap gre,vxlan,6in4`. They check the tunnel headers and then the packets inside.\n\n## Limits\n\n- With VLAN tagging also on, a tunneled frame between two hosts on the same subnet gets the default VLAN ID, not its subnet's. See [[vlan-tagging]].\n- The flow files read untagged IPv4 TCP, UDP and ICMP. By those rules a GRE or 6in4 outer packet is not a flow and is counted as unflowed, and a VXLAN outer packet is one UDP flow. The inner frames are not read. This follows the flow-table rules and has not been run on a tunneled capture. See [[build-exports]].\n- No tunneled capture has been replayed at a standard 1500-byte MTU, and none has been run against a sensor."
   },
   {
    "id": "build-a-campaign",
@@ -431,9 +786,10 @@
    "related": [
     "settings-and-lab-switch",
     "sessions",
-    "captures-and-files"
+    "captures-and-files",
+    "update-on-linux"
    ],
-   "body": "The download-arrow icon in the top bar, labelled Check for updates, opens a dialog.\n\n## You are up to date\n\nThe dialog says You are up to date and names your version.\n\n## A patch is available\n\nA patch is a version whose last number is above zero, such as 5.5.1 after 5.5.0. It is a small update for the same major and minor version. The dialog shows the new version, your version and the release notes. Installing restarts the app, so finish any capture in progress first.\n\nClick Install and restart, or Later.\n\nOn a 5.5.0 app, update straight to 5.5.3. Patches 5.5.1 and 5.5.2 cannot start on 5.5.0: the update installs, fails to start and is rolled back to 5.5.0 with your settings untouched. 5.5.3 fixes this. An app already rolled back needs nothing else.\n\n## A newer version is available\n\nFrom 5.5.0 on, Update can replace the whole app with the newest full release, from any older version. The dialog says Installing replaces the app and restarts it. Click Install and restart.\n\n- The app downloads the new one, checks it, and swaps it in. It restarts by itself, and the page reloads when it is back.\n- Your old app is kept in `app-previous` in the settings folder. Each new update replaces that copy.\n- After the swap, check again. A patch for the new version may be waiting, so it can take two clicks.\n\n## When the app cannot replace itself\n\nThe app cannot swap itself if it runs from a temporary location or from a folder it cannot write to. The dialog says The update was not installed, and one of these:\n\n- Move the app to your Applications folder, open it from there, then update.\n- The folder holding the app is not writable. Move the app to your Applications folder and update from there.\n\nNothing is changed.\n\n## Versions before 5.5.0\n\nAn older app cannot update itself to a new full release. Its dialog offers Open releases page. Download the app once, then updating works from there.\n\n## Other messages\n\n- An update is already installing. Only one update runs at a time. Wait for it to finish.\n- The new version did not start. Open the app again from Applications: it starts the version you had, and nothing is lost. Your settings, keys and captures are untouched. The dialog shows this after waiting a minute for the app to come back.\n- A copy that runs from source says to update it with git pull.\n- Could not check for updates. Try again in a moment."
+   "body": "The download-arrow icon in the top bar, labelled Check for updates, opens a dialog.\n\n## You are up to date\n\nThe dialog says You are up to date and names your version.\n\n## A patch is available\n\nA patch is a version whose last number is above zero, such as 5.5.1 after 5.5.0. It is a small update for the same major and minor version. The dialog shows the new version, your version and the release notes. Installing restarts the app, so finish any capture in progress first.\n\nClick Install and restart, or Later.\n\nOn a 5.5.0 app, update straight to 5.5.3. Patches 5.5.1 and 5.5.2 cannot start on 5.5.0: the update installs, fails to start and is rolled back to 5.5.0 with your settings untouched. 5.5.3 fixes this. An app already rolled back needs nothing else.\n\n## A newer version is available\n\nFrom 5.5.0 on, Update can replace the whole app with the newest full release, from any older version. The dialog says Installing replaces the app and restarts it. Click Install and restart.\n\n- The app downloads the new one, checks it, and swaps it in. It restarts by itself, and the page reloads when it is back.\n- Your old app is kept in `app-previous` in the settings folder. Each new update replaces that copy.\n- After the swap, check again. A patch for the new version may be waiting, so it can take two clicks.\n\n## When the app cannot replace itself\n\nThe app cannot swap itself if it runs from a temporary location or from a folder it cannot write to. The dialog says The update was not installed, and one of these:\n\n- Move the app to your Applications folder, open it from there, then update.\n- The folder holding the app is not writable. Move the app to your Applications folder and update from there.\n\nNothing is changed.\n\n## Linux\n\nSee [[update-on-linux]]. Checking again within a minute shows the earlier result.\n\n## Versions before 5.5.0\n\nAn older app cannot update itself to a new full release. Its dialog offers Open releases page. Download the app once, then updating works from there.\n\n## Other messages\n\n- An update is already installing. Only one update runs at a time. Wait for it to finish.\n- The new version did not start. Open the app again from Applications: it starts the version you had, and nothing is lost. Your settings, keys and captures are untouched. The dialog shows this after waiting a minute for the app to come back.\n- A copy that runs from source says to update it with git pull.\n- Could not check for updates. Try again in a moment."
   },
   {
    "id": "baseline-and-scale",
@@ -642,7 +998,7 @@
     "build-a-capture",
     "generation-report"
    ],
-   "body": "Building again into the same output folder does not destroy the capture that is already there.\n\n- **Different settings.** The earlier capture, its key log, manifest, reports and certificates move to `earlier-builds/<UTC time>-<name>/` inside the output folder, and stay there. The time is when that build was made.\n- **Identical settings.** The files are replaced, so you keep one set. Settings include the version, size, date, company, networks, scenarios, timing moves and the content of any recipe or campaign. A new app version counts as a different setting.\n- **Stop or failure.** The partial build is removed and the earlier build is put back.\n\nAfter a build that displaced an earlier one, the result shows \"Earlier build kept in\" and the folder. Kept builds appear in Captures, under Earlier captures, with a small Kept tag. Open report, Use for replay, Remove and Restore on a kept row act on that kept build's own folder, never on the current capture. The command line prints where the earlier build went.\n\n## Limits\n\n- Certificates and a key log written outside the output folder, with `--certs-dir` or `--keylog`, are still overwritten.\n- If the app stops in the middle of a build, a hidden `.replacing-` folder or a kept folder may be left in the output folder. Nothing is lost; open the folder to find the files.\n- Remove moves a capture to the holding folder and does not delete it. See [[captures-and-files]]."
+   "body": "Building again into the same output folder does not destroy the capture that is already there.\n\n- **Different settings.** The earlier capture, its key log, manifest, reports and certificates move to `earlier-builds/<UTC time>-<name>/` inside the output folder, and stay there. The time is when that build was made.\n- **Identical settings.** The files are replaced, so you keep one set. Settings include the version, size, date, company, networks, scenarios, timing moves and the content of any recipe or campaign. A new app version counts as a different setting.\n- **Stop or failure.** The partial build is removed and the earlier build is put back.\n\nAfter a build that displaced an earlier one, the result shows \"Earlier build kept in\" and the folder. Kept builds appear in Captures, under Earlier captures, with a small Kept tag. Open report, Use for replay, Remove and Restore on a kept row act on that kept build's own folder, never on the current capture. The command line prints where the earlier build went.\n\n## Limits\n\n- Only the capture's own files are moved aside: names that start with its name, and the company's threat-collection files. A file named with a custom `--iocs-prefix` is overwritten, not kept.\n- Certificates and a key log written outside the output folder, with `--certs-dir` or `--keylog`, are still overwritten.\n- If the app stops in the middle of a build, a hidden `.replacing-` folder or a kept folder may be left in the output folder. Nothing is lost; open the folder to find the files.\n- Remove moves a capture to the holding folder and does not delete it. See [[captures-and-files]]."
   },
   {
    "id": "scenarios-and-categories",
@@ -810,7 +1166,7 @@
     "indicator-cards",
     "report-pasting-rules"
    ],
-   "body": "Under Public feeds there are 27 feeds, plus From a URL for any https list.\n\n**The info badge.** Hover the badge beside a feed. It says which indicator types the feed gives and which of those send traffic. Types that never send traffic by themselves, such as file hashes, file names, e-mail addresses and CVEs for products that are not network-facing, are listed as hidden.\n\n**Keys.** ThreatFox, URLhaus, OTX and Shodan need a key. A key you type stays in the page and goes only to that feed's publisher. On macOS you can choose to keep it in the Keychain. A link you type under From a URL is cached by its host only, with a hash of the full address, so a token in the link is not kept. Shodan has a query box. The default is `has_vuln:true`.\n\n**Offline.** Tick Offline (cache only) to read only what was fetched before.\n\n## What changed\n\n- Removed: MalwareBazaar (hashes only), Feodo Tracker (its lists are empty), the Emerging Threats compromised-host list (no campaign traffic) and Botvrij (not updated since February 2026).\n- Added: CINS Army, IPsum, Phishing.Database (addresses and domains), PhishTank, DShield, Spamhaus DROP and Shodan.\n- Added later: SiberKapan and Infoblox (MISP feeds), APNIC honeynet (SSH, Telnet and malware URLs) and CERT Polska domains.\n\n## Good to know\n\n- The APNIC Telnet feed lists real Telnet attackers, but the campaign has no Telnet action. Its addresses send SSH or RDP logon attempts instead.\n- SiberKapan addresses are treated as scanners. The APNIC malware URLs often point at a bare address and port.\n- Spamhaus DROP lists netblocks. One address stands in for each block.\n\nEach feed has its own terms of use. A feed can change its format without notice."
+   "body": "Under Public feeds there are 27 feeds, plus From a URL for any https list.\n\n**The info badge.** Hover the badge beside a feed. It says which indicator types the feed gives and which of those send traffic. Types that never send traffic by themselves, such as file hashes, file names, e-mail addresses and CVEs for products that are not network-facing, are listed as hidden.\n\n**Keys.** ThreatFox, URLhaus, OTX and Shodan need a key. A key you type stays in the page and goes only to that feed's publisher. You can choose to keep it in the key store. See [[where-keys-are-stored]]. A link you type under From a URL is cached by its host only, with a hash of the full address, so a token in the link is not kept. Shodan has a query box. The default is `has_vuln:true`.\n\n**Offline.** Tick Offline (cache only) to read only what was fetched before.\n\n## What changed\n\n- Removed: MalwareBazaar (hashes only), Feodo Tracker (its lists are empty), the Emerging Threats compromised-host list (no campaign traffic) and Botvrij (not updated since February 2026).\n- Added: CINS Army, IPsum, Phishing.Database (addresses and domains), PhishTank, DShield, Spamhaus DROP and Shodan.\n- Added later: SiberKapan and Infoblox (MISP feeds), APNIC honeynet (SSH, Telnet and malware URLs) and CERT Polska domains.\n\n## Good to know\n\n- The APNIC Telnet feed lists real Telnet attackers, but the campaign has no Telnet action. Its addresses send SSH or RDP logon attempts instead.\n- SiberKapan addresses are treated as scanners. The APNIC malware URLs often point at a bare address and port.\n- Spamhaus DROP lists netblocks. One address stands in for each block.\n\nEach feed has its own terms of use. A feed can change its format without notice."
   },
   {
    "id": "search-help",
@@ -863,7 +1219,7 @@
     "review-a-staged-sensor-push",
     "settings-and-lab-switch"
    ],
-   "body": "Use this when you want an AI assistant or a script to build and run scenarios for you. It reaches the app only on this computer.\n\n## Steps\n\n1. Open Settings and find Agent access. Access token says Off.\n2. Press Create token. The token is copied to your clipboard and a message says Token copied. Paste it into your agent.\n3. Access token now says On. The token is kept in the system keychain, or in a private file beside the settings where there is no keychain.\n4. Give the token to your agent client. It sends it as `Authorization: Bearer` with each call. To connect an MCP client, see [[mcp-adapter]].\n5. Ask the agent to build a capture. It polls its own build until it finishes. Look in Captures for the result.\n6. To see what it did, open `agent-audit.log` in the settings folder. Each call is one line with the verb, the status and the names of the arguments. Secret values are never written.\n\n## Take access back\n\n- Press Replace token. The old token stops working at once, and a new one is copied.\n- Press Turn off. The token is removed and the API goes quiet until you create another.\n\n## If something goes wrong\n\n- The agent gets nothing back. Access token must say On. The API answers only on `127.0.0.1`, so the agent has to run on this computer.\n- Replay or a sensor push does not work for the agent. That is by design. See [[agent-limits]]."
+   "body": "Use this when you want an AI assistant or a script to build and run scenarios for you. It reaches the app only on this computer.\n\n## Steps\n\n1. Open Settings and find Agent access. Access token says Off.\n2. Press Create token. The token is copied to your clipboard and a message says Token copied. Paste it into your agent.\n3. Access token now says On. The token is kept in the system keychain, or in a private file beside the settings where there is no keychain.\n4. Give the token to your agent client. It sends it as `Authorization: Bearer` with each call. To connect an MCP client, see [[mcp-adapter]].\n5. Ask the agent to build a capture. It polls its own build until it finishes. Look in Captures for the result.\n6. To see what it did, open `agent-audit.log` in the settings folder. Each call is one line with the time, the verb, the status and the names of the arguments. Values are never written, not even short ones, because a short value can still be a link that carries a key.\n\n## Take access back\n\n- Press Replace token. The old token stops working at once, and a new one is copied.\n- Press Turn off. The token is removed and the API goes quiet until you create another.\n\n## If something goes wrong\n\n- The agent gets nothing back. Access token must say On. The API answers only on `127.0.0.1`, so the agent has to run on this computer.\n- Replay or a sensor push does not work for the agent. That is by design. See [[agent-limits]]."
   },
   {
    "id": "review-a-staged-sensor-push",
@@ -969,7 +1325,7 @@
     "let-an-agent-drive-the-app",
     "replay-a-capture"
    ],
-   "body": "These limits are built in.\n\n- **No replay, push or scoring.** There is no agent verb for any of them. Replay, sensor push and detection scoring stay with a person in the app. An agent can run the read-only sensor check.\n- **One door.** A token is refused with a 403 on every route outside `/agent/v1/`.\n- **The sensor key stays put.** It never passes through the agent. A staged push is only a request, which you confirm. See [[review-a-staged-sensor-push]].\n- **Local only.** The API answers on `127.0.0.1`.\n- **A log.** Every call is written to `agent-audit.log` in the settings folder.\n\n## The cookie change\n\nFrom 5.5.1, the replay and sensor push routes, and `/api/agent/*`, need the `og_ui` cookie that the app sets when its page loads. From 5.5.5, so do Check sensor and detection scoring, the two routes that can use a stored sensor key. A script that called any of them without the cookie, such as an old curl line for replay, now gets 403. Add the cookie, or do it in the app. The agent verb `sensor/check` is unaffected: it arrives with a token and is written to the audit log.\n\n## What this does not stop\n\nAny program on this computer can read that cookie, and a process that can run programs can start replay tools directly. The check stops agent tools that speak HTTP. It does not stop someone with a shell on the machine."
+   "body": "These limits are built in.\n\n- **No replay, push or scoring.** There is no agent verb for any of them. Replay, sensor push and detection scoring stay with a person in the app. An agent can run the read-only sensor check.\n- **One door.** A token is refused with a 403 on every route outside `/agent/v1/`.\n- **The sensor key stays put.** It never passes through the agent. A staged push is only a request, which you confirm. See [[review-a-staged-sensor-push]].\n- **The app's folder only.** `capture/list` ignores any `out_dir` you send and lists the app's own folder. The scale of a campaign run or estimate is capped at the limit the page uses.\n- **Local only.** The API answers on `127.0.0.1`.\n- **A log.** Every call is written to `agent-audit.log` in the settings folder: time, verb, status and argument names, never a value. The folder is private to you (mode 0700) and the log is readable only by you (0600).\n\n## The cookie change\n\nFrom 5.5.1, the replay and sensor push routes, and `/api/agent/*`, need the `og_ui` cookie that the app sets when its page loads. From 5.5.5, so do Check sensor and detection scoring, the two routes that can use a stored sensor key. A script that called any of them without the cookie, such as an old curl line for replay, now gets 403. Add the cookie, or do it in the app. The agent verb `sensor/check` is unaffected: it arrives with a token and is written to the audit log.\n\n## What this does not stop\n\nAny program on this computer can read that cookie, and a process that can run programs can start replay tools directly. The check stops agent tools that speak HTTP. It does not stop someone with a shell on the machine."
   },
   {
    "id": "mcp-adapter",

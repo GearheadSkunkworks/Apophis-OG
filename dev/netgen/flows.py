@@ -9,6 +9,7 @@ import random
 import struct
 import zlib
 
+from . import ftpfiles as FF
 from . import protocols as P
 from .identity import get_current, H
 from .core import TcpSession, udp_frame, udp_bcast, mcast_mac, ipv4, eth, ETH_IP
@@ -49,6 +50,9 @@ class Ctx:
         # The directory. Built lazily by the caller (model.build_hosts wires it) so that Ctx
         # stays constructible in isolation for tests.
         self.dir = None
+        # None on the build's own context. Only the opt-in IPv6 layer (netgen.dualstack) sets it, on its
+        # own copy of this context, so tcp() below cannot switch families unless that option is on.
+        self.v6 = None
 
     def next_txid(self):
         self.txid = (self.txid + 1) & 0xFFFF
@@ -58,6 +62,8 @@ class Ctx:
         return (ts, udp_frame(self.link, a, b, sport, dport, payload, vantage or a, tos=tos, df=df, nocsum=nocsum))
 
     def tcp(self, client, server, dport, t, **kw):
+        if self.v6 is not None:
+            return self.v6.session(client, server, dport, t, **kw)
         return TcpSession(self.link, client, server, dport, t, **kw)
 
     def arp_for(self, a, b, ts, vantage=None):
@@ -232,7 +238,6 @@ FTP_LISTING = [
 # of a PNG is not a PNG, and the whole point of these transfers is that what comes off the
 # wire is the file. Entries are consumed in order rather than sampled, so every one of them
 # appears on the wire on every build.
-from . import ftpfiles as FF                                     # noqa: E402
 
 _FTP_CONTENT = {}
 _DEFAULT_LINK = None     # set while a diagram is drawn for custom networks, so it quotes the capture's sizes

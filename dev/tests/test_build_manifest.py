@@ -14,9 +14,9 @@ import urllib.request
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
 sys.path.insert(0, os.path.join(DEV, "tools"))
-import opengenerator_build as OGB  # noqa: E402
-import verify_manifest as VM       # noqa: E402
-import build_manifest as BM        # noqa: E402
+import opengenerator_build as OGB  # noqa: E402 - sys.path is set up before the import
+import verify_manifest as VM       # noqa: E402 - sys.path is set up before the import
+import build_manifest as BM        # noqa: E402 - sys.path is set up before the import
 
 PAIR = ["npm-sql1-service-failure", "ndr-rdp-brute"]
 

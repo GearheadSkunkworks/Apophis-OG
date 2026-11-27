@@ -115,7 +115,7 @@ def command_line(entry):
     if fn:
         try:
             return "$ " + fn(entry)
-        except Exception:                                         # noqa: BLE001
+        except Exception:                                         # noqa: BLE001 - optional detail, the console line is still produced without it
             pass
     bits = [entry.get("action") or "?"]
     if entry.get("params"):

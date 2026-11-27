@@ -51,6 +51,9 @@ STATIC_FILES = {                      # exact-name allow-list for GET /ui/<name>
     "gearhead-mark.png": "image/png",                          # the brand mark, used as a mask by theme.css
     "explainer.js": "text/javascript; charset=utf-8",         # animated explainer and zone map
     "timeline.js": "text/javascript; charset=utf-8",          # capture-day timeline
+    "build-options.js": "text/javascript; charset=utf-8",     # Compose: network options and exports, from the table below
+    "slice-preview.js": "text/javascript; charset=utf-8",     # Captures: what a slice will hold, from the manifest
+    "build-options.json": "application/json; charset=utf-8",  # the options table: one row per opt-in build option
     "help.js": "text/javascript; charset=utf-8",              # in-app Help: search and article view
     "help.css": "text/css; charset=utf-8",
     "help-articles.json": "application/json; charset=utf-8",  # the how-to articles
@@ -145,7 +148,7 @@ def _engine():
     try:
         from netgen.campaign import actions, attack, schema, compiler, runner
         from intel import parsers, filters, sources
-    except Exception as e:                                            # noqa: BLE001
+    except Exception as e:                                            # noqa: BLE001 - engine import failure is re-raised as a 503 ApiError
         raise ApiError(503, "The campaign engine is not available on this machine (%s)."
                        % type(e).__name__) from None
     return actions, attack, schema, compiler, runner, parsers, filters, sources
@@ -326,7 +329,7 @@ def _norm_and_validate(campaign):
     try:
         norm = schema.normalise(campaign)
         errs = list(schema.validate(norm))
-    except Exception:                                                 # noqa: BLE001
+    except Exception:                                                 # noqa: BLE001 - a malformed campaign is reported to the caller as an error list
         return campaign, ["the campaign could not be read"]
     return norm, [str(e) for e in errs[:200]]
 
@@ -441,6 +444,9 @@ def campaign_validate(data):
     return 200, {"errors": errs, "campaign": None if errs else _json_safe(norm)}
 
 
+MAX_SCALE = 1.0          # the build route and the UI never go above 1; a token holder must not queue a bigger run under BUILD_LOCK
+
+
 def campaign_estimate(data):
     _a, _t, _s, _c, runner, *_ = _engine()
     data = _need_obj(data)
@@ -450,12 +456,12 @@ def campaign_estimate(data):
         scale = float(data.get("scale", 1.0))
     except (TypeError, ValueError):
         raise ApiError(400, "'scale' must be a number") from None
-    if not (0 < scale <= 1000):
-        raise ApiError(400, "'scale' must be greater than 0")
+    if not (0 < scale <= MAX_SCALE):                                   # also rejects NaN; the UI's own size limit is 1
+        raise ApiError(400, "'scale' must be greater than 0 and at most %g" % MAX_SCALE)
     norm, errs = _norm_and_validate(data["campaign"])
     try:
         est = runner.estimate(norm, scale)
-    except Exception:                                                 # noqa: BLE001
+    except Exception:                                                 # noqa: BLE001 - estimate failure falls back to a zeroed estimate
         est = {"stages": 0, "actions": 0, "flows": 0, "scale": scale,
                "minutes_realistic": 0.0, "minutes_fast": 0.0}
     est = dict(_json_safe(est))
@@ -467,6 +473,13 @@ def campaign_estimate(data):
 # campaign through the engine under the build lock. It lives in server.py because the engine and
 # BUILD_LOCK do; this layer only validates and packages. None until the engine is available.
 RUN_CAMPAIGN = None
+
+
+def set_run_campaign(fn):
+    """Install the engine hook that runs a campaign preview. The server calls this once at start-up,
+    so this layer needs no engine or lock of its own."""
+    global RUN_CAMPAIGN
+    RUN_CAMPAIGN = fn
 
 
 def campaign_run(data):
@@ -482,8 +495,8 @@ def campaign_run(data):
         scale = float(data.get("scale", 1.0))
     except (TypeError, ValueError):
         raise ApiError(400, "'scale' must be a number") from None
-    if not (0 < scale <= 1000):
-        raise ApiError(400, "'scale' must be greater than 0")
+    if not (0 < scale <= MAX_SCALE):                                   # also rejects NaN; the UI's own size limit is 1
+        raise ApiError(400, "'scale' must be greater than 0 and at most %g" % MAX_SCALE)
     norm, errs = _norm_and_validate(data["campaign"])
     if errs:                                                          # the UI only reads `errors` from /estimate and /check
         raise ApiError(400, _plain(errs[0]), errors=[_plain(x) for x in errs[:50]])
@@ -827,7 +840,7 @@ def sensor_check(data):
     except Exception as e:                                            # noqa: BLE001 -- shown inline
         try:
             msg = _plain(prov.explain(e) if prov else e, secrets)
-        except Exception:                                             # noqa: BLE001
+        except Exception:                                             # noqa: BLE001 - failure is returned as a plain-language error reply
             msg = _plain(type(e).__name__)
         return 200, {"ok": False, "error": msg}
     finally:
@@ -878,7 +891,7 @@ def campaign_feedback(data):
             if isinstance(e, NotImplementedError):
                 return 200, {"ok": False, "error": "this sensor type cannot list detections"}
             return 200, {"ok": False, "error": _plain(prov.explain(e), secrets)}
-    except Exception as e:                                            # noqa: BLE001
+    except Exception as e:                                            # noqa: BLE001 - failure is returned as a scrubbed error reply, secrets removed
         return 200, {"ok": False, "error": _plain(e, secrets)}
     finally:
         key = ""
@@ -914,7 +927,7 @@ def geo_lookup(data):
     try:
         import geo
         found = geo.lookup_many([a for _ip, a in ask])
-    except Exception as e:                                            # noqa: BLE001
+    except Exception as e:                                            # noqa: BLE001 - lookup failure is reported as a plain-language message
         why = "the geography data is not installed" if isinstance(e, (ImportError, AttributeError)) \
             else "the geography lookup failed (%s)" % type(e).__name__
         return 200, {"results": results, "error": why}
@@ -1000,5 +1013,5 @@ def route_post(path, data, bad_json=False):
         return _json_reply(status, obj)
     except ApiError as e:
         return _json_reply(e.status, dict(e.extra, error=e.message))
-    except Exception:                                                 # noqa: BLE001
+    except Exception:                                                 # noqa: BLE001 - last-resort handler returns a generic 500 reply
         return _json_reply(500, {"error": "the request could not be completed"})

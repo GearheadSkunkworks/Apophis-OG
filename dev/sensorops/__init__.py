@@ -21,4 +21,4 @@ error text) lives behind a `SensorProvider` (`sensorops.provider`), implemented 
 in `sensorops.providers`. OpenGenerator ships the the sensor vendor provider; the push modules never
 name a platform. Shared, provider-independent filesystem helpers live in `_util`.
 """
-from . import push_cert, push_ti   # noqa: F401
+from . import push_cert, push_ti   # noqa: F401 - imported so the submodules register themselves

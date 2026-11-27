@@ -17,6 +17,9 @@ is ever entered into, or handled by, this server. Missing dependencies are repor
 Packaged as a macOS .app it behaves the same (see BUILD-macos.md). The generator engine
 (netgen/, opengenerator_build.py, inventory.py) is bundled alongside this file.
 """
+import copy
+import hashlib
+import hmac
 import html
 import datetime
 import json
@@ -130,8 +133,8 @@ from sensorops import push_cert, push_ti             # noqa: E402 — stdlib-onl
 # the actions that need the engine with a readable error. See deps.py.
 try:
     import opengenerator_build                            # noqa: E402 — needs APP_DIR on sys.path
-    import make_diagram                               # noqa: E402
-    import pcapprofile                                # noqa: E402
+    import make_diagram                               # noqa: E402 - sys.path is set up before the import
+    import pcapprofile                                # noqa: E402 - sys.path is set up before the import
     from netgen import platform as capkernel          # noqa: E402 — v5b capability kernel
     from netgen import incidents as _INC              # noqa: E402 — scenario registry
     from sensorops import providers as _providers     # noqa: E402 — provider registry
@@ -147,7 +150,7 @@ try:
     capkernel.kernel.register_source("exporters", lambda: len(opengenerator_build.EXPORTERS))
     capkernel.kernel.load_enabled()                   # auto-load the persisted enable-on-startup set
     ENGINE_ERROR = ""
-except Exception as _e:                               # noqa: BLE001
+except Exception as _e:                               # noqa: BLE001 - engine import failure is recorded in ENGINE_ERROR and shown in the UI
     opengenerator_build = make_diagram = pcapprofile = capkernel = None
     _INC = _providers = _P = None
     ENGINE_ERROR = f"{type(_e).__name__}: {_e}"
@@ -176,26 +179,66 @@ LOCK = threading.Lock()
 BUILD_LOCK = threading.Lock()
 # Browser-session secret: handed to the app's own page as an HttpOnly cookie. Replay and sensor-push routes require it,
 # so a client that merely omits the agent token cannot reach them (see agent_api.HUMAN_ONLY).
+FAULT_TEXT = "something went wrong; the details are in the terminal the app was started from"   # never the exception text
 UI_SECRET = os.urandom(16).hex()
+# The page cookie is handed out once, to whoever presents this nonce: it is in the address the app opens in the
+# browser itself (and prints), so a program that merely fetches `/` over loopback gets the page and no cookie.
+LAUNCH = {"nonce": os.urandom(16).hex(), "used": False}
+_LAUNCH_LOCK = threading.Lock()
+SLICE_LOCK = threading.Lock()
+
+
+def _slicer():
+    """tools/slice_pcap.py, imported on first use: it is a stdlib-only tool that is not on the import path."""
+    import importlib.util
+    path = os.path.join(APP_DIR, "tools", "slice_pcap.py")
+    if not os.path.isfile(path):
+        raise ImportError(path)
+    spec = importlib.util.spec_from_file_location("slice_pcap", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+REPLAY_OPTION_KEYS = ("speed_mode", "speed_value", "loop", "preload", "monitor", "maxsleep_ms", "include",
+                      "resume_from", "overlap_packets", "rebase_seconds", "sensor_label", "note")
 
 
 # Preview a campaign for the UI (the board and the capture-size estimate) WITHOUT a full generate:
 # run it campaign-only through the engine under BUILD_LOCK — it reseeds the process-global RNG, so
 # it must not overlap a real build — and hand back its records plus its exact packet/byte totals.
 # campaign_api reaches this through the RUN_CAMPAIGN hook, so that layer needs no engine or lock.
+_PREVIEWS = {}                                           # key -> (report, totals); the last few distinct estimates
+
+
+def _preview_key(campaign, scale, nets, inventory):
+    """Everything the estimate depends on: the campaign, scale, nets, capture day, company identity and inventory file."""
+    ident = opengenerator_build.identity.get_current()
+    mtime = os.stat(inventory).st_mtime_ns if os.path.exists(inventory) else None
+    blob = json.dumps([campaign, scale, nets, str(datetime.date.today()), ident.name, ident.industry, mtime],
+                      sort_keys=True, default=str)
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
 def _preview_campaign(campaign, scale, nets):
     with LOCK:
         if STATE["running"]:
             raise campaign_api.ApiError(
                 409, "a capture run is in progress; try the preview when it finishes")
+    inv = os.path.join(APP_DIR, "inventory.json")
     with BUILD_LOCK:
-        return opengenerator_build.preview_campaign(
-            campaign, scale=scale, inventory=os.path.join(APP_DIR, "inventory.json"),
-            user_net=nets.get("user"), server_net=nets.get("server"), ot_nets=nets.get("ot"))
+        key = _preview_key(campaign, scale, nets, inv)
+        if key not in _PREVIEWS:
+            if len(_PREVIEWS) >= 8:
+                _PREVIEWS.pop(next(iter(_PREVIEWS)))
+            _PREVIEWS[key] = opengenerator_build.preview_campaign(
+                campaign, scale=scale, inventory=inv,
+                user_net=nets.get("user"), server_net=nets.get("server"), ot_nets=nets.get("ot"))
+        return copy.deepcopy(_PREVIEWS[key])
 
 
 if opengenerator_build is not None:
-    campaign_api.RUN_CAMPAIGN = _preview_campaign
+    campaign_api.set_run_campaign(_preview_campaign)
 
 # Set by POST /api/generate/stop, polled by the generator through build(should_cancel=...).
 # A thread cannot be killed from outside in Python, so the stop is cooperative: the engine
@@ -239,7 +282,7 @@ def _busy():
     try:
         if replay.status().get("running"):
             return "a replay is in progress"
-    except Exception:                                  # noqa: BLE001
+    except Exception:                                  # noqa: BLE001 - best-effort lookup, a failed status check means no replay to protect
         pass
     # Both sensor pushes mutate an appliance and must not be cut in half by a tab close. The
     # certificate push is the dangerous one: it deletes every key BEFORE uploading, so a
@@ -249,7 +292,7 @@ def _busy():
             return "certificates are being pushed to an appliance"
         if push_ti.collection_status().get("running"):
             return "a threat collection is being pushed to an appliance"
-    except Exception:                                  # noqa: BLE001
+    except Exception:                                  # noqa: BLE001 - best-effort lookup, a failed status check does not block shutdown
         pass
     return None
 
@@ -276,7 +319,7 @@ def shutdown(reason, stop_work=False):
             if replay.status().get("running"):
                 print("  stopping the replay in progress …")
                 replay.stop()                          # unprivileged: creates the stop-file
-        except Exception as e:                         # noqa: BLE001
+        except Exception as e:                         # noqa: BLE001 - failure to stop the replay is printed, shutdown continues
             print(f"  could not stop the replay ({e}); its monitor window can still stop it.")
     if _HTTPD is not None:
         # shutdown() must not run on the serve_forever thread or it deadlocks.
@@ -287,7 +330,8 @@ def _watchdog():
     """Exit once every tab has been closed for `grace` seconds."""
     gone_since = None
     while not SHUTDOWN.is_set():
-        time.sleep(1.0)
+        if SHUTDOWN.wait(1.0):
+            break
         if not LIFECYCLE["autoquit"] or not LIFECYCLE["armed"]:
             continue
         with LOCK:
@@ -337,14 +381,14 @@ def default_nets():
             inv = json.load(f)
         fw = [h for h in inv["hosts"] if h["hostname"] == "EXL-FW1"]
         return {"user": fw[0]["subnet"], "server": fw[1]["subnet"]}
-    except Exception:                                # noqa: BLE001
+    except Exception:                                # noqa: BLE001 - unreadable settings fall back to the default networks
         return {"user": "10.10.10.0/24", "server": "10.10.20.0/24"}
 
 
 def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, server_net=None,
                   date=None, ot_nets=None, recipes=None, company=None, industry=None,
                   ot_protocols=None, campaigns=None, address_mode=None,
-                  confirm_real_addresses=False, shifts=None):
+                  confirm_real_addresses=False, shifts=None, exports=None, network_options=None):
     """Run the generator in-process (packaging-safe: no reliance on a python interpreter path).
     Everything is written into out_dir; a bundled inventory.json is seeded so no subprocess runs.
 
@@ -353,6 +397,9 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
 
     `shifts` ({scenario: whole minutes}, already validated) slides scenarios along the capture day;
     it is passed on only when non-empty, so a run without it is exactly the run it always was.
+
+    `exports` (names from the engine's EXPORT_NAMES) and `network_options` (the canonical dict) are the opt-in
+    6.0 outputs, validated by the route; both are passed on only when set, so a default build is unchanged.
 
     `campaigns` (a list of validated campaign dicts), `address_mode` ('mapped'|'real') and
     `confirm_real_addresses` are passed to build() only when a campaign is present, so a run
@@ -399,6 +446,14 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
                        if campaigns else {})
         if shifts:
             campaign_kw["shifts"] = shifts
+        if exports:
+            campaign_kw["exports"] = exports
+            with LOCK:
+                STATE["log"].append("extra outputs requested: " + ", ".join(exports) + ".")
+        if network_options:
+            campaign_kw["network_options"] = network_options
+            with LOCK:
+                STATE["log"].append("network options: " + json.dumps(network_options["vlan"]) + " (vlan).")
         stats_path = os.path.join(out_dir, "baseline-mix-stats.json") if modules == [] else None
         # out/iocs_prefix default to None/_DERIVE so build() names the files after the emulated
         # company (example-all-in-one.pcap by default, acme-all-in-one.pcap for Acme, etc.). The
@@ -471,7 +526,7 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
                     with open(stats_path, "w") as f:
                         json.dump(raw, f)
                     STATE["baseline_stats"] = stats_path
-                except Exception:                    # noqa: BLE001
+                except Exception:                    # noqa: BLE001 - best-effort, a failure here must not fail the build
                     pass
             if iocs and not STATE["summary"]["iocs"]:
                 STATE["log"].append(
@@ -489,12 +544,13 @@ def run_generator(scale, out_dir, certs, iocs, modules=None, user_net=None, serv
             STATE["outputs"] = list_outputs(out_dir)
             STATE["log"].append(f"stopped by request — {e}")
             STATE["log"].append("the partial capture and key log were discarded.")
-    except Exception as e:                        # noqa: BLE001
+    except Exception as e:                        # noqa: BLE001 - build failure is logged to the terminal and stored as the build error
         import traceback
+        traceback.print_exc()                     # the detail goes to the app's own terminal, not to /api/status
         with LOCK:
             STATE["running"] = False
             STATE["error"] = str(e)
-            STATE["log"].append(traceback.format_exc())
+            STATE["log"].append("the build failed (%s); the details are in the terminal the app was started from." % type(e).__name__)
     finally:
         CANCEL.clear()
 
@@ -543,7 +599,7 @@ def get_modules():
             if meta is not None:
                 m["meta"] = meta
         return out
-    except Exception:                            # noqa: BLE001
+    except Exception:                            # noqa: BLE001 - unreadable listing falls back to an empty list
         return []
 
 
@@ -559,6 +615,14 @@ def _msg_page(title, heading, msg, q=None, pre=False):
 def _themed(page, q):
     """Apply the light/dark mode and palette the app passed in the query string (see make_diagram.themed)."""
     return make_diagram.themed(page, (q.get("theme") or [""])[0], (q.get("palette") or [""])[0])
+
+
+def _header_name(name):
+    """A file name for a Content-Disposition header: no control characters (CR/LF would split the header), quotes or backslashes."""
+    return re.sub(r'[\x00-\x1f\x7f"\\]', "", str(name))
+
+
+NOSCRIPT_PAGES = frozenset(("/diagram", "/profile", "/report", "/about"))     # server-generated pages (the app page itself needs its scripts)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -577,8 +641,12 @@ class Handler(BaseHTTPRequestHandler):
     def _send(self, code, body, ctype="application/json", headers=None):
         self._status = code                      # read by the agent audit log
         b = body if isinstance(body, bytes) else body.encode()
+        if getattr(self, "_agent_call", False) and ctype.startswith("application/json"):
+            b = agent_api.scrub(b.decode("utf-8", "replace")).encode()
         self.send_response(code)
         self.send_header("Content-Type", ctype)
+        if ctype.startswith("text/html") and urlparse(self.path).path in NOSCRIPT_PAGES:
+            self.send_header("Content-Security-Policy", "script-src 'none'")    # these pages carry no script: a future escaping slip stays inert
         self.send_header("Content-Length", str(len(b)))
         for k, v in (headers or {}).items():
             self.send_header(k, v)
@@ -594,8 +662,10 @@ class Handler(BaseHTTPRequestHandler):
     # non-browser clients that send no Host/Origin -- is unaffected.
     _LOCAL_NAMES = ("127.0.0.1", "localhost", "::1")
 
-    _HOST_RE = re.compile(r"^(?:127\.0\.0\.1|localhost|\[::1\])(?::\d{1,5})?$", re.I)
-    _ORIGIN_RE = re.compile(r"^https?://(?:127\.0\.0\.1|localhost|\[::1\])(?::\d{1,5})?$", re.I)
+    # The port is captured and compared to the bound one: a page served from another loopback port is a different
+    # origin even though the cookie, which is scoped to the host and not the port, would still be sent.
+    _HOST_RE = re.compile(r"^(?:127\.0\.0\.1|localhost|\[::1\])(?::(\d{1,5}))?$", re.I)
+    _ORIGIN_RE = re.compile(r"^http://(?:127\.0\.0\.1|localhost|\[::1\])(?::(\d{1,5}))?$", re.I)
     timeout = 30                       # a client that stalls mid-headers or mid-body is dropped
 
     def _host_is_local(self):
@@ -603,13 +673,17 @@ class Handler(BaseHTTPRequestHandler):
         if host is None:                   # no Host (non-browser); a browser attack always sends one
             return True
         # Exactly host[:port] for the loopback names: no userinfo, path, spaces or look-alike prefix.
-        return bool(self._HOST_RE.match(host.strip())) and len(host) <= 64
+        m = self._HOST_RE.match(host.strip())
+        return bool(m) and len(host) <= 64 and (m.group(1) is None or int(m.group(1)) == self.server.server_address[1])
 
     def _origin_is_local(self):
         origin = self.headers.get("Origin")
         if origin is None:                 # same-origin GET / non-browser; a cross-site browser POST sends Origin
             return True
-        return bool(self._ORIGIN_RE.match(origin.strip())) and len(origin) <= 128
+        m = self._ORIGIN_RE.match(origin.strip())
+        if not m or len(origin) > 128:
+            return False
+        return int(m.group(1) or 80) == self.server.server_address[1]       # the app is plain http: no port means 80
 
     def _blocked(self, check_origin=False):
         """Send 403 and return True if this request is cross-site or DNS-rebound. Call first."""
@@ -617,6 +691,11 @@ class Handler(BaseHTTPRequestHandler):
             self._send(403, json.dumps({"error": "forbidden: unexpected Host header"}))
             return True
         if check_origin and not self._origin_is_local():
+            self._send(403, json.dumps({"error": "forbidden: cross-site request blocked"}))
+            return True
+        # A browser says where a request came from; a state-changing one must come from this page itself. "same-site"
+        # (another port on this host) and "cross-site" are both refused. Non-browser clients send no such header.
+        if check_origin and self.headers.get("Sec-Fetch-Site", "same-origin").lower() != "same-origin":
             self._send(403, json.dumps({"error": "forbidden: cross-site request blocked"}))
             return True
         return False
@@ -627,11 +706,12 @@ class Handler(BaseHTTPRequestHandler):
             fn()
         except (BrokenPipeError, ConnectionError):
             raise
-        except Exception as e:                   # noqa: BLE001
+        except Exception as e:                   # noqa: BLE001 - failure is logged to the terminal and answered as a client or server error
             bad = isinstance(e, (TypeError, ValueError, AttributeError, KeyError, OverflowError))
+            import traceback
+            traceback.print_exc()                # the reason stays in the terminal; the reply names no paths or internals
             try:
-                self._send(400 if bad else 500, json.dumps({"error": "the request could not be completed" +
-                                                            (": %s" % e if bad else "")}))
+                self._send(400 if bad else 500, json.dumps({"error": "the request could not be completed"}))
             except Exception:                    # noqa: BLE001 — reply already started or socket gone
                 pass
 
@@ -639,21 +719,32 @@ class Handler(BaseHTTPRequestHandler):
     def _ui_session(self):
         for part in (self.headers.get("Cookie") or "").split(";"):
             k, _, v = part.strip().partition("=")
-            if k == "og_ui" and v == UI_SECRET:
+            if k == "og_ui" and hmac.compare_digest(v.encode(), UI_SECRET.encode()):
                 return True
         return False
+
+    def _launch_ok(self, query):
+        """True once, for the request that carries the launch nonce."""
+        got = (parse_qs(query).get("launch") or [""])[0]
+        with _LAUNCH_LOCK:
+            if LAUNCH["used"] or not hmac.compare_digest(got.encode(), LAUNCH["nonce"].encode()):
+                return False
+            LAUNCH["used"] = True
+            return True
 
     def _agent_gate(self, method):
         """Apply the agent rules. Returns (done, verb, target): done=True means a reply was sent. A verb with a
         proxied target is rewritten in place (path, no Authorization header) and falls through to the normal routes."""
         path = urlparse(self.path).path
         bearer = self.headers.get("Authorization")
+        self._agent_call = False                 # set below once a bearer request is accepted
         if bearer is None:
             if path.startswith(agent_api.PREFIX):
                 self._send(401, json.dumps({"error": "a valid agent token is required (create one in Settings)"}))
                 return True, None, None
-            if method == "POST" and (path in agent_api.HUMAN_ONLY or path in agent_api.PAGE_ONLY) and not self._ui_session():
-                self._send(403, json.dumps({"error": "forbidden: replay, sensor push, sensor check and detection scoring are done by a person in the app"}))
+            # Default deny: every POST needs the page cookie, so a route added later is protected without being listed.
+            if (method == "POST" or path in agent_api.COOKIE_GET) and not self._ui_session():
+                self._send(403, json.dumps({"error": "forbidden: this is done by a person in the app (open the address the app printed)"}))
                 return True, None, None
             return False, None, None
         if not path.startswith(agent_api.PREFIX):
@@ -668,6 +759,7 @@ class Handler(BaseHTTPRequestHandler):
             agent_api.audit(path[len(agent_api.PREFIX):][:60], 404)
             return True, None, None
         verb, target = hit
+        self._agent_call = True                  # replies to an agent carry no home-folder paths
         del self.headers["Authorization"]
         if isinstance(target, str):
             q = urlparse(self.path).query
@@ -714,7 +806,7 @@ class Handler(BaseHTTPRequestHandler):
         if res is not None:
             status, body, ctype, hdrs = res
             return self._send(status, body, ctype, hdrs)
-        res = updater.route_get(url.path, APP_DIR)                   # update check (/api/update/check)
+        res = updater.route_get(url.path, APP_DIR, query=url.query)  # update check (/api/update/check)
         if res is not None:
             status, body, ctype, hdrs = res
             return self._send(status, body, ctype, hdrs)
@@ -766,7 +858,7 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:                   # noqa: BLE001 — never take the server down
                 import traceback
                 traceback.print_exc()
-                return self._send(500, "<pre>%s</pre>" % html.escape(str(e)),
+                return self._send(500, "<pre>%s</pre>" % html.escape(FAULT_TEXT),
                                   "text/html; charset=utf-8")
             return self._send(200, _themed(page, parse_qs(url.query)), "text/html; charset=utf-8")
         if url.path == "/report":
@@ -798,7 +890,7 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception as e:               # noqa: BLE001 — never take the server down
                     import traceback
                     traceback.print_exc()
-                    return self._send(500, _msg_page("Report error", "Report error", str(e), parse_qs(url.query), pre=True),
+                    return self._send(500, _msg_page("Report error", "Report error", FAULT_TEXT, parse_qs(url.query), pre=True),
                                       "text/html; charset=utf-8")
                 return self._send(404, _themed(page, parse_qs(url.query)), "text/html; charset=utf-8")
             if make_diagram is None:
@@ -816,7 +908,7 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:                   # noqa: BLE001 — never take the server down
                 import traceback
                 traceback.print_exc()
-                return self._send(500, "<pre>%s</pre>" % html.escape(str(e)),
+                return self._send(500, "<pre>%s</pre>" % html.escape(FAULT_TEXT),
                                   "text/html; charset=utf-8")
             return self._send(200, _themed(page, parse_qs(url.query)), "text/html; charset=utf-8")
         if url.path == "/diagram":
@@ -837,11 +929,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._captures(parse_qs(url.query))
         if url.path == "/api/manifest":
             return self._manifest(parse_qs(url.query))
-        if self.path in ("/", "/index.html"):
+        if url.path in ("/", "/index.html"):
             try:
                 with open(os.path.join(UI_DIR, "index.html"), "rb") as f:
                     return self._send(200, f.read(), "text/html; charset=utf-8",
-                                      {"Set-Cookie": "og_ui=%s; Path=/; HttpOnly; SameSite=Strict" % UI_SECRET})
+                                      {"Set-Cookie": "og_ui=%s; Path=/; HttpOnly; SameSite=Strict" % UI_SECRET}
+                                      if self._launch_ok(url.query) else None)
             except OSError:
                 return self._send(500, b"UI missing", "text/plain")
         if self.path == "/header-logo.png":
@@ -896,7 +989,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(b": open\n\n")
                 self.wfile.flush()
                 while not SHUTDOWN.is_set():
-                    time.sleep(5.0)
+                    if SHUTDOWN.wait(5.0):
+                        break
                     # The write is the liveness test: once the tab is gone this raises.
                     self.wfile.write(b": ping\n\n")
                     self.wfile.flush()
@@ -915,9 +1009,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, json.dumps(push_ti.collection_status()))
         if self.path == "/api/replay/status":
             return self._send(200, json.dumps(replay.status()))
-        if self.path == "/api/replay/preflight":
-            # no-argument form: which tools are present, which interfaces exist
-            return self._send(200, json.dumps(replay.preflight()))
+        if self.path.split("?")[0] == "/api/replay/preflight":
+            # no-argument form: which tools are present, which interfaces exist (?fresh=1 re-checks)
+            return self._send(200, json.dumps(replay.preflight(fresh="fresh=1" in self.path)))
         return self._send(404, b"not found", "text/plain")
 
     def _engine_down_html(self):
@@ -968,7 +1062,7 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:                       # noqa: BLE001 — never take the server down
             import traceback
             traceback.print_exc()
-            return self._send(500, _msg_page("Diagram error", "Diagram error", str(e), q, pre=True),
+            return self._send(500, _msg_page("Diagram error", "Diagram error", FAULT_TEXT, q, pre=True),
                               "text/html; charset=utf-8")
         return self._send(200, _themed(page, q), "text/html; charset=utf-8")
 
@@ -1064,11 +1158,12 @@ class Handler(BaseHTTPRequestHandler):
             return bad(str(e))
         return self._send(200, json.dumps({"ok": True, "size": os.path.getsize(path)}))
 
-    def _manifest(self, q):
-        """Read-only: the build manifest for a capture path (or the manifest path itself). Only a plain
-        *.manifest.json file directly inside the default output folder, the folder of the last build, or one of their
-        earlier-builds/ folders is served."""
-        p = os.path.expanduser((q.get("path") or [""])[0].strip())
+    @staticmethod
+    def _served_manifest(p):
+        """The *.manifest.json path for a capture path (or the manifest path itself) when it is a plain file directly
+        inside the default output folder, the folder of the last build, or one of their earlier-builds/ folders;
+        otherwise None. The one rule behind /api/manifest and /api/slice."""
+        p = os.path.expanduser((p or "").strip())
         if p.lower().endswith((".pcap", ".pcapng")):
             p = os.path.splitext(p)[0] + ".manifest.json"
         with LOCK:
@@ -1079,17 +1174,61 @@ class Handler(BaseHTTPRequestHandler):
                 or (os.path.realpath(d) not in roots
                     and os.path.realpath(d) not in [k for r in roots for k in captures_store.kept_dirs(r)])   # kept builds count
                 or os.path.islink(p) or not os.path.isfile(p)):
-            return self._send(400, json.dumps({"error": "not a build manifest: %s" % os.path.basename(p)}))
+            return None
+        return p
+
+    def _manifest(self, q):
+        """Read-only: the build manifest for a capture path (or the manifest path itself); see _served_manifest."""
+        raw = (q.get("path") or [""])[0]
+        p = self._served_manifest(raw)
+        if p is None:
+            return self._send(400, json.dumps({"error": "not a build manifest: %s" % os.path.basename(raw.strip())}))
         try:
             with open(p, encoding="utf-8") as f:
                 return self._send(200, f.read())
         except (OSError, UnicodeDecodeError):
             return self._send(400, json.dumps({"error": "cannot read manifest"}))
 
+    def _slice(self, data):
+        """Cut one scenario out of a finished capture (tools/slice_pcap.py). Build-side only: writes <stem>.slice.*.pcap and its
+        .json sidecar beside the source and replays nothing. Every input is checked here; the slicer then checks the
+        manifest hash, the pcap size and the tag sidecar against each other."""
+        def bad(msg, code=400):
+            return self._send(code, json.dumps({"error": msg}))
+        pcap = os.path.expanduser(str(data.get("pcap") or "").strip())
+        scenario, kind = data.get("scenario"), str(data.get("kind") or "").upper()
+        ctx, baseline = data.get("ctx", 300), data.get("baseline") or None
+        if not pcap.lower().endswith(".pcap") or self._served_manifest(pcap) is None or not os.path.isfile(pcap) or os.path.islink(pcap):
+            return bad("not a capture with a build manifest in the output folder")
+        if not isinstance(scenario, str) or not 0 < len(scenario) <= 120:
+            return bad("'scenario' must be a scenario name")
+        if kind not in ("A", "B", "C"):
+            return bad("'kind' must be A, B or C")
+        if isinstance(ctx, bool) or not isinstance(ctx, (int, float)) or not 0 <= ctx <= 86400:
+            return bad("'ctx' must be a number of seconds from 0 to 86400")
+        if baseline not in (None, "none", "window", "full"):
+            return bad("'baseline' must be none, window or full")
+        try:
+            slicer = _slicer()
+        except ImportError:
+            return bad("the pcap slicer is not part of this build of the app", 503)
+        if not SLICE_LOCK.acquire(blocking=False):
+            return bad("a slice is already being cut", 409)
+        try:
+            r = slicer.slice_pcap(pcap, kind, scenario, ctx=float(ctx), baseline=baseline)
+        except (slicer.SliceError, OSError, ValueError) as e:
+            return bad(str(e))
+        except (IndexError, KeyError, TypeError):       # a tag file or manifest row that is not what the build wrote
+            return bad("the capture's tag file or manifest is not in the expected form; nothing was cut")
+        finally:
+            SLICE_LOCK.release()
+        return self._send(200, json.dumps({"ok": True, "slice": r}))
+
     def _captures(self, q):
         """Captures and recipes sitting in the output folder, newest first, to fill the path fields'
         suggestion lists. Names only; nothing is opened."""
-        d = os.path.expanduser((q.get("out_dir") or [""])[0].strip() or DEFAULT_OUT)
+        asked = "" if getattr(self, "_agent_call", False) else (q.get("out_dir") or [""])[0].strip()   # an agent lists only the app's own folder
+        d = os.path.expanduser(asked or DEFAULT_OUT)
         caps, recs, items = [], [], []
         try:
             entries = [e for e in os.scandir(d) if e.is_file()] if os.path.isdir(d) else []
@@ -1142,13 +1281,13 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError as e:
             return self._send(413 if "importer accepts" in str(e) else 400, json.dumps({"error": str(e)}),
                               "application/json")
-        except Exception as e:                       # noqa: BLE001
+        except Exception as e:                       # noqa: BLE001 - handler failure is logged to the terminal and answered with a generic 500
             import traceback
             traceback.print_exc()
-            return self._send(500, json.dumps({"error": str(e)}), "application/json")
+            return self._send(500, json.dumps({"error": FAULT_TEXT}), "application/json")
         self.send_response(200)
         self.send_header("Content-Type", ctype)
-        self.send_header("Content-Disposition", 'attachment; filename="%s"' % name.replace('"', ""))
+        self.send_header("Content-Disposition", 'attachment; filename="%s"' % _header_name(name))
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -1177,7 +1316,7 @@ class Handler(BaseHTTPRequestHandler):
             page = make_diagram.render_page(d, c, make_diagram.load_logo())
         except ValueError as e:
             return _err(413 if "importer accepts" in str(e) else 400, str(e))
-        except Exception as e:                       # noqa: BLE001
+        except Exception as e:                       # noqa: BLE001 - handler failure is logged to the terminal and answered with a 500
             import traceback
             traceback.print_exc()
             return _err(500, str(e))
@@ -1206,14 +1345,14 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError as e:
             return self._send(413 if "importer accepts" in str(e) else 400,
                               json.dumps({"error": str(e)}), "application/json")
-        except Exception as e:                       # noqa: BLE001
+        except Exception as e:                       # noqa: BLE001 - handler failure is logged to the terminal and answered with a generic 500
             import traceback
             traceback.print_exc()
-            return self._send(500, json.dumps({"error": str(e)}), "application/json")
+            return self._send(500, json.dumps({"error": FAULT_TEXT}), "application/json")
         name = os.path.splitext(os.path.basename(path))[0] + "-recipe.json"
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Disposition", 'attachment; filename="%s"' % name)
+        self.send_header("Content-Disposition", 'attachment; filename="%s"' % _header_name(name))
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -1309,7 +1448,7 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:                   # noqa: BLE001 — never take the server down
                 import traceback
                 traceback.print_exc()
-                return self._send(500, json.dumps({"error": str(e)}))
+                return self._send(500, json.dumps({"error": FAULT_TEXT}))
             return self._send(200, json.dumps({"ok": True, "path": dest, "flows": len(spec.get("flows", []))}))
         res = captures_store.route_post(self.path, data, bad_json, _busy)  # safe delete/restore (/api/captures/{trash,restore})
         if res is not None:
@@ -1426,6 +1565,23 @@ class Handler(BaseHTTPRequestHandler):
                     + (["campaign"] if campaigns else []))
             except ValueError as e:
                 return self._send(400, json.dumps({"error": str(e)}))
+            # 6.0 opt-in outputs. exports: a list of known names (the engine owns the list); network_options: the
+            # engine's own normaliser decides what is valid. Both are absent unless chosen.
+            exports = data.get("exports")
+            if exports is not None:
+                known = opengenerator_build.EXPORT_NAMES
+                if (not isinstance(exports, list) or len(exports) > len(known)
+                        or any(not isinstance(x, str) or x not in known for x in exports)):
+                    return self._send(400, json.dumps({"error": "'exports' must be a list of: " + ", ".join(known)}))
+                exports = sorted(set(exports))
+            netopts = data.get("network_options")
+            if netopts is not None:
+                try:
+                    if not isinstance(netopts, dict):
+                        raise ValueError("'network_options' must be an object")
+                    netopts = opengenerator_build.normalize_network_options(netopts)
+                except (TypeError, ValueError) as e:
+                    return self._send(400, json.dumps({"error": "bad network options: %s" % e}))
             gen_args = (scale, out_dir, certs, iocs, modules, user_net, server_net,
                         cap_date, ot_nets, recipe_paths or None, company, industry, ot_protocols)
             if campaigns:
@@ -1434,8 +1590,8 @@ class Handler(BaseHTTPRequestHandler):
                 if STATE["running"]:
                     return self._send(409, json.dumps({"error": "a run is already in progress"}))
                 STATE["running"] = True
-            threading.Thread(target=run_generator, args=gen_args, kwargs={"shifts": shifts} if shifts else {},
-                             daemon=True).start()
+            gen_kw = {k: v for k, v in (("shifts", shifts), ("exports", exports), ("network_options", netopts)) if v}
+            threading.Thread(target=run_generator, args=gen_args, kwargs=gen_kw, daemon=True).start()
             return self._send(200, json.dumps({"ok": True, "out_dir": out_dir,
                                                "modules": modules,
                                                "user_net": user_net, "server_net": server_net,
@@ -1517,25 +1673,36 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/replay/preflight":
             pcap = os.path.expanduser(data.get("pcap") or "")
             return self._send(200, json.dumps(replay.preflight(pcap or None,
-                                                               data.get("iface") or None)))
+                                                               data.get("iface") or None,
+                                                               fresh=bool(data.get("fresh")))))
         if self.path == "/api/replay/start":
+            # Every option is checked by replay.parse_options (bounds, whole numbers, no top speed); a bad
+            # one is a 400. The route is HUMAN_ONLY: the page cookie is required and a token never reaches it.
             try:
-                mode = data.get("speed_mode", "multiplier")
-                value = data.get("speed_value", 1.0)
-                value = float(value) if mode != "topspeed" else 0.0
-                if mode == "multiplier":
-                    value = max(0.01, min(1000.0, value))
-                loop = max(0, int(data.get("loop", 1) or 1))
-                r = replay.start(data.get("pcap") or "", data.get("iface") or "",
-                                 speed_mode=mode, speed_value=value, loop=loop,
-                                 preload=bool(data.get("preload", False)),
-                                 monitor=bool(data.get("monitor", True)))
+                opts = {k: data[k] for k in REPLAY_OPTION_KEYS if k in data}
+                r = replay.start(data.get("pcap") or "", data.get("iface") or "", **opts)
                 return self._send(200, json.dumps(r))
             except RuntimeError as e:
                 code = 409 if "already in progress" in str(e) else 400
                 return self._send(code, json.dumps({"error": str(e)}))
             except (TypeError, ValueError) as e:
                 return self._send(400, json.dumps({"error": f"bad replay parameters: {e}"}))
+        if self.path == "/api/slice":
+            return self._slice(data)                # build-side like /api/generate: no cookie rule, no agent verb
+        if self.path == "/api/replay/records":
+            # {pcap} lists the records beside that capture; {pcap, id} returns one. HUMAN_ONLY like the rest.
+            pcap = os.path.abspath(os.path.expanduser(str(data.get("pcap") or "")))
+            if not os.path.isfile(pcap):
+                return self._send(404, json.dumps({"error": "capture file not found"}))
+            try:
+                if data.get("id"):
+                    rec = replay.read_record(pcap, str(data["id"]))
+                    if rec is None:
+                        return self._send(404, json.dumps({"error": "no such replay record"}))
+                    return self._send(200, json.dumps({"record": rec, "resume": replay.resume_point(rec)}))
+                return self._send(200, json.dumps({"records": replay.list_records(pcap)}))
+            except ValueError as e:
+                return self._send(400, json.dumps({"error": str(e)}))
         if self.path == "/api/bye":
             # sendBeacon from pagehide. The presence stream closing would be noticed anyway
             # within a ping interval; this just makes a deliberate close instant. It carries
@@ -1550,8 +1717,10 @@ class Handler(BaseHTTPRequestHandler):
                     (data.get("sensor") or "").strip(),
                     data.get("apikey") or "",
                     data.get("certs_dir") or None)))
-            except Exception as e:                       # noqa: BLE001
-                return self._send(500, json.dumps({"ok": False, "errors": [str(e)]}))
+            except Exception:                            # noqa: BLE001 - handler failure is logged to the terminal and answered with a generic 500
+                import traceback
+                traceback.print_exc()
+                return self._send(500, json.dumps({"ok": False, "errors": [FAULT_TEXT]}))
         if self.path == "/api/sensor/push":
             # `confirm` is required and must be the literal string below: this deletes every
             # SSL decryption key on the sensor, so it must not be reachable by an accidental
@@ -1596,8 +1765,10 @@ class Handler(BaseHTTPRequestHandler):
                     data.get("apikey") or "",
                     data.get("stix") or None,
                     target=(data.get("target") or "sensor"))))
-            except Exception as e:                       # noqa: BLE001
-                return self._send(500, json.dumps({"ok": False, "errors": [str(e)]}))
+            except Exception:                            # noqa: BLE001 - handler failure is logged to the terminal and answered with a generic 500
+                import traceback
+                traceback.print_exc()
+                return self._send(500, json.dumps({"ok": False, "errors": [FAULT_TEXT]}))
         if self.path == "/api/sensor/collection/push":
             # No confirmation token here, unlike the certificate push. This replaces only the
             # collection the tool owns and leaves every other collection alone, so demanding
@@ -1643,14 +1814,16 @@ class Handler(BaseHTTPRequestHandler):
                     "error": "refusing to open an application/package bundle: %s" % out_dir}))
             try:
                 if sys.platform == "darwin":
-                    subprocess.run(["open", out_dir], check=False)
+                    subprocess.run(["open", out_dir], check=False, timeout=30)
                 elif sys.platform.startswith("win"):
-                    os.startfile(out_dir)         # noqa: SC200
+                    os.startfile(out_dir)         # noqa: SC200 - os.startfile exists only on Windows and is called only there
                 else:
-                    subprocess.run(["xdg-open", out_dir], check=False)
+                    subprocess.run(["xdg-open", out_dir], check=False, timeout=30)
                 return self._send(200, json.dumps({"ok": True}))
-            except Exception as e:                # noqa: BLE001
-                return self._send(500, json.dumps({"error": str(e)}))
+            except Exception:                     # noqa: BLE001 - handler failure is logged to the terminal and answered with a generic 500
+                import traceback
+                traceback.print_exc()
+                return self._send(500, json.dumps({"error": FAULT_TEXT}))
         return self._send(404, b"not found", "text/plain")
 
 
@@ -1680,9 +1853,16 @@ def find_port(start=8765):
 def _restart():
     """Start a fresh copy of this app a moment from now (it takes over the port once this one has let go), then stop."""
     argv = [sys.executable] + ([] if getattr(sys, "frozen", False) else [os.path.abspath(__file__)]) + [a for a in sys.argv[1:] if a != "--no-browser"]
+    own = updater.updater_linux.own_appimage(os.path.realpath(sys.executable), os.environ.get("APPIMAGE", ""), os.environ.get("APPDIR", ""))
+    argv = updater.updater_linux.restart_argv(argv, own)     # an AppImage restarts by its own (new) file
     subprocess.Popen(["/bin/sh", "-c", 'sleep 1.5; exec "$@"', "sh"] + argv, start_new_session=True,
                      stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     shutdown("updated; restarting", stop_work=False)
+
+
+def launch_line(port):
+    """The line the server prints at start. Launchers and harnesses parse it (the ?launch= nonce is how they get the cookie)."""
+    return f"{branding.PRODUCT_NAME} UI  ->  http://127.0.0.1:{port}/?launch={LAUNCH['nonce']}"
 
 
 def main():
@@ -1704,9 +1884,10 @@ def main():
     port = find_port()
     httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     _HTTPD = httpd
-    url = f"http://127.0.0.1:{port}/"
     overlay.confirm_boot()                              # a patch, if one is running, started fine
-    print(f"{branding.PRODUCT_NAME} UI  ->  {url}")
+    line = launch_line(port)
+    url = line.split("  ->  ", 1)[1]
+    print(line)
     if LIFECYCLE["autoquit"]:
         print("Closing the browser tab stops the server. Ctrl-C also works.")
     else:

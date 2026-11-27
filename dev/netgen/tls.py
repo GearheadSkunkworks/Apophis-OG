@@ -8,6 +8,7 @@ similar tools decrypt the traffic.
 """
 import datetime
 from .identity import get_current
+from .keypool import next_key
 import hashlib
 import hmac
 import os
@@ -15,7 +16,7 @@ import struct
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.x509.oid import NameOID
 
@@ -31,6 +32,14 @@ def prf(secret: bytes, label: bytes, seed: bytes, n: int) -> bytes:
         a = hmac.new(secret, a, hashlib.sha256).digest()
         out += hmac.new(secret, a + seed, hashlib.sha256).digest()
     return out[:n]
+
+
+def open_private(path, mode="wb"):
+    """Open `path` for writing readable by its owner only (0600), never through a symlink: private keys and TLS key logs
+    must not be readable by other users of the machine."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    os.fchmod(fd, 0o600)                       # a file left by an older run may be wider
+    return os.fdopen(fd, mode)
 
 
 class PKI:
@@ -54,7 +63,7 @@ class PKI:
     def __init__(self, ca_name=None, day=None):
         ca_name = ca_name or get_current().ca
         self.anchor = self._anchor(day)
-        self.ca_key = rsa.generate_private_key(65537, 2048)
+        self.ca_key = next_key()
         name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, ca_name),
                           x509.NameAttribute(NameOID.ORGANIZATION_NAME,
                                              "%s Certificate Services" % get_current().name)])
@@ -78,7 +87,7 @@ class PKI:
         """A second issuer for names outside the corporate domain, so a CDN / SaaS / C2 front is not
         signed by the lab's own internal CA (a public site's certificate chains to a public CA)."""
         if self._pub is None:
-            key = rsa.generate_private_key(65537, 2048)
+            key = next_key()
             name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Demo Public TLS CA R1"),
                               x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Demo Trust Services")])
             now = self.anchor - datetime.timedelta(days=self.CA_BEFORE_DAYS)
@@ -95,7 +104,7 @@ class PKI:
         (EXPIRED_BEFORE days ago): self.ca_cert is only CA_BEFORE_DAYS old, which is less
         than EXPIRED_BEFORE, so that leaf would predate its own issuer's existence."""
         if self._old is None:
-            key = rsa.generate_private_key(65537, 2048)
+            key = next_key()
             name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, get_current().ca),
                               x509.NameAttribute(NameOID.ORGANIZATION_NAME, "%s Certificate Services" % get_current().name)])
             now = self.anchor - datetime.timedelta(days=self.OLD_CA_BEFORE_DAYS)
@@ -122,7 +131,7 @@ class PKI:
     def cert_for(self, hostname: str):
         if hostname in self.leaf:
             return self.leaf[hostname]
-        key = rsa.generate_private_key(65537, 2048)
+        key = next_key()
         now = self.anchor - datetime.timedelta(days=self.LEAF_BEFORE_DAYS)
         subj = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, hostname)])
         if self.is_internal(hostname):
@@ -147,7 +156,7 @@ class PKI:
         ck = (hostname, mode)
         if ck in cache:
             return cache[ck]
-        key = rsa.generate_private_key(65537, 2048)
+        key = next_key()
         subj = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, hostname)])
         b = (x509.CertificateBuilder().subject_name(subj)
              .public_key(key.public_key()).serial_number(x509.random_serial_number())
@@ -189,7 +198,7 @@ class PKI:
             cert = x509.load_der_x509_certificate(der)
             with open(os.path.join(out_dir, safe + ".crt"), "wb") as f:
                 f.write(cert.public_bytes(serialization.Encoding.PEM))
-            with open(os.path.join(out_dir, safe + ".key"), "wb") as f:
+            with open_private(os.path.join(out_dir, safe + ".key")) as f:
                 f.write(key.private_bytes(serialization.Encoding.PEM,
                                           serialization.PrivateFormat.TraditionalOpenSSL,
                                           serialization.NoEncryption()))

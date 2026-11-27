@@ -6,21 +6,23 @@ Stdlib only. The control is SCOPE, not a hidden endpoint:
 * A request carrying ``Authorization: Bearer <token>`` is an *agent* request. It may only reach ``/agent/v1/<verb>``;
   the verb table below is the whole surface. There is no verb for replaying to a network or for pushing to a sensor,
   and the server refuses a bearer token on every other path (403).
-* The routes that replay or push (``HUMAN_ONLY``) also require the per-process browser-session cookie the app hands to
-  its own page, so a plain HTTP client that simply leaves the token off cannot reach them either.
-  shortcut: the cookie is readable by anything that can fetch ``/`` over loopback, so this stops an agent tool that
-  speaks HTTP, not a local process with shell access (which could run tcpreplay itself); upgrade if that threat matters.
+* Every other POST requires the per-process browser-session cookie, which the server gives once, to the request that
+  carries the launch nonce from the address the app opens itself. A client that leaves the token off, or fetches ``/``,
+  gets no cookie. shortcut: the nonce is in the opened URL, so a same-user process that reads the browser's command
+  line in that instant could take it; upgrade to an OS confirmation dialog for replay and push if that matters.
 * ``sensor/stage`` records a *pending* request (host, certificate folder) and executes nothing; a person reviews it in
   the app and presses the existing confirm button. The sensor key never travels through the agent: the server reads it
   from the Keychain.
-* Every agent call is appended to ``agent-audit.log`` (verb, status, argument names; secret values never).
+* Every agent call is appended to ``agent-audit.log`` (verb, status and argument NAMES; never a value). The settings
+  folder is 0700 and the log 0600.
 
-The token lives in the Keychain on macOS (account ``agent:token``), else in a 0600 file beside the settings.
+The token lives in the keystore (``agent:token``): the Keychain on macOS, the desktop keyring or a 0600 file on Linux.
 """
 import base64
 import hmac
 import json
 import os
+import re
 import threading
 import time
 
@@ -39,7 +41,7 @@ _PENDING = {}                          # id -> staged request
 
 # POST routes only a person at the app may use: the session cookie is required for each, and a token is never enough.
 HUMAN_ONLY = frozenset((
-    "/api/replay/start", "/api/replay/stop",
+    "/api/replay/start", "/api/replay/stop", "/api/replay/records",
     "/api/sensor/push", "/api/sensor/stop",
     "/api/sensor/collection/push", "/api/sensor/collection/stop",
     "/api/agent/status", "/api/agent/token", "/api/agent/off", "/api/agent/dismiss",    # the app's own controls
@@ -49,6 +51,11 @@ HUMAN_ONLY = frozenset((
 # local program cannot drive them. Unlike HUMAN_ONLY, an agent verb may proxy to these (sensor/check), because that call
 # arrives with a token and is audited.
 PAGE_ONLY = frozenset(("/api/sensor/check", "/api/campaign/feedback"))
+
+# GET routes that act, reveal what is installed, or answer for any local path (an existence oracle), and so also need
+# the page cookie. Every POST needs it by default.
+COOKIE_GET = frozenset(("/api/update/check", "/api/replay/preflight", "/profile", "/recipe", "/profile/export",
+                        "/profile/compare", "/profile/check", "/profile/summary"))
 
 # (method, verb) -> internal path, or ("local", name) for verbs answered here that run no existing handler.
 VERBS = {
@@ -81,7 +88,6 @@ VERBS = {
     ("GET", "verbs"): ("local", "verbs"),
 }
 _SENSOR_VERBS = ("sensor/check", "sensor/preflight", "sensor/stage")
-_SECRET_NAMES = ("key", "apikey", "token", "password", "secret")
 
 
 class AgentError(Exception):
@@ -92,30 +98,37 @@ class AgentError(Exception):
 
 # ---------------------------------------------------------------- token
 def _token_path():
-    return os.path.join(settings_store.settings_dir(), TOKEN_FILE)
+    return os.path.join(settings_store.settings_dir(), TOKEN_FILE)      # only the pre-keystore file, removed on revoke
+
+
+# The keystore may start a helper process (security, secret-tool), so one request must not cost one process:
+# the token is kept in memory, dropped on create/revoke, and re-read at most every TOKEN_TTL seconds so a change made
+# through the key routes still takes effect.
+TOKEN_TTL = 5.0
+_TOKEN = {"value": "", "at": None}
+_TOKEN_LOCK = threading.Lock()
+
+
+def _forget_cached_token():
+    with _TOKEN_LOCK:
+        _TOKEN["at"] = None
 
 
 def _read_token():
-    if keystore.available():
+    with _TOKEN_LOCK:
+        if _TOKEN["at"] is not None and time.monotonic() - _TOKEN["at"] < TOKEN_TTL:
+            return _TOKEN["value"]
         try:
-            return keystore.load(TOKEN_ID) or ""
+            _TOKEN["value"] = keystore.load(TOKEN_ID) or ""
         except keystore.KeystoreError:
-            return ""
-    try:
-        with open(_token_path()) as fh:
-            return fh.read().strip()
-    except OSError:
-        return ""
+            _TOKEN["value"] = ""
+        _TOKEN["at"] = time.monotonic()
+        return _TOKEN["value"]
 
 
 def _write_token(tok):
-    if keystore.available():
-        keystore.save(TOKEN_ID, tok)
-        return
-    os.makedirs(settings_store.settings_dir(), exist_ok=True)
-    fd = os.open(_token_path(), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w") as fh:
-        fh.write(tok)
+    keystore.save(TOKEN_ID, tok)
+    _forget_cached_token()
 
 
 def enabled():
@@ -134,11 +147,11 @@ def show_token():
 
 
 def revoke_token():
-    if keystore.available():
-        try:
-            keystore.forget(TOKEN_ID)
-        except keystore.KeystoreError:
-            pass
+    try:
+        keystore.forget(TOKEN_ID)
+    except keystore.KeystoreError:
+        pass
+    _forget_cached_token()
     try:
         os.remove(_token_path())
     except OSError:
@@ -157,21 +170,14 @@ def check_bearer(header):
 
 # ---------------------------------------------------------------- audit
 def audit(verb, status, body=None):
-    """Append one line. Argument NAMES are logged; values only for short non-secret scalars."""
-    args = {}
-    if isinstance(body, dict):
-        for k, v in body.items():
-            k = str(k)[:40]
-            if any(s in k.lower() for s in _SECRET_NAMES):
-                args[k] = "<hidden>"
-            elif isinstance(v, (int, float, bool)) or (isinstance(v, str) and len(v) <= 80):
-                args[k] = v
-            else:
-                args[k] = "<%s>" % type(v).__name__
-    line = json.dumps({"t": time.strftime("%Y-%m-%dT%H:%M:%S"), "verb": verb, "status": status, "args": args})
+    """Append one line: time, verb, status and the argument NAMES. Values are never logged (a short value can still
+    be a URL carrying a key, a folder or a host)."""
+    names = sorted({re.sub(r"[^A-Za-z0-9_.-]", "?", str(k))[:40] for k in body}) if isinstance(body, dict) else []
+    line = json.dumps({"t": time.strftime("%Y-%m-%dT%H:%M:%S"), "verb": verb, "status": status, "args": names})
     path = os.path.join(settings_store.settings_dir(), AUDIT_FILE)
+    nofollow = getattr(os, "O_NOFOLLOW", 0)
     try:
-        os.makedirs(settings_store.settings_dir(), exist_ok=True)
+        settings_store.ensure_private_dir()
         with _LOCK:
             try:
                 if os.path.getsize(path) > AUDIT_MAX:
@@ -179,11 +185,13 @@ def audit(verb, status, body=None):
                         fh.seek(-(AUDIT_MAX // 2), 2)
                         fh.readline()
                         keep = fh.read()
-                    with open(path, "wb") as fh:
+                    with os.fdopen(os.open(path, os.O_WRONLY | os.O_TRUNC | nofollow, 0o600), "wb") as fh:
                         fh.write(keep)
             except OSError:
                 pass
-            with open(path, "a") as fh:
+            fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT | nofollow, 0o600)
+            with os.fdopen(fd, "a") as fh:
+                os.fchmod(fh.fileno(), 0o600)          # a log made by an older version may be world-readable
                 fh.write(line + "\n")
     except OSError:
         pass                              # an unwritable log must not break the call
@@ -197,8 +205,26 @@ def resolve(method, path):
     return (verb, target) if target else None
 
 
+# Body fields an agent may not set: where files are written or read, and the person's confirmation for real addresses
+# (a capture made that way can later be replayed, so the confirmation must come from a person).
+REFUSED_FIELDS = ("out_dir", "recipe", "recipes", "confirm_real_addresses")
+
+
+def scrub(text):
+    """Reply text for an agent: the person's home folder (and so the account name) becomes '~'."""
+    home = os.path.expanduser("~")
+    return text.replace(home, "~") if len(home) > 1 else text
+
+
 def prepare(verb, data):
-    """Body for a proxied verb: sensor calls get the saved key and may not carry one of their own."""
+    """Body for a proxied verb: sensor calls get the saved key and may not carry one of their own; no verb may name
+    an output or recipe path or confirm real addresses."""
+    if isinstance(data, dict):
+        for k in REFUSED_FIELDS:
+            if k in data:
+                raise AgentError(400, "'%s' is chosen by a person in the app, not through the agent API" % k)
+        if data.get("address_mode") == "real":
+            raise AgentError(400, "real-address mode is chosen by a person in the app, not through the agent API")
     if verb not in _SENSOR_VERBS:
         return data
     if not isinstance(data, dict):

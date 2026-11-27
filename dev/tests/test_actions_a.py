@@ -16,6 +16,7 @@ import unittest
 from unittest import mock
 
 import netgen
+from checks.tshark_locate import find_tshark
 from netgen import flows as F
 from netgen.core import Host, ArpModel, PcapWriter
 from netgen.identity import H
@@ -25,7 +26,7 @@ from netgen.campaign import actions as A
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 INVENTORY = os.path.join(os.path.dirname(HERE), "inventory.json")
-TSHARK = "/Applications/Wireshark.app/Contents/MacOS/tshark"
+TSHARK = find_tshark()
 DAY = "2026-03-14"
 T0 = 1773489600.0         # 2026-03-14 12:00 UTC, inside the pinned day for any sensible timezone
 
@@ -341,7 +342,7 @@ class ActionsA(unittest.TestCase):
             for _, f in pk:
                 self.assertEqual(check_packet(f), [], tok)
 
-    @unittest.skipUnless(os.path.exists(TSHARK), "tshark not installed")
+    @unittest.skipUnless(TSHARK, "tshark not installed")
     def test_tshark_clean(self):
         d = tempfile.mkdtemp()
         try:

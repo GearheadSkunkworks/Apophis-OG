@@ -11,7 +11,7 @@ import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from netgen import core, protocols  # noqa: E402
+from netgen import core, protocols  # noqa: E402 - sys.path is set up before the import
 
 fails = []
 WORDS = ("shipment manifest pallet carrier dock lane tracking invoice consignee origin destination weight kg "

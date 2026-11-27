@@ -7,7 +7,8 @@ const path = require('path');
 const html = fs.readFileSync(path.join(__dirname, '..', '..', 'ui', 'index.html'), 'utf8');
 const m = html.match(/function guardedPoll\(tick, onLost\)\{[\s\S]*?\n\}\n/);
 assert.ok(m, 'guardedPoll not found in index.html');
-const guardedPoll = new Function(m[0] + '; return guardedPoll;')();
+// The source is this repo's own page script, so running it in this context is a test-only step.
+const guardedPoll = require('node:vm').runInThisContext('(function(){' + m[0] + '; return guardedPoll;})()');
 
 test('guardedPoll skips overlapping ticks', async () => {
   let calls = 0, release;

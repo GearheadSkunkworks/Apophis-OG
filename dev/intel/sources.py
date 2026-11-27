@@ -275,6 +275,22 @@ def unpack(data, cap=FETCH_MAX, encoding=""):
     return data
 
 
+def read_capped(r, max_bytes, end, clock=time.monotonic):
+    """Read a response body under a byte cap and a wall-clock deadline `end`. read1 returns after one receive, so the
+    deadline is checked at least once per socket timeout even when the server drips a byte at a time (a plain read(n)
+    keeps receiving until n bytes arrive, and a slow body then outlived the deadline for days)."""
+    buf = bytearray()
+    while True:
+        chunk = r.read1(65536)
+        if not chunk:
+            return bytes(buf)
+        buf += chunk
+        if len(buf) > max_bytes:
+            raise FeedError("response larger than the %d byte cap" % max_bytes)
+        if clock() > end:
+            raise FeedError("the response took too long")
+
+
 def http_get(url, *, method="GET", headers=None, data=None, ssrf=False, max_bytes=FETCH_MAX, timeout=TIMEOUT,
              deadline=TOTAL_DEADLINE):
     """Fetch bytes over https. Raises FeedError. Never includes header values in errors.
@@ -296,19 +312,9 @@ def http_get(url, *, method="GET", headers=None, data=None, ssrf=False, max_byte
     try:
         with opener.open(req, timeout=timeout) as r:
             declared = r.headers.get("Content-Length")
-            if declared is not None and declared.strip().isdigit() and int(declared) > max_bytes:
+            if declared is not None and declared.strip().isascii() and declared.strip().isdigit() and int(declared) > max_bytes:
                 raise FeedError("response larger than the %d byte cap" % max_bytes)
-            buf = bytearray()
-            while True:
-                chunk = r.read(65536)
-                if not chunk:
-                    break
-                buf += chunk
-                if len(buf) > max_bytes:
-                    raise FeedError("response larger than the %d byte cap" % max_bytes)
-                if time.monotonic() > end:
-                    raise FeedError("the response took too long")
-            return unpack(bytes(buf), max_bytes, r.headers.get("Content-Encoding", ""))
+            return unpack(read_capped(r, max_bytes, end), max_bytes, r.headers.get("Content-Encoding", ""))
     except FeedError:
         raise
     except urllib.error.HTTPError as e:
@@ -646,7 +652,8 @@ _GIVES = {
 }
 for _f in FEEDS.values():
     _f.gives = _GIVES[_f.id]
-assert set(_GIVES) == set(FEEDS), "every feed must state what it gives"
+if set(_GIVES) != set(FEEDS):
+    raise RuntimeError("every feed must state what it gives")
 
 _WHY = {
     "circl": "Analyst-curated MISP OSINT events from a national CERT, current to the day.",
@@ -679,7 +686,8 @@ _WHY = {
 }
 for _f in FEEDS.values():
     _f.why = _WHY[_f.id]
-assert set(_WHY) == set(FEEDS), "every feed must say why it is offered"
+if set(_WHY) != set(FEEDS):
+    raise RuntimeError("every feed must say why it is offered")
 
 
 # ---------------------------------------------------------------- fetch
@@ -755,7 +763,7 @@ def _fetch_misp_feed(feed, limit):
 
     def _stamp(kv):
         t = str(kv[1].get("timestamp", 0))
-        return -int(t) if t.isdigit() and len(t) < 15 else 0
+        return -int(t) if t.isascii() and t.isdigit() and len(t) < 15 else 0
     order = sorted(((k, v) for k, v in man.items() if isinstance(v, dict)), key=_stamp)
     events, count = [], 0
     for uuid, _ in order[:40]:

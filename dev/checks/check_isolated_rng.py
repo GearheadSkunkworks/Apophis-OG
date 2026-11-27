@@ -8,13 +8,13 @@ import sys
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from netgen import incidents  # noqa: E402
+from netgen import incidents  # noqa: E402 - sys.path is set up before the import
 
 gens, saved = incidents._isolated_rng()
 assert gens and len(gens) == len(saved)
 assert not any(isinstance(g, random.SystemRandom) for g in gens), "SystemRandom has no state to save"
 
-import opengenerator_build  # noqa: E402
+import opengenerator_build  # noqa: E402 - sys.path is set up before the import
 
 with tempfile.TemporaryDirectory() as d:
     sys.argv = ["opengenerator_build.py", "--scale", "0.0005", "--module", "npm-web-degradation",

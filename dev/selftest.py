@@ -34,9 +34,9 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-import opengenerator_build as OGB          # noqa: E402
-from netgen import platform as capmod      # noqa: E402
-from netgen import protocols as P          # noqa: E402
+import opengenerator_build as OGB          # noqa: E402 - sys.path is set up before the import
+from netgen import platform as capmod      # noqa: E402 - sys.path is set up before the import
+from netgen import protocols as P          # noqa: E402 - sys.path is set up before the import
 
 PIN = 466343
 SCALE = 0.004
@@ -173,7 +173,7 @@ class TestEngineChecks(unittest.TestCase):
 
     def _run(self, *argv):
         import subprocess
-        r = subprocess.run([sys.executable] + list(argv), cwd=_HERE, capture_output=True, text=True)
+        r = subprocess.run([sys.executable] + list(argv), cwd=_HERE, capture_output=True, text=True, timeout=900)
         self.assertEqual(r.returncode, 0, "%s failed:\n%s%s" % (argv[0], r.stdout[-800:], r.stderr[-800:]))
 
     def test_stream_equivalence(self):
@@ -212,6 +212,9 @@ class TestEngineChecks(unittest.TestCase):
         node = shutil.which("node")
         if not node:
             self.skipTest("node not installed")
+        major = int(__import__("subprocess").run([node, "-p", "process.versions.node.split('.')[0]"],
+                                                   capture_output=True, text=True, timeout=30).stdout.strip() or 0)
+        self.assertGreaterEqual(major, 18, "node 18 or newer is required for the JS tests (node:test); found %s" % node)
         for name in ("shell", "editor", "library", "sensor", "board"):
             r = __import__("subprocess").run([node, "--test", "tests/js/%s.test.js" % name], cwd=_HERE,
                                              capture_output=True, text=True)

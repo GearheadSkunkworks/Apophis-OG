@@ -40,9 +40,9 @@ class InterfaceNames(unittest.TestCase):
     def test_odd_names_are_refused_even_with_no_interface_list(self):
         import replay
         for bad in ("-w", "en0; reboot", "a b", "x" * 40, "--help", "../x"):
-            r = replay.preflight(None, bad)
+            r = replay.preflight(None, bad, fresh=True)
             self.assertTrue(any("valid interface" in e for e in r["errors"]), bad)
-        r = replay.preflight(None, "en0")
+        r = replay.preflight(None, "en0", fresh=True)
         self.assertFalse(any("valid interface" in e for e in r["errors"]))
 
 

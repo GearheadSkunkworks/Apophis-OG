@@ -16,7 +16,7 @@ Two honest design points (see ja4.py for the full reproducibility matrix):
 import os
 import struct
 
-from netgen.tls import _ext, _hs, _rec, VER  # type: ignore
+from netgen.tls import _ext, _hs, _rec, VER  # type: ignore[attr-defined] - private netgen.tls names the type checker does not export
 
 # ------------------------------------------------------------------ TLS 1.3 ClientHello (JA4)
 _GROUP_KS = {0x001d: 32, 0x0017: 65, 0x0018: 97}      # x25519 / secp256r1 / secp384r1 key-share sizes

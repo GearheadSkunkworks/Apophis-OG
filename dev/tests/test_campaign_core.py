@@ -14,7 +14,7 @@ from unittest import mock
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from netgen.campaign import actions, addressing, attack, compiler, schema  # noqa: E402
+from netgen.campaign import actions, addressing, attack, compiler, schema  # noqa: E402 - sys.path is set up before the import
 
 FIXTURE = os.path.join(HERE, "fixtures", "php2shell_iocs.txt")
 
@@ -63,7 +63,7 @@ def fixture_iocs():
         got = parse_text(text, source="fixture")
         if got:
             return got
-    except Exception:
+    except Exception:  # the real parser is optional here: any failure falls back to the local parser below
         pass
     return _local_parse(text)
 

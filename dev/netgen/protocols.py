@@ -2069,7 +2069,8 @@ def radius_response(code: int, ident: int, req_authenticator: bytes, attrs: byte
         secret = (get_current().prefix.lower() + "radius-secret").encode()
     length = 20 + len(attrs)
     head = bytes([code & 0xFF, ident & 0xFF]) + length.to_bytes(2, "big")
-    resp_auth = hashlib.md5(head + req_authenticator + attrs + secret).digest()
+    # lint-ok: RFC 2865 mandates MD5 for the RADIUS Response Authenticator; this is simulated wire traffic
+    resp_auth = hashlib.md5(head + req_authenticator + attrs + secret, usedforsecurity=False).digest()
     return head + resp_auth + attrs
 
 
@@ -2144,7 +2145,8 @@ def radius_eap_reply(code: int, ident: int, req_auth: bytes, eap: bytes, state: 
     a += eap_message_attrs(eap)
     a = _with_message_authenticator(code, ident, req_auth, a, secret)
     head = bytes([code & 0xFF, ident & 0xFF]) + (20 + len(a)).to_bytes(2, "big")
-    return head + hashlib.md5(head + req_auth + a + secret).digest() + a
+    # lint-ok: RFC 2865 mandates MD5 for the RADIUS Response Authenticator; this is simulated wire traffic
+    return head + hashlib.md5(head + req_auth + a + secret, usedforsecurity=False).digest() + a
 
 
 def ms_mppe_keys() -> bytes:

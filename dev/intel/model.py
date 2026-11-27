@@ -41,7 +41,7 @@ def _iso(v):
     if v is None or v == "":
         return None
     try:
-        if isinstance(v, (int, float)) or (isinstance(v, str) and v.strip().isdigit()):
+        if isinstance(v, (int, float)) or (isinstance(v, str) and v.strip().isascii() and v.strip().isdigit()):
             n = float(v)
             if n > 1e11:  # milliseconds
                 n /= 1000.0

@@ -257,7 +257,7 @@ def lint_svg(svg_text):
             fam = (_inherited(el, "font-family", "") or "").lower()
             mono = "mono" in fam or "menlo" in fam or "courier" in fam
             wt = str(_inherited(el, "font-weight", "400") or "400").lower()
-            bold = wt == "bold" or (wt.isdigit() and int(wt) >= 600)
+            bold = wt == "bold" or (wt.isascii() and wt.isdigit() and int(wt) >= 600)
             em = CHAR_EM_MONO if mono else (CHAR_EM if bold else CHAR_EM_REGULAR)
             if m is None:
                 m = (1, 0, 0, 1, 0, 0)

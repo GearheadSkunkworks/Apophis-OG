@@ -11,9 +11,9 @@ DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
-import campaign_api                                    # noqa: E402
-from intel import parsers                              # noqa: E402
-from netgen.campaign import compiler, exports, goals, schema    # noqa: E402
+import campaign_api                                    # noqa: E402 - sys.path is set up before the import
+from intel import parsers                              # noqa: E402 - sys.path is set up before the import
+from netgen.campaign import compiler, exports, goals, schema    # noqa: E402 - sys.path is set up before the import
 
 
 def _build(tid):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Independent IPv4 / TCP / UDP / ICMP validator for a classic pcap. Standard library only; it does
+"""Independent IPv4 / TCP / UDP / ICMP validator for a classic pcap or a pcapng file. Standard library only; it does
 not import anything from netgen, so it cannot share a bug with the generator.
 
-    python3 checks/check_rfc791.py FILE.pcap [--max-errors N] [--exempt CODE ...] [--quiet]
+    python3 checks/check_rfc791.py FILE.pcap|FILE.pcapng [--max-errors N] [--exempt CODE ...] [--quiet]
 
 Every Ethernet frame carrying IPv4 (EtherType 0x0800, also behind one or two 802.1Q tags) is checked:
 
@@ -23,12 +23,19 @@ Every Ethernet frame carrying IPv4 (EtherType 0x0800, also behind one or two 802
   icmp.*            checksum verifies, 4 bytes minimum
 
 Non-first fragments are not parsed at the transport layer (the header is not there).
+--decap gre,vxlan,6in4 also validates the packets inside tunnels (see decap.py); a tunnel envelope problem
+is a finding with its own code (gre.*, vxlan.*, 6in4.*, tunnel.fragment).
 Exit status 1 if any check failed. --exempt CODE (repeatable, a code or a prefix such as "tcp.")
 excludes a documented class of finding from the failure count; exempted findings are still listed.
 """
 import argparse
 import struct
 import sys
+
+try:                                # run as a script (checks/ on the path) or imported as checks.<name>
+    from decap import Decap
+except ImportError:
+    from .decap import Decap
 
 KNOWN_PROTO = {1, 2, 4, 6, 17, 41, 47, 50, 51, 58, 89, 103, 112, 132}
 ETH_IP, ETH_VLAN, ETH_QINQ = 0x0800, 0x8100, 0x88A8
@@ -44,11 +51,42 @@ def csum_ok(data):
     return s == 0xFFFF
 
 
+def _pcapng_records(f, shb):
+    """Yield (caplen, origlen, data) from the packet blocks of a pcapng file (little or big endian
+    sections, Enhanced and Simple Packet Blocks); every interface must be Ethernet."""
+    end = "<" if shb[8:12] == b"\x4d\x3c\x2b\x1a" else ">"
+    f.seek(0)
+    while True:
+        h = f.read(8)
+        if len(h) < 8:
+            return
+        typ, tot = struct.unpack(end + "II", h)
+        if tot < 12 or tot % 4:
+            raise SystemExit("pcapng block of length %d is malformed" % tot)
+        body = f.read(tot - 8)
+        if len(body) < tot - 8:
+            raise SystemExit("pcapng file is truncated inside a block")
+        if typ == 0x0A0D0D0A:
+            end = "<" if body[:4] == b"\x4d\x3c\x2b\x1a" else ">"
+        elif typ == 1:
+            link = struct.unpack(end + "H", body[:2])[0]
+            if link != 1:
+                raise SystemExit("link type %d is not Ethernet" % link)
+        elif typ == 6:
+            cap, orig = struct.unpack(end + "II", body[12:20])
+            yield cap, orig, body[20:20 + cap]
+        elif typ == 3:
+            orig = struct.unpack(end + "I", body[:4])[0]
+            yield min(orig, tot - 16), orig, body[4:4 + min(orig, tot - 16)]
+
+
 def read_pcap(path):
     f = open(path, "rb")
     gh = f.read(24)
     if len(gh) < 24:
         raise SystemExit("not a pcap (short header)")
+    if gh[:4] == b"\x0a\x0d\x0d\x0a":
+        return f, None, None, 1, gh
     magic = gh[:4]
     if magic in (b"\xd4\xc3\xb2\xa1", b"\x4d\x3c\xb2\xa1"):
         end = "<"
@@ -57,14 +95,27 @@ def read_pcap(path):
     else:
         raise SystemExit("not a classic pcap (magic %r); pcapng is not supported" % magic)
     snaplen, link = struct.unpack(end + "II", gh[16:24])
-    return f, end, snaplen, link
+    return f, end, snaplen, link, None
 
 
-def check(path, max_errors=20, exempt=(), quiet=False):
-    f, end, snaplen, link = read_pcap(path)
+def _classic_records(f, end):
+    hdr, read = struct.Struct(end + "IIII"), f.read
+    while True:
+        h = read(16)
+        if len(h) < 16:
+            return
+        _s, _u, caplen, origlen = hdr.unpack(h)
+        yield caplen, origlen, read(caplen)
+
+
+def check(path, max_errors=20, exempt=(), quiet=False, decap=None):
+    f, end, snaplen, link, shb = read_pcap(path)
     if link != 1:
         raise SystemExit("link type %d is not Ethernet" % link)
-    hdr = struct.Struct(end + "IIII")
+    records = _pcapng_records(f, shb) if shb else _classic_records(f, end)
+    dec = Decap.parse(decap)
+    if dec:
+        records = dec.records(records)
     counts = {"frames": 0, "ipv4": 0, "non_ip": 0, "tcp": 0, "udp": 0, "icmp": 0, "other_l4": 0,
               "fragments": 0, "truncated": 0}
     fails = {}
@@ -79,14 +130,8 @@ def check(path, max_errors=20, exempt=(), quiet=False):
             first.append("frame %d: %s: %s%s" % (n, code, msg, " [exempt]" if ex else ""))
 
     n = 0
-    read = f.read
     unpack_from = struct.unpack_from
-    while True:
-        h = read(16)
-        if len(h) < 16:
-            break
-        _s, _u, caplen, origlen = hdr.unpack(h)
-        data = read(caplen)
+    for caplen, origlen, data in records:
         n += 1
         counts["frames"] += 1
         if len(data) < 14:
@@ -196,18 +241,24 @@ def check(path, max_errors=20, exempt=(), quiet=False):
         else:
             counts["other_l4"] += 1
     f.close()
+    for dn, code, msg in dec.problems if dec else ():
+        bad(code, dn, msg)
     return counts, fails, exempted, first
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Validate IPv4/TCP/UDP/ICMP in a classic pcap")
+    ap = argparse.ArgumentParser(description="Validate IPv4/TCP/UDP/ICMP in a classic pcap or a pcapng file")
     ap.add_argument("pcap")
     ap.add_argument("--max-errors", type=int, default=20)
     ap.add_argument("--exempt", action="append", default=[], metavar="CODE",
                     help="finding code (or prefix ending in '.') not counted as a failure")
+    ap.add_argument("--decap", metavar="KINDS", help="also validate the packets inside tunnels: gre, vxlan, 6in4 (comma-separated)")
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args(argv)
-    counts, fails, exempted, first = check(a.pcap, a.max_errors, a.exempt)
+    try:
+        counts, fails, exempted, first = check(a.pcap, a.max_errors, a.exempt, decap=a.decap)
+    except ValueError as e:
+        ap.error(str(e))
     if not a.quiet:
         print("frames %(frames)d  ipv4 %(ipv4)d  tcp %(tcp)d  udp %(udp)d  icmp %(icmp)d  "
               "other-l4 %(other_l4)d  fragments %(fragments)d  non-ip %(non_ip)d  "

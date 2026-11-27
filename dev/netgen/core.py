@@ -805,6 +805,10 @@ def classify(frame: bytes):
     if et == b"\x08\x06":
         return "ARP"
     if et != b"\x08\x00":
+        if et == b"\x86\xdd":               # additive arms: the default day emits only IPv4 and ARP
+            return _classify6(frame)
+        if et == b"\x81\x00" or et == b"\x88\xa8":
+            return classify(frame[:12] + frame[16:])        # a VLAN tag: classify the frame it wraps
         return "Ethernet-other"
     ihl = (frame[14] & 0x0F) * 4
     proto = frame[23]
@@ -831,13 +835,67 @@ def classify(frame: bytes):
                     pt = raw & 0x7F
                     if pt < 35 or 96 <= pt <= 127:
                         return "RTP"
+            if dp == 4789 and len(frame) > off + 16 and frame[off + 8] == 0x08 and not (frame[20] & 0x3F or frame[21]):
+                return "VXLAN"                  # I flag set, not a fragment (whose "ports" are payload bytes)
             return "UDP-other"
         return "TCP-other"
     if proto == 1:
         return "ICMP"
     if proto == 2:
         return "IGMP"
+    if proto == 47:
+        return "GRE"
     return "IP-proto-%d" % proto
+
+
+def _classify6(frame: bytes):
+    """Protocol name for an IPv6 frame (EtherType 0x86DD), after any VLAN tags are removed.
+
+    Walks the hop-by-hop / routing / destination-options / fragment chain to the upper layer. A
+    non-first fragment has no port fields and is named "IPv6-fragment". The TCP/UDP leg mirrors the
+    IPv4 leg of classify(); that one stays inline and untouched because it is the pinned hot path.
+    """
+    if len(frame) < 54:
+        return "IPv6-other"
+    nh, off = frame[20], 54
+    for _ in range(8):                                      # bounded: a hostile chain cannot loop us
+        if nh == 0 or nh == 43 or nh == 60:
+            if len(frame) < off + 2:
+                return "IPv6-other"
+            nh, off = frame[off], off + (frame[off + 1] + 1) * 8
+        elif nh == 44:
+            if len(frame) < off + 8:
+                return "IPv6-other"
+            if ((frame[off + 2] << 8) | frame[off + 3]) >> 3:
+                return "IPv6-fragment"
+            nh, off = frame[off], off + 8
+        else:
+            break
+    if nh == 6 or nh == 17:
+        if len(frame) < off + 4:
+            return "IPv6-other"
+        sp = (frame[off] << 8) | frame[off + 1]
+        dp = (frame[off + 2] << 8) | frame[off + 3]
+        name = _KNOWN.get(sp) or _KNOWN.get(dp) or _FALLBACK.get(sp) or _FALLBACK.get(dp)
+        if name:
+            return name
+        if nh == 17:
+            if dp == 4789 and len(frame) > off + 16 and frame[off + 8] == 0x08:
+                return "VXLAN"
+            if len(frame) > off + 9 and frame[off + 8] & 0xC0 == 0x80:
+                raw = frame[off + 9]
+                if 200 <= raw <= 207:
+                    return "RTCP"
+                pt = raw & 0x7F
+                if pt < 35 or 96 <= pt <= 127:
+                    return "RTP"
+            return "UDP-other"
+        return "TCP-other"
+    if nh == 58:
+        return "ICMPv6"
+    if nh == 47:
+        return "GRE"
+    return "IPv6-proto-%d" % nh
 
 
 MIN_FRAME, REC_HDR = 60, 16                 # pcap records: frames are padded to 60 bytes, each record has a 16-byte header
@@ -848,8 +906,82 @@ def record_bytes(n: int) -> int:
     return max(n, MIN_FRAME) + REC_HDR
 
 
+class VlanTagger:
+    """Pure, RNG-free 802.1Q/802.1ad tagging for PcapWriter (opt-in; the default day never builds one).
+
+    One VID per flow, taken from the segment the frame is seen on (the engine's vantage model):
+    the MAC of a firewall leg names the segment of a routed frame, so both directions of a flow
+    agree; a same-subnet frame takes its source subnet. The VID is the subnet's third octet
+    (10.10.20.0/24 -> 20; an octet of 0 maps to 1), or one fixed ID. With `svid`, an 802.1ad outer tag
+    (0x88A8) wraps the 0x8100 customer tag. The tag goes on the unpadded frame, so the writer pads after.
+    """
+
+    @staticmethod
+    def check(scheme, vid, svid):
+        """Raise ValueError for an option set the tagger cannot build (also used to validate before a link exists)."""
+        if scheme not in ("subnet", "fixed"):
+            raise ValueError("vlan scheme must be 'subnet' or 'fixed'")
+        for v in (vid, svid):
+            if v is not None and not 1 <= v <= 4094:
+                raise ValueError("a VLAN ID must be 1-4094")
+        if scheme == "fixed" and vid is None:
+            raise ValueError("vlan scheme 'fixed' needs a vid")
+
+    def __init__(self, link, scheme="subnet", vid=None, svid=None, hosts=()):
+        self.check(scheme, vid, svid)
+        from .frames6 import eth_qinq, eth_tag          # lazy: frames6 imports this module
+        self._tag, self._qinq = eth_tag, eth_qinq
+        self.scheme, self.vid, self.svid = scheme, vid, svid
+        legs = {}                                       # firewall-leg MAC -> its subnets' VIDs
+        for p, h in link.fw.items():
+            legs.setdefault(h.mac, set()).add(self._octet(p[2]))
+        # a router MAC that serves several subnets (the OT default gateway) cannot name the segment
+        self._mac = {m: next(iter(v)) for m, v in legs.items() if len(v) == 1}
+        self._amb = {m for m, v in legs.items() if len(v) > 1}
+        self._pfx = {p: self._octet(p[2]) for p in link.fw}
+        self._dflt = self._octet(link.fw_a.ipb[2])
+        self._host = {h.mac: self._octet(h.ipb[2]) for h in hosts}    # only read for IPv6 frames (below)
+        self.tagged = 0
+
+    @staticmethod
+    def _octet(o):
+        return o or 1
+
+    def vid_of(self, frame):
+        if self.scheme == "fixed":
+            return self.vid
+        dst, src = bytes(frame[0:6]), bytes(frame[6:12])
+        v = self._mac.get(src) or self._mac.get(dst)
+        if v is None and frame[12:14] in (b"\x08\x00", b"\x08\x06"):
+            a, b = (26, 30) if frame[12:14] == b"\x08\x00" else (28, 38)    # IPv4 src/dst, ARP spa/tpa
+            ends = [bytes(frame[a:a + 3]), bytes(frame[b:b + 3])]
+            for e in (ends[::-1] if src in self._amb else ends):
+                v = self._pfx.get(e)
+                if v:
+                    break
+        elif v is None and frame[12:14] == b"\x86\xdd":
+            v = self._vid6(src, frame)
+        return v or self._dflt
+
+    def _vid6(self, src, frame):
+        """The segment of an IPv6 frame no firewall leg names: its sender's segment by MAC (a host or a
+        gateway leg that serves several subnets), else the subnet ID of a ULA source (the third octet of its
+        IPv4 subnet, see frames6.ula). Link-local frames of unknown senders fall to the default."""
+        v = self._host.get(src)
+        if v is None and frame[22] == 0xFD:
+            sid = (frame[28] << 8) | frame[29]
+            v = self._octet(sid) if self._octet(sid) in self._pfx.values() else None
+        return v
+
+    def __call__(self, frame):
+        self.tagged += 1
+        v = self.vid_of(frame)
+        return self._qinq(frame, self.svid, v) if self.svid else self._tag(frame, v)
+
+
 class PcapWriter:
-    def __init__(self, path):
+    def __init__(self, path, tagger=None):
+        self.tagger = tagger                # optional frame -> frame transform applied before padding
         self.f = open(path, "wb", buffering=8 * 1024 * 1024)  # noqa: SIM115 handle outlives this scope
         self.f.write(struct.pack("<IHHiIII", 0xA1B2C3D4, 2, 4, 0, 0, 262144, 1))
         self.n = 0
@@ -862,8 +994,11 @@ class PcapWriter:
         if ts < self.last_ts:
             ts = self.last_ts
         self.last_ts = ts
-        if len(frame) < MIN_FRAME:
-            frame = frame + b"\x00" * (MIN_FRAME - len(frame))
+        if self.tagger is not None:
+            frame = self.tagger(frame)      # before padding, so a short frame costs no extra bytes
+        n = len(frame)
+        if n < MIN_FRAME:
+            frame = frame + b"\x00" * (MIN_FRAME - n)
         sec = int(ts)
         usec = int((ts - sec) * 1_000_000)
         self.f.write(struct.pack("<IIII", sec, usec, len(frame), len(frame)))
@@ -872,6 +1007,7 @@ class PcapWriter:
         self.bytes += record_bytes(len(frame))
         k = classify(frame)
         self.protocols[k] = self.protocols.get(k, 0) + 1
+        return n                            # frame bytes as the engine counts them (tag included, padding not)
 
     def close(self):
         self.f.close()
@@ -910,10 +1046,36 @@ class Engine:
         self.side = side_writer            # optional second pcap for flows whose tag starts with side_tag_prefix
         self.side_tag_prefix = side_tag_prefix
         self.side_copy = side_copy         # True: side frames also go to the main file (merged day + fault-only file)
+        self.wrap = None                   # opt-in (tag, frame) -> [frames] for the main file (netgen.tunnel.Tunneler)
         self.pending = []   # (start_ts, seq, factory)
         self.active = []    # (next_ts, seq, iterator, frame)
         self.seq = 0
         self.stats = {}
+        self.tag_log = None   # opt-in sidecar: bytearray, one tag-id byte per MAIN-writer packet (see record_tags)
+        self.tag_rec = {}     # tag -> [id, first_n, last_n, spans]; n = 1-based main-writer packet number
+
+    def record_tags(self, gap=600.0):
+        """Opt in to the per-packet tag sidecar. No random draws; the capture bytes are unchanged.
+        Spans are [first_ts, last_ts, packets], gaps above `gap` seconds start a new span."""
+        self.tag_log, self.tag_gap, self.tag_overflow = bytearray(), gap, False
+
+    def _tag(self, tag, ts):
+        r = self.tag_rec.get(tag)
+        n = self.w.n                                   # the main writer has just taken this frame
+        if r is None:
+            if len(self.tag_rec) > 255:                # one byte cannot name a 257th tag: stop, never abort the build
+                self.tag_log = None
+                self.tag_overflow = True
+                return
+            r = self.tag_rec[tag] = [len(self.tag_rec), n, n, [[ts, ts, 0]]]
+        sp = r[3][-1]
+        if ts - sp[1] > self.tag_gap:
+            sp = [ts, ts, 0]
+            r[3].append(sp)
+        sp[1] = ts
+        sp[2] += 1
+        r[2] = n
+        self.tag_log.append(r[0])
 
     def schedule(self, ts: float, factory, tag="misc"):
         self.seq += 1
@@ -939,29 +1101,37 @@ class Engine:
         a cancelled run is simply a shorter one, which the caller then discards.
         """
         pending, active = self.pending, self.active
+        pg = cp = 0
         while pending or active:
             if pending and (not active or pending[0][0] <= active[0][0]):
                 ts, _, factory, tag = heapq.heappop(pending)
                 self._start(factory, tag)
                 continue
             ts, _, it, frame, tag = heapq.heappop(active)
-            if self.side is not None and self.side_tag_prefix is not None and tag.startswith(self.side_tag_prefix):
+            side = self.side is not None and self.side_tag_prefix is not None and tag.startswith(self.side_tag_prefix)
+            if side:
                 self.side.write(ts, frame)
-                if self.side_copy:
-                    self.w.write(ts, frame)
+            if side and not self.side_copy:
+                n, k, rb = len(frame), 1, record_bytes(len(frame))
             else:
-                self.w.write(ts, frame)
+                n = k = rb = 0                        # the main writer returns the tagged length when VLAN tagging is on
+                for f in (frame,) if self.wrap is None else self.wrap(tag, frame):   # a tunnel wrapper may emit several
+                    m = self.w.write(ts, f)
+                    if self.tag_log is not None:
+                        self._tag(tag, ts)
+                    n, k, rb = n + m, k + 1, rb + record_bytes(m)
             st = self.stats.get(tag)
             if st is None:
                 st = self.stats[tag] = [0, 0, 0, ts, ts]
-            n = len(frame)
-            st[0] += 1
+            st[0] += k
             st[1] += n
-            st[2] += record_bytes(n)                  # pcap bytes, the same figure PcapWriter.bytes adds
+            st[2] += rb                               # pcap bytes, the same figure PcapWriter.bytes adds
             st[4] = ts                                 # [packets, frame bytes, pcap bytes, first_ts, last_ts]
             self._advance(it, tag)
-            if progress and self.w.n % 200000 == 0:
+            if progress and self.w.n // 200000 != pg:                 # crossing, not equality: a tunnel wrapper writes several frames at once
+                pg = self.w.n // 200000
                 progress(self.w)
-            if should_continue is not None and self.w.n % CANCEL_EVERY == 0 \
-                    and not should_continue():
-                raise Cancelled(self.w.n)
+            if should_continue is not None and self.w.n // CANCEL_EVERY != cp:
+                cp = self.w.n // CANCEL_EVERY
+                if not should_continue():
+                    raise Cancelled(self.w.n)

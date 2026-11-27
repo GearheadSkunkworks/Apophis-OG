@@ -36,15 +36,21 @@ def _bare(name):
     return name
 
 
-def _siblings(base, name):
-    """Other files a build wrote for this capture: key log, campaign/report exports, the recipe, and the
-    company's threat collection. The shared certs/ folder is deliberately left alone (other captures use it)."""
+def _sibling_names(name):
+    """The names of the other files a build writes for capture `name` (pure: nothing is looked at on disk)."""
     stem = os.path.splitext(name)[0]
     cand = [stem + s for s in ("-tls-keys.log", ".campaign.json", ".campaign-iocs.stix.json",
                                "-custom-report.json", "-generation-report.csv", "-recipe.json", ".recipe.json", ".manifest.json")]
     if stem.endswith("-all-in-one"):
         pre = stem[:-len("-all-in-one")] + "-threat-collection"
         cand += [pre + ".stix.json", pre + ".csv"]
+    return cand
+
+
+def _siblings(base, name):
+    """Other files a build wrote for this capture: key log, campaign/report exports, the recipe, and the
+    company's threat collection. The shared certs/ folder is deliberately left alone (other captures use it)."""
+    cand = _sibling_names(name)
     out = []
     for c in cand:
         p = os.path.join(base, c)
@@ -236,6 +242,18 @@ class Held:
                 pass
 
 
+def own_output(name, rel):
+    """True when a manifest-listed name belongs to the capture file `name`: one of its known siblings (the company's threat
+    collection is named after the company, not the stem), or its first path part is the stem or starts with stem plus '.', '-'
+    or '_' (<stem>.pcap, <stem>-truth.jsonl, <stem>-zeek/conn.log). A manifest can be forged (a shared bundle unpacked into
+    the folder), and a same-settings rebuild deletes what it holds, so no other name is ever taken from it."""
+    if not isinstance(rel, str):
+        return False
+    stem = os.path.splitext(name)[0]
+    head = rel.split("/", 1)[0]
+    return rel in _sibling_names(name) or head == stem or (head.startswith(stem) and head[len(stem):len(stem) + 1] in (".", "-", "_"))
+
+
 def hold_previous(out, keylog, certs_dir, signature, write_certs=True):
     """Before a build writes `out`, move the build that is already there aside.
 
@@ -256,7 +274,7 @@ def hold_previous(out, keylog, certs_dir, signature, write_certs=True):
         rels += [stem + sfx for sfx in ("-tls-keys.log", ".campaign.json", ".campaign-iocs.stix.json")]
         if keylog and _in(base, keylog) and os.path.dirname(os.path.realpath(keylog)) == base:
             rels.append(os.path.basename(keylog))
-        rels += [str(o.get("name")) for o in (prior.get("outputs") or []) if isinstance(o, dict)]
+        rels += [str(o.get("name")) for o in (prior.get("outputs") or []) if isinstance(o, dict) and own_output(name, o.get("name"))]
     pems = []
     if write_certs and certs_dir and os.path.isdir(certs_dir) and not os.path.islink(certs_dir) and _in(base, certs_dir):
         cd = os.path.relpath(os.path.realpath(certs_dir), base)

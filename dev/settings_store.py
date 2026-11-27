@@ -5,6 +5,7 @@ The directory is OG_SETTINGS_DIR when set (tests), else the platform's per-user 
 """
 import json
 import os
+import stat
 import sys
 import tempfile
 import threading
@@ -45,6 +46,18 @@ def settings_dir():
         return os.path.join(home, "Library", "Application Support", "OpenGenerator")
     base = os.environ.get("XDG_CONFIG_HOME") or os.path.join(home, ".config")
     return os.path.join(base, "opengenerator")
+
+
+def ensure_private_dir(d=None):
+    """Create the settings folder 0700 (secrets and logs live there) and return it. An existing default folder that
+    we own and that others can enter is tightened to 0700; a folder chosen with OG_SETTINGS_DIR is left as the person made it."""
+    d = d or settings_dir()
+    os.makedirs(d, mode=0o700, exist_ok=True)
+    if "OG_SETTINGS_DIR" not in os.environ and hasattr(os, "geteuid"):
+        st = os.lstat(d)                                # lstat: a symlink in its place is not followed or chmod-ed
+        if stat.S_ISDIR(st.st_mode) and st.st_uid == os.geteuid() and stat.S_IMODE(st.st_mode) & 0o077:
+            os.chmod(d, 0o700)
+    return d
 
 
 def settings_path():
@@ -92,8 +105,7 @@ def load():
 
 
 def _write(settings):
-    d = settings_dir()
-    os.makedirs(d, exist_ok=True)
+    d = ensure_private_dir()
     fd, tmp = tempfile.mkstemp(prefix=".settings-", suffix=".tmp", dir=d)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:

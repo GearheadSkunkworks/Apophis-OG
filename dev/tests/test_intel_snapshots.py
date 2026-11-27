@@ -20,8 +20,8 @@ DEV = os.path.dirname(HERE)
 if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
-from intel import describe, filters, sources                     # noqa: E402
-from netgen.campaign import compiler, schema           # noqa: E402
+from intel import describe, filters, sources                     # noqa: E402 - sys.path is set up before the import
+from netgen.campaign import compiler, schema           # noqa: E402 - sys.path is set up before the import
 
 SNAP = os.path.join(HERE, "fixtures", "intel", "snapshots")
 

@@ -13,7 +13,7 @@ from unittest import mock
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import server  # noqa: E402
+import server  # noqa: E402 - sys.path is set up before the import
 
 
 class Routes(unittest.TestCase):
@@ -35,7 +35,7 @@ class Routes(unittest.TestCase):
     def req(self, method, path, body=None):
         c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=30)
         data = json.dumps(body).encode() if body is not None else None
-        c.request(method, path, body=data, headers={"Content-Type": "application/json"} if data else {})
+        c.request(method, path, body=data, headers=dict({"Content-Type": "application/json"} if data else {}, Cookie="og_ui=" + server.UI_SECRET))
         r = c.getresponse()
         b = r.read()
         c.close()

@@ -8,9 +8,9 @@ import unittest
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import captures_store as cs  # noqa: E402
-import opengenerator_build as OGB  # noqa: E402
-from netgen.core import Cancelled  # noqa: E402
+import captures_store as cs  # noqa: E402 - sys.path is set up before the import
+import opengenerator_build as OGB  # noqa: E402 - sys.path is set up before the import
+from netgen.core import Cancelled  # noqa: E402 - sys.path is set up before the import
 
 INV = os.path.join(DEV, "inventory.json")
 REG = list(OGB.INC.REGISTRY)
@@ -30,25 +30,43 @@ def touch(d, rel, body=b"x"):
 
 
 class Real(unittest.TestCase):
-    """Real small builds (scale 0.004, one scenario)."""
+    """Real small builds (scale 0.004, one scenario). The first sets are built once per class and copied back
+    into the same folder for each test: what is under test is the hold/replace file handling around the
+    build, so it needs the earlier capture in place, not a rebuild of it for every test."""
 
-    def setUp(self):
-        self.d = os.path.realpath(tempfile.mkdtemp(prefix="og-keep-"))
-        self.out = os.path.join(self.d, "x-all-in-one.pcap")
-        self.certs = os.path.join(self.d, "certs")
+    @classmethod
+    def setUpClass(cls):
+        cls.root = os.path.realpath(tempfile.mkdtemp(prefix="og-keep-"))
+        cls.addClassCleanup(shutil.rmtree, cls.root, ignore_errors=True)
+        cls.d = os.path.join(cls.root, "work")          # one fixed path, so settings that include it stay equal
+        os.makedirs(cls.d)
+        cls.out = os.path.join(cls.d, "x-all-in-one.pcap")
+        cls.certs = os.path.join(cls.d, "certs")
+        cls.first = cls.build(REG[:1])
+        cls.first_pcap = rd(cls.out)
+        cls.first_certs = sorted(os.listdir(cls.certs))
+        shutil.copytree(cls.d, os.path.join(cls.root, "A"))
+        cls.second = cls.build(REG[1:2])
+        shutil.copytree(cls.d, os.path.join(cls.root, "AB"))
 
-    def tearDown(self):
-        shutil.rmtree(self.d, ignore_errors=True)
-
-    def build(self, mods, **kw):
-        return OGB.build(scale=0.004, out=self.out, inventory=INV, certs_dir=self.certs, iocs_prefix=None,
+    @classmethod
+    def build(cls, mods, **kw):
+        return OGB.build(scale=0.004, out=cls.out, inventory=INV, certs_dir=cls.certs, iocs_prefix=None,
                          modules=mods, progress=False, **kw)
+
+    def restore(self, snap):
+        """Put the work folder back to what it was after build A ("A"), after A then B ("AB"), or empty."""
+        shutil.rmtree(self.d, ignore_errors=True)
+        if snap:
+            shutil.copytree(os.path.join(self.root, snap), self.d)
+        else:
+            os.makedirs(self.d)
 
     def kept(self):
         return cs.kept_dirs(self.d)
 
     def test_same_settings_leaves_one_set(self):
-        self.build(REG[:1])
+        self.restore("A")
         s = self.build(REG[:1])
         self.assertTrue(s.get("replaced_previous"))
         self.assertNotIn("kept_previous", s)
@@ -58,32 +76,29 @@ class Real(unittest.TestCase):
                           "x-all-in-one.manifest.json", "x-all-in-one.pcap"])
 
     def test_different_settings_keep_first(self):
-        a = self.build(REG[:1])
-        first = rd(self.out)
-        certs_a = sorted(os.listdir(self.certs))
+        self.restore("A")
         b = self.build(REG[1:2])
         k = b["kept_previous"]
         self.assertEqual(self.kept(), [k["dir"]])
         self.assertTrue(os.path.realpath(k["dir"]).startswith(self.d + os.sep + cs.KEPT + os.sep))
-        self.assertEqual(rd(os.path.join(k["dir"], "x-all-in-one.pcap")), first)                               # the earlier capture is byte-intact
+        self.assertEqual(rd(os.path.join(k["dir"], "x-all-in-one.pcap")), self.first_pcap)                     # the earlier capture is byte-intact
         for n in ("x-all-in-one-tls-keys.log", "x-all-in-one.manifest.json", "x-all-in-one-generation-report.csv"):
             self.assertTrue(os.path.isfile(os.path.join(k["dir"], n)), n)
-        self.assertEqual(sorted(os.listdir(os.path.join(k["dir"], "certs"))), certs_a)
-        self.assertNotEqual(rd(self.out), first)              # the new build is its own capture
+        self.assertEqual(sorted(os.listdir(os.path.join(k["dir"], "certs"))), self.first_certs)
+        self.assertNotEqual(rd(self.out), self.first_pcap)    # the new build is its own capture
         m = json.loads(rd(os.path.join(k["dir"], "x-all-in-one.manifest.json")))
-        self.assertEqual(m["packets"] if "packets" in m else m["totals"]["packets"], a["packets"])
+        self.assertEqual(m["packets"] if "packets" in m else m["totals"]["packets"], self.first["packets"])
         info = cs.info(os.path.join(k["dir"], "x-all-in-one.pcap"))
         self.assertEqual(info["scenarios"], 1)
-        self.assertEqual(info["capture_date"], a["date"])
+        self.assertEqual(info["capture_date"], self.first["date"])
 
     def test_third_build_keeps_both(self):
-        self.build(REG[:1])
-        self.build(REG[1:2])
+        self.restore("AB")
         self.build(REG[2:3])
         self.assertEqual(len(self.kept()), 2)
 
     def test_cancel_restores_previous(self):
-        self.build(REG[:1])
+        self.restore("A")
         before = {f: rd(os.path.join(self.d, f)) for f in os.listdir(self.d) if f != "certs"}
         certs = {f: rd(os.path.join(self.certs, f)) for f in os.listdir(self.certs)}
         with self.assertRaises(Cancelled):
@@ -94,7 +109,7 @@ class Real(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.d, cs.KEPT)))
 
     def test_cancel_during_run_restores_same_settings_too(self):
-        self.build(REG[:1])
+        self.restore("A")
         size = os.path.getsize(self.out)
         calls = []
 
@@ -107,8 +122,8 @@ class Real(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.d, cs.KEPT)))
 
     def test_kept_set_is_trashable_and_restorable(self):
-        self.build(REG[:1])
-        k = self.build(REG[1:2])["kept_previous"]["dir"]
+        self.restore("AB")
+        k = self.kept()[0]
         r = cs.trash(k, "x-all-in-one.pcap")
         self.assertIn("x-all-in-one.manifest.json", r["moved"])
         self.assertIn("x-all-in-one-generation-report.csv", r["moved"])

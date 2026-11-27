@@ -18,10 +18,10 @@ DEV = os.path.dirname(HERE)
 if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
-import opengenerator_build as OGB                      # noqa: E402
-from netgen import flows as F                          # noqa: E402
-from netgen.campaign import actions as ACT, console, runner, hosts   # noqa: E402
-from checks import check_rfc791 as RFC                 # noqa: E402
+import opengenerator_build as OGB                      # noqa: E402 - sys.path is set up before the import
+from netgen import flows as F                          # noqa: E402 - sys.path is set up before the import
+from netgen.campaign import actions as ACT, console, runner, hosts   # noqa: E402 - sys.path is set up before the import
+from checks import check_rfc791 as RFC                 # noqa: E402 - sys.path is set up before the import
 
 INVENTORY = os.path.join(DEV, "inventory.json")
 DAY = "2026-03-14"
@@ -120,8 +120,13 @@ class RunnerBase(unittest.TestCase):
 
 
 class TestRunner(RunnerBase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.main = cls.build("c1", campaigns=[campaign()])       # read-only for the tests that use it
+
     def test_campaign_builds_reports_and_exports(self):
-        r = self.build("c1", campaigns=[campaign()])
+        r = self.main
         c = r["campaign"]
         self.assertEqual(c["built"], ["runner-test"])
         self.assertEqual(c["actions"], 3)
@@ -156,7 +161,7 @@ class TestRunner(RunnerBase):
 
     def test_report_matches_capture(self):
         """What the console says was emitted is exactly what is in the pcap for that endpoint."""
-        r = self.build("c2", campaigns=[campaign()])
+        r = self.main
         paths = r["campaign"]["exports"]["runner-test"]
         mapped = _j(paths["stix"])["objects"][0]["pattern"].split("'")[1]
         total = int([ln for ln in r["campaign_console"] if "actions emitted" in ln][0].split("emitted ")[1].split()[0])
@@ -168,7 +173,7 @@ class TestRunner(RunnerBase):
         self.assertEqual(self.build("i2", campaigns=[])["packets"], self.baseline)
 
     def test_deterministic(self):
-        a = self.build("d1", campaigns=[campaign()])["packets"]
+        a = self.main["packets"]
         b = self.build("d2", campaigns=[campaign()])["packets"]
         self.assertEqual(a, b)
 

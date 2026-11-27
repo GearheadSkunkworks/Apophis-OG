@@ -8,13 +8,13 @@ import tempfile
 import unittest
 
 from netgen.campaign.actions import load_all
+from checks.tshark_locate import find_tshark
 from netgen.campaign.actions.meta_b import META
 
 TOKENS = ["asrep_roast", "dcsync", "kerberoast", "kerberos_spray", "rdp_brute", "ssh_brute",
           "icmp_sweep", "ldap_recon", "port_probe", "smb_share_enum", "syn_scan",
           "rdp_session", "smb_admin_exec", "wmi_exec", "ransomware_smb", "smb_delete_burst"]
-TSHARK = next((p for p in ("/Applications/Wireshark.app/Contents/MacOS/tshark", shutil.which("tshark") or "")
-               if p and os.path.exists(p)), None)
+TSHARK = find_tshark()
 PH = re.compile(r"\{([^{}]*)\}")
 SAMPLE = {"src_ip": "10.0.0.5", "dst_ip": "10.0.0.9", "fqdn": "host.example.test"}
 # vendor/company names, written as fragments so this file does not itself contain them

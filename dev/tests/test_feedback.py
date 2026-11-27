@@ -13,11 +13,11 @@ from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import campaign_api                                     # noqa: E402
-from sensorops import feedback                          # noqa: E402
-from sensorops.provider import SensorProvider           # noqa: E402
+import campaign_api                                     # noqa: E402 - sys.path is set up before the import
+from sensorops import feedback                          # noqa: E402 - sys.path is set up before the import
+from sensorops.provider import SensorProvider           # noqa: E402 - sys.path is set up before the import
 try:
-    from sensorops.providers.network_sensor import NetworkSensorProvider  # noqa: E402
+    from sensorops.providers.network_sensor import NetworkSensorProvider  # noqa: E402 - sys.path is set up before the import
 except ImportError:                                  # public builds do not ship the vendor connector
     NetworkSensorProvider = None
 

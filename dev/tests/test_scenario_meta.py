@@ -16,9 +16,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DEV = os.path.dirname(HERE)
 sys.path.insert(0, DEV)
 
-import scenario_meta  # noqa: E402
-import server  # noqa: E402
-from netgen import incidents as INC  # noqa: E402
+import scenario_meta  # noqa: E402 - sys.path is set up before the import
+import server  # noqa: E402 - sys.path is set up before the import
+from netgen import incidents as INC  # noqa: E402 - sys.path is set up before the import
 
 with open(scenario_meta.PATH, encoding="utf-8") as _f:
     DOC = json.load(_f)
@@ -157,7 +157,7 @@ class Api(unittest.TestCase):
             self.assertNotIn("sources", by[n]["meta"])
         shown = [m for m in self.body["modules"] if not m.get("pinned") and not m.get("recipe_driven")
                  and not m.get("ot_only")]
-        self.assertEqual(len(shown), 66)
+        self.assertEqual(len(shown), 68)
         self.assertTrue(all("meta" in m for m in shown))
 
     def test_pinned_baseline_has_no_meta(self):

@@ -157,10 +157,46 @@ def build_app(zip_path, out_dir, notes, key_path):
     return version
 
 
+def _sha(path):
+    with open(path, "rb") as fh:
+        return hashlib.sha256(fh.read()).hexdigest()
+
+
+def build_linux(tarball, out_dir, notes, key_path, appimage=None):
+    """Sign the Linux full-app update for one architecture: og-app-<v>-linux-<arch>.json and .sig, covering the tarball (sha256 and
+    the sha256 of every file in it) and, when given, the AppImage. Attach them, with those files, to the X.Y.0 release."""
+    sys.path.insert(0, os.path.dirname(HERE))
+    import updater_linux
+    m = re.fullmatch(r"apophis-(\d+\.\d+\.\d+)-linux-(x86_64|aarch64)\.tar\.gz", os.path.basename(tarball))
+    if not m:
+        raise SystemExit("The tarball must be named apophis-<X.Y.Z>-linux-<arch>.tar.gz, not %r." % os.path.basename(tarball))
+    version, arch = m.groups()
+    with open(tarball, "rb") as fh:
+        art = {"tarball": {"name": os.path.basename(tarball), "sha256": hashlib.sha256(fh.read()).hexdigest()}}
+    with tempfile.TemporaryDirectory() as work:
+        tree = updater_linux.extract_tarball(tarball, work)
+        art["tarball"]["files"] = {os.path.relpath(os.path.join(d, f), tree).replace(os.sep, "/"): _sha(os.path.join(d, f))
+                                   for d, _, fs in os.walk(tree) for f in sorted(fs) if not os.path.islink(os.path.join(d, f))}
+    if appimage:
+        with open(appimage, "rb") as fh:
+            art["appimage"] = {"name": os.path.basename(appimage), "sha256": hashlib.sha256(fh.read()).hexdigest()}
+    manifest = json.dumps(dict({"product": "opengenerator", "kind": "app", "platform": "linux", "arch": arch, "version": version,
+                                "date": datetime.date.today().isoformat(), "notes": notes}, **art), indent=2).encode() + b"\n"
+    os.makedirs(out_dir, exist_ok=True)
+    jname, sname = updater_linux.names(version, arch)
+    with open(os.path.join(out_dir, jname), "wb") as fh:
+        fh.write(manifest)
+    with open(os.path.join(out_dir, sname), "w") as fh:
+        fh.write(load_key(key_path).sign(manifest).hex() + "\n")
+    return version, arch
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--notes")
     ap.add_argument("--app", metavar="ZIP", help="sign a full app zip (OpenGenerator-<v>-app.zip) instead of building a patch")
+    ap.add_argument("--linux", metavar="TARBALL", help="sign a Linux release tarball (apophis-<v>-linux-<arch>.tar.gz) for the in-app updater")
+    ap.add_argument("--appimage", metavar="FILE", help="with --linux: also cover this AppImage")
     ap.add_argument("--protect-key", action="store_true", help="encrypt the signing key file with a passphrase, then exit")
     ap.add_argument("--src", default=os.path.join(ROOT, "release"))
     ap.add_argument("--out", default=os.path.join(ROOT, "prod", "patch"))
@@ -172,6 +208,9 @@ def main():
         return protect_key(a.key)
     if not a.notes:
         sys.exit("--notes \"what changed\" is required.")
+    if a.linux:
+        v, arch = build_linux(a.linux, a.out, a.notes, a.key, a.appimage)
+        return print("linux manifest %s (%s) written to %s. Attach it, the tarball and the AppImage to GitHub Release v%s." % (v, arch, a.out, v))
     if a.app:
         v = build_app(a.app, a.out, a.notes, a.key)
         return print("app manifest %s written to %s. Attach og-app-%s.json, .sig and the app zip to GitHub Release v%s." % (v, a.out, v, v))

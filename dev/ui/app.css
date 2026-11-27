@@ -583,3 +583,18 @@ body:has(#og-toast:not([hidden])) .ogc-toasts{top:calc(var(--tb-h) + 12px + 64px
 .sess-foot{flex-wrap:wrap;}
 .lib-tag{font-size:0.7188rem;font-weight:600;padding:1px 7px;border:1px solid var(--ln2);border-radius:var(--r-ctl);color:var(--mu);}
 .lib-tag[hidden]{display:none;}
+
+/* Compose: network options and exports (rows come from build-options.json) */
+.optlist .optrow{padding:10px 0;border-top:1px solid var(--ln);}
+.optlist .optrow:first-of-type{border-top:0;}
+.optlist .optrow > label{display:flex;align-items:center;gap:10px;font-weight:600;font-size:0.875rem;color:var(--ink);margin:0;}
+.optlist .optparams{margin:10px 0 0 50px;}
+.optlist .optparams[hidden],.optlist .optparams .fld[hidden]{display:none;}
+.optlist .optrow > .hint{margin-left:50px;max-width:78ch;}
+.moreopts > summary .tag{margin-left:8px;vertical-align:middle;}
+.outopts{margin-top:12px;}
+.outopts ul{margin:6px 0 0 18px;padding:0;}
+dl.facts{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;margin:10px 0;font-size:0.8438rem;}
+dl.facts dt{color:var(--mu);font-weight:500;}
+dl.facts dd{margin:0;color:var(--ink);overflow-wrap:anywhere;}
+#slres pre,#rrec-view pre{max-height:18rem;overflow:auto;font-size:0.75rem;}

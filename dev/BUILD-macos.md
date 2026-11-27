@@ -30,8 +30,8 @@ Built and verified on **macOS 15.7.9 / arm64 / Python 3.14.5** with **PyInstalle
 ```
 # 1. a build venv OUTSIDE the project folder, so the folder stays self-contained/portable
 python3 -m venv /tmp/og-build-venv
-/tmp/og-build-venv/bin/pip install --upgrade pip
-/tmp/og-build-venv/bin/pip install cryptography tzdata pyinstaller
+# hash-locked: pip refuses any wheel not listed (regenerate with packaging/linux/mklock.py when a pin changes)
+/tmp/og-build-venv/bin/pip install --require-hashes --only-binary=:all: -r dev/requirements.lock -r dev/requirements-macos-build.lock
 
 # 2. build. P must be an ABSOLUTE path to this folder (see the --specpath gotcha below)
 P=<absolute path of the release/ folder>     # build from the tested release candidate
@@ -175,8 +175,7 @@ xattr -dr com.apple.quarantine "/path/to/OpenGenerator.app"
 ```
 cd <absolute path of the release/ folder>
 python3 -m venv build-venv && source build-venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt tzdata pyinstaller
+pip install --require-hashes --only-binary=:all: -r requirements.lock -r requirements-macos-build.lock
 pyinstaller --windowed --name "OpenGenerator" \
     --add-data "ui:ui" \
     --add-data "assets:assets" \

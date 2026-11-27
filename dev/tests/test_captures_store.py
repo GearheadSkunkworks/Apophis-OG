@@ -8,7 +8,7 @@ from unittest import mock
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import captures_store as cs  # noqa: E402
+import captures_store as cs  # noqa: E402 - sys.path is set up before the import
 
 
 def touch(d, n, body=b"x"):
@@ -107,7 +107,7 @@ class T(unittest.TestCase):
         self.assertEqual(self.ls(), ["certs", "other.pcap"])
 
     def test_refused_while_busy(self):
-        busy = lambda: "a capture is being generated"  # noqa: E731
+        busy = lambda: "a capture is being generated"  # noqa: E731 - short single-use test helper
         with self.assertRaises(cs.StoreError) as c:
             cs.trash(self.d, "other.pcap", busy)
         self.assertEqual(c.exception.status, 409)

@@ -82,13 +82,13 @@ def preflight(sensor, apikey, certs_dir=None):
                 ident["hostname"], ident["platform"], ident["version"])
             if ident.get("cert_sha256"):
                 report["appliance"] += ", certificate SHA-256 %s" % ident["cert_sha256"]
-    except Exception as e:                                 # noqa: BLE001
+    except Exception as e:                                 # noqa: BLE001 - failure is reported through the provider's explain() text
         report["errors"].append(provider.explain(e))
         return report
 
     try:
         report["existing"] = len(provider.list_decrypt_keys())
-    except Exception as e:                                 # noqa: BLE001
+    except Exception as e:                                 # noqa: BLE001 - failure is reported through the provider's explain() text
         report["errors"].append(provider.explain(e))
         return report
 
@@ -143,7 +143,7 @@ def _run(sensor, apikey, certs_dir, protocol, port, label):
                 provider.delete_decrypt_key(kid)
                 with SLOCK:
                     SSTATE["deleted"] += 1
-            except Exception as e:                         # noqa: BLE001
+            except Exception as e:                         # noqa: BLE001 - a failed delete is logged and the push continues
                 _log("  could not delete %s — %s" % ((k.get("name") or kid)[:40], provider.explain(e)))
         _log("removed %d key(s)." % SSTATE["deleted"])
 
@@ -166,7 +166,7 @@ def _run(sensor, apikey, certs_dir, protocol, port, label):
                 with open(key) as f:
                     key_pem = f.read()
                 kid = provider.create_decrypt_key(friendly, cert_pem, key_pem)
-            except Exception as e:                         # noqa: BLE001
+            except Exception as e:                         # noqa: BLE001 - a failed push is counted and logged, the other keys continue
                 with SLOCK:
                     SSTATE["failed"] += 1
                 _log("  FAILED %s — %s" % (name, provider.explain(e)))
@@ -189,7 +189,7 @@ def _run(sensor, apikey, certs_dir, protocol, port, label):
                     provider.map_key_protocol(kid, protocol, port)
                 with SLOCK:
                     SSTATE["mapped"] += 1
-            except Exception as e:                         # noqa: BLE001
+            except Exception as e:                         # noqa: BLE001 - failure is classified below as a mapping conflict or counted as failed
                 if provider.is_mapping_conflict(e):
                     with SLOCK:
                         SSTATE["mapped"] += 1
@@ -229,7 +229,7 @@ def _run(sensor, apikey, certs_dir, protocol, port, label):
             _log("note: the %s/%s mapping was already present, so it was reused rather than "
                  "created per key. The sensor can decrypt with these certificates."
                  % (protocol, port))
-    except Exception as e:                                 # noqa: BLE001
+    except Exception as e:                                 # noqa: BLE001 - worker failure is stored in state and shown to the user
         with SLOCK:
             SSTATE.update(running=False, done=True, phase="error", error=_explain(provider, e))
         _log("stopped: %s" % _explain(provider, e))

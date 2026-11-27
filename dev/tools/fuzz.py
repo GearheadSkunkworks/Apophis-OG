@@ -37,9 +37,9 @@ _TMP = tempfile.mkdtemp(prefix="ogfuzz-")
 os.environ["OPENGENERATOR_CACHE"] = os.path.join(_TMP, "cache")
 os.environ["OPENGENERATOR_CAMPAIGNS"] = os.path.join(_TMP, "lib")
 
-import campaign_api                                    # noqa: E402
-from intel import classify, filters, model, parsers, sources   # noqa: E402
-from netgen.campaign import compiler, schema           # noqa: E402
+import campaign_api                                    # noqa: E402 - sys.path is set up before the import
+from intel import classify, filters, model, parsers, sources   # noqa: E402 - sys.path is set up before the import
+from netgen.campaign import compiler, schema           # noqa: E402 - sys.path is set up before the import
 
 TIME_BUDGET = 2.0
 HANG_ALARM = 20           # seconds; a call that does not return is aborted and reported
@@ -530,7 +530,7 @@ def run_one(name, fn, raw, kind, trace):
         return "uncaught RecursionError"
     except MemoryError:
         return "MemoryError"
-    except Exception as e:                       # noqa: BLE001
+    except Exception as e:                       # noqa: BLE001 - the fuzzer reports any uncaught exception as a finding
         import traceback
         tb = traceback.extract_tb(e.__traceback__)[-1]
         return "uncaught %s: %s (at %s:%d)" % (type(e).__name__, str(e)[:100], os.path.basename(tb.filename), tb.lineno)

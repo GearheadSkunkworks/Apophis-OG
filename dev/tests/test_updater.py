@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import os
+from unittest import mock
 import shutil
 import stat
 import subprocess
@@ -14,11 +15,11 @@ import zipfile
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
 sys.path.insert(0, os.path.join(DEV, "tools"))
-import make_patch  # noqa: E402
-import overlay  # noqa: E402,F401
-import updater  # noqa: E402
-from cryptography.hazmat.primitives import serialization  # noqa: E402
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey  # noqa: E402
+import make_patch  # noqa: E402 - sys.path is set up before the import
+import overlay  # noqa: E402,F401 - sys.path is set up before the import; the name is only imported to prove the module loads
+import updater  # noqa: E402 - sys.path is set up before the import
+from cryptography.hazmat.primitives import serialization  # noqa: E402 - sys.path is set up before the import
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey  # noqa: E402 - sys.path is set up before the import
 
 
 def release_list(*tags, assets=True):
@@ -200,7 +201,7 @@ class AppSwap(Env):
             raise subprocess.CalledProcessError(1, cmd)
 
     def check(self, current="5.5.0", listing=None):
-        return updater.check(current, self.get(listing=listing or app_release_list("v5.8.0")))
+        return updater.check(current, self.get(listing=listing or app_release_list("v5.8.0")), arch="")   # the macOS path, on any host
 
     def install(self, info=None, tamper=None, bundle=None):
         return updater.install_app(info or self.check(), self.app, bundle=bundle or self.bundle,
@@ -337,8 +338,12 @@ class OverlayLoad(Env):
 class Hardening(Env):
     def test_url_rule_uses_the_parsed_host(self):
         for ok in ("https://api.github.com/repos/x/y/releases", "https://github.com/x/y/releases/download/v1/a.zip",
-                   "https://objects.githubusercontent.com/abc", "http://127.0.0.1:8799/a.json"):
+                   "https://objects.githubusercontent.com/abc"):
             self.assertTrue(updater.allowed_url(ok), ok)
+        with mock.patch.dict(os.environ, {"OG_UPDATE_URL": ""}):            # production: no plain http at all
+            self.assertFalse(updater.allowed_url("http://127.0.0.1:8799/a.json"))
+        with mock.patch.dict(os.environ, {"OG_UPDATE_URL": "http://127.0.0.1:8799/a.json"}):
+            self.assertTrue(updater.allowed_url("http://127.0.0.1:8799/a.json"))
         for bad in ("http://127.0.0.1.evil.example/a", "https://evil.example/a", "https://github.com.evil.example/a",
                     "http://api.github.com/a", "ftp://github.com/a", "https://127.0.0.1@evil.example/a", "file:///etc/passwd"):
             self.assertFalse(updater.allowed_url(bad), bad)

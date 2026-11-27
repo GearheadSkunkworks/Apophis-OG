@@ -288,7 +288,7 @@ class ActionsHost(unittest.TestCase):
             set_capture_day("2026-03-14")
 
     # ------------------------------------------------------------------ dissector
-    @unittest.skipUnless(os.path.exists(TSHARK), "tshark not installed")
+    @unittest.skipUnless(TSHARK, "tshark not installed")
     def test_tshark_clean(self):
         d = tempfile.mkdtemp()
         try:

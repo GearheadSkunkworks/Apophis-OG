@@ -787,14 +787,16 @@
     var co = document.getElementById('company');
     if (co && co.value && co.value.trim()) body.company = co.value.trim().slice(0, 80);
     if (btn) { btn.disabled = true; }
+    // lint-ok: the blank window must stay scriptable until the diagram is ready, so the handle is kept and its opener is cleared at once
     var win = window.open('', '_blank');
+    if (win) { win.opener = null; }
     return OGC.api.post('/api/campaign/diagram', body).then(function (res) {
       if (btn) btn.disabled = false;
       if (!res || !res.html) { if (win) win.close(); toast('The diagram could not be made.', 'error'); return; }
       var themed = window.ogThemeHtml ? window.ogThemeHtml(res.html) : Promise.resolve(res.html);
       return themed.then(function (html) {
         var url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-        if (win) { win.location.href = url; } else { window.open(url, '_blank'); }
+        if (win) { win.location.href = url; } else { window.open(url, '_blank', 'noopener'); }
       });
     }, function (err) {
       if (btn) btn.disabled = false;

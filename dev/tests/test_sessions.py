@@ -17,7 +17,7 @@ DEV = os.path.dirname(HERE)
 if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
-import sessions_api as S                                # noqa: E402
+import sessions_api as S                                # noqa: E402 - sys.path is set up before the import
 
 STATE = {
     "controls": {"company": "Acme", "industry": "Energy", "scale": "0.25", "oten": True,

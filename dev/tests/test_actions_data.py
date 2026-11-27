@@ -216,7 +216,7 @@ class ActionsData(unittest.TestCase):
             for _ts, f in pk:
                 self.assertEqual(check_packet(f), [], tok)
 
-    @unittest.skipUnless(os.path.exists(TSHARK), "tshark not installed")
+    @unittest.skipUnless(TSHARK, "tshark not installed")
     def test_tshark_clean(self):
         d = tempfile.mkdtemp()
         try:

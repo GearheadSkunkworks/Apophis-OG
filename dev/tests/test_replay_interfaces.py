@@ -95,7 +95,7 @@ class Detail(unittest.TestCase):
         self.assertFalse(out[0]["recommended"])
 
     def test_preflight_keeps_flat_list(self):
-        r = replay.preflight()
+        r = replay.preflight(fresh=True)
         self.assertIn("interfaces", r)
         self.assertIn("interfaces_detail", r)
         self.assertEqual([d["name"] for d in r["interfaces_detail"]], r["interfaces"])

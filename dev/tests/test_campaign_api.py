@@ -21,7 +21,7 @@ DEV = os.path.dirname(HERE)
 if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
-import server                                          # noqa: E402
+import server                                          # noqa: E402 - sys.path is set up before the import
 
 SECRET = "sk-TESTKEY-0123456789abcdef"  # release-scan: allow
 IOCS = [
@@ -57,6 +57,7 @@ class ApiCase(unittest.TestCase):
     def req(self, method, path, body=None, headers=None, raw=None):
         c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=30)
         h = dict(headers or {})
+        h.setdefault("Cookie", "og_ui=" + server.UI_SECRET)         # the page cookie every POST needs
         data = raw
         if body is not None:
             data = json.dumps(body).encode()

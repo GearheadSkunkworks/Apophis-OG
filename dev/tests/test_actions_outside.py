@@ -181,7 +181,7 @@ class ActionsOutside(unittest.TestCase):
         self.assertEqual(found.issuer, found.subject)
 
     def test_login_spray_decrypts_to_401_and_one_302(self):
-        if not os.path.exists(TSHARK):
+        if not TSHARK:
             self.skipTest("tshark not installed")
         d = tempfile.mkdtemp()
         try:
@@ -278,7 +278,7 @@ class ActionsOutside(unittest.TestCase):
             for _, f in pk:
                 self.assertEqual(check_packet(f), [], tok)
 
-    @unittest.skipUnless(os.path.exists(TSHARK), "tshark not installed")
+    @unittest.skipUnless(TSHARK, "tshark not installed")
     def test_tshark_clean(self):
         d = tempfile.mkdtemp()
         try:

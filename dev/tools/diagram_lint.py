@@ -18,7 +18,7 @@ from collections import Counter
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from diagrams.campaign.lint import lint_html  # noqa: E402
+from diagrams.campaign.lint import lint_html  # noqa: E402 - sys.path is set up before the import
 
 
 def _campaign_page(path):
@@ -66,7 +66,7 @@ def main(argv=None):
     for name, make in jobs:
         try:
             fs = lint_html(make())
-        except Exception as e:                                   # noqa: BLE001
+        except Exception as e:                                   # noqa: BLE001 - render failure is printed and that diagram is skipped
             print("%s: could not render: %s: %s" % (name, type(e).__name__, e))
             per[name] = [None]
             continue

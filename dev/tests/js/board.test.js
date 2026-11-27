@@ -280,5 +280,5 @@ test('render: reduced motion disables the play button but not the scrubber', asy
 
 test('no vendor names in the source', () => {
   assert.doesNotMatch(SRC, new RegExp(['Extra' + 'Hop', 'Reveal' + 'X', 'Vec' + 'tra', 'Dark' + 'trace', 'Crowd' + 'Strike'].join('|'), 'i'));
-  assert.doesNotMatch(SRC, /innerHTML|insertAdjacentHTML|eval\(|new Function/);
+  assert.doesNotMatch(SRC, /innerHTML|insertAdjacentHTML|eval\(|new\s+Function/);
 });

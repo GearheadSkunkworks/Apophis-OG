@@ -4,8 +4,8 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from intel import cve_profiles  # noqa: E402
-from netgen import incidents as INC  # noqa: E402
+from intel import cve_profiles  # noqa: E402 - sys.path is set up before the import
+from netgen import incidents as INC  # noqa: E402 - sys.path is set up before the import
 
 IDS = ("ndr-gentlemen", "ir-armorycastle-vcenter-cve123890", "ir-outlook-ntlm-leak-cve124194",
        "ir-freeswitch-sip-message-cve116779", "ir-optimjack-supplychain", "ir-puppet-report-rce-cve115731",

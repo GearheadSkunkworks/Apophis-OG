@@ -59,7 +59,7 @@ def load_verification(path=None):
         with open(path or VERIFY_PATH, encoding="utf-8") as f:
             res = json.load(f)["results"]
         return {k: v for k, v in res.items() if isinstance(v, dict)}
-    except Exception:                                   # noqa: BLE001
+    except Exception:                                   # noqa: BLE001 - unreadable metadata falls back to an empty dict
         return {}
 
 

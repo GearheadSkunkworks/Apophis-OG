@@ -12,7 +12,7 @@ from . import ActionSpec, register
 from .recon import (deterministic, vantage_for, arp_between, own_user, account_names)
 from ... import flows as F
 from ... import protocols as P
-from ...core import TcpSession, rng
+from ...core import rng
 
 DUMMY_USERS = ["root", "admin", "test", "ubuntu", "oracle", "postgres", "pi", "deploy", "support", "guest"]
 
@@ -31,7 +31,7 @@ def ssh_brute(ctx, src, dst, *, ts, connections=10, tries=3, users=None, gap_s=2
     out, t = arp_between(ctx, src, dst, ts), ts
     client_banner = rng.choice([b"SSH-2.0-libssh_0.10.5", b"SSH-2.0-paramiko_3.4.0", b"SSH-2.0-OpenSSH_9.2"])
     for i in range(int(connections)):
-        s = TcpSession(ctx.link, src, dst, 22, t + 0.001, vantage=vant).handshake()
+        s = ctx.tcp(src, dst, 22, t + 0.001, vantage=vant).handshake()
         s.c2s(client_banner + b"\r\n", think=0.002)
         s.s2c(b"SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.5\r\n", think=0.003)
         s.c2s(P.ssh_kexinit(True), think=0.002)
@@ -61,7 +61,7 @@ def rdp_brute(ctx, src, dst, *, ts, attempts=8, users=None, gap_s=3.0):
     vant = vantage_for(ctx, src, dst)
     out, t = arp_between(ctx, src, dst, ts), ts
     for i in range(int(attempts)):
-        s = TcpSession(ctx.link, src, dst, 3389, t + 0.001, vantage=vant).handshake()
+        s = ctx.tcp(src, dst, 3389, t + 0.001, vantage=vant).handshake()
         s.c2s(P.rdp_x224_connect(users[i % len(users)]), think=0.002)
         s.s2c(P.rdp_x224_confirm(), think=0.003)
         tls = TlsSession(ctx.pki, dst.fqdn, F._NullLog(), alpn=b"", kex="ecdhe", selfsigned=True)
@@ -90,7 +90,7 @@ def kerberos_spray(ctx, src, dst, *, ts, accounts=25, unknown_ratio=0.15, gap_s=
     out, t = arp_between(ctx, src, dst, ts), ts
     vant = vantage_for(ctx, src, dst)
     for _i, u in enumerate(names):
-        s = TcpSession(ctx.link, src, dst, 88, t + 0.001, vantage=vant).handshake()
+        s = ctx.tcp(src, dst, 88, t + 0.001, vantage=vant).handshake()
         unknown = rng.random() < float(unknown_ratio)
         if unknown:
             u = "%s%d" % (u, rng.randint(2, 9))
@@ -134,7 +134,7 @@ def kerberoast(ctx, src, dst, *, ts, count=10, gap_s=0.7):
     out, t = arp_between(ctx, src, dst, ts), ts
     vant = vantage_for(ctx, src, dst)
     for svc, host in _spn_list(ctx, int(count)):
-        s = TcpSession(ctx.link, src, dst, 88, t + 0.001, vantage=vant).handshake()
+        s = ctx.tcp(src, dst, 88, t + 0.001, vantage=vant).handshake()
         s.c2s(_tcp_len(P.krb_tgs_req(user, svc, host, t, rng.getrandbits(31), etypes=P.KRB_ETYPES_RC4_ONLY)), think=0.0006)
         s.s2c(_tcp_len(P.krb_tgs_rep(user, svc, host, etype=23)), think=rng.uniform(0.001, 0.01))
         out += s.close(think=0.001)
@@ -151,7 +151,7 @@ def asrep_roast(ctx, src, dst, *, ts, accounts=6, vulnerable=3, gap_s=0.9):
     out, t = arp_between(ctx, src, dst, ts), ts
     vant = vantage_for(ctx, src, dst)
     for i, u in enumerate(names):
-        s = TcpSession(ctx.link, src, dst, 88, t + 0.001, vantage=vant).handshake()
+        s = ctx.tcp(src, dst, 88, t + 0.001, vantage=vant).handshake()
         s.c2s(_tcp_len(P.krb_as_req(u, t, rng.getrandbits(31), False)), think=0.0006)
         if i < int(vulnerable):
             s.s2c(_tcp_len(P.krb_as_rep(u, etype=23)), think=rng.uniform(0.001, 0.008))

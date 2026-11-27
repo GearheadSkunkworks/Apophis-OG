@@ -72,7 +72,7 @@ def self_test():
         ok = PROVIDER in _providers.available()
         inst = _providers.get_provider("demo.local", "x", name=PROVIDER)
         ok = ok and isinstance(inst, DemoProvider)
-    except Exception as e:                               # noqa: BLE001
+    except Exception as e:                               # noqa: BLE001 - factory failure is the check result, returned as not ok
         return {"ok": False, "detail": "provider factory failed: %s" % e}
     return {"ok": ok, "detail": "registered as provider %r; available: %s"
             % (PROVIDER, ", ".join(_providers.available()))}

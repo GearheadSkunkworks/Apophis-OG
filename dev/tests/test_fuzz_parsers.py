@@ -17,7 +17,7 @@ for p in (DEV, os.path.join(DEV, "tools")):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-import fuzz                                            # noqa: E402
+import fuzz                                            # noqa: E402 - sys.path is set up before the import
 
 
 class ContractChecker(unittest.TestCase):

@@ -5,8 +5,10 @@ A patch (overlay) runs on the Python runtime frozen into the full release it pat
 and third-party modules it found at build time, so a patch that imports anything else dies at start ("No module named ...")
 and the boot guard rolls it back. 5.5.1 and 5.5.2 did exactly that with `secrets`.
 
-    python3 tools/frozen_modules.py                    # the patch tree (this dev/ tree) imports only frozen modules
+    python3 tools/frozen_modules.py                    # the patch tree (this dev/ tree) imports only modules every platform list has
     python3 tools/frozen_modules.py --refresh App.app  # rewrite frozen-modules.txt from a built app (needs PyInstaller)
+    python3 tools/frozen_modules.py --refresh-linux <bundle-dir> <x86_64|aarch64> [out]   # rewrite frozen-modules-linux-<arch>.txt
+    python3 tools/frozen_modules.py --diff <built.txt> <committed.txt>   # fail if the committed list names a module the bundle lacks
 
 Refresh on every X.Y.0 full release, from that release's .app, in the same change that bumps VERSION to X.Y.0. The list
 is the contract for every X.Y.Z patch after it. The check itself is standard library only.
@@ -85,10 +87,11 @@ def violations(dev=DEV, frozen=None):
     return bad
 
 
-def refresh(app, out=LIST):
+def _collect(exe, base_zip, dynload_dirs):
+    """Every module a frozen executable can import: builtins, modules stored beside the PYZ, the PYZ itself,
+    base_library.zip and the lib-dynload extension modules."""
     import tempfile
     from PyInstaller.archive.readers import CArchiveReader, ZlibArchiveReader
-    exe = os.path.join(app, "Contents", "MacOS", os.listdir(os.path.join(app, "Contents", "MacOS"))[0])
     mods = set(sys.builtin_module_names)
     r = CArchiveReader(exe)
     mods |= {n for n, e in r.toc.items() if e[-1] in ("m", "M")}   # modules stored beside the PYZ (struct, ...)
@@ -99,22 +102,70 @@ def refresh(app, out=LIST):
                 with open(pyz, "wb") as fh:
                     fh.write(r.extract(name))
                 mods |= set(ZlibArchiveReader(pyz).toc)
-    with zipfile.ZipFile(os.path.join(app, "Contents", "Resources", "base_library.zip")) as z:
+    with zipfile.ZipFile(base_zip) as z:
         mods |= {n[:-4].replace("/", ".").removesuffix(".__init__") for n in z.namelist() if n.endswith(".pyc")}
-    for d, _dirs, files in os.walk(os.path.join(app, "Contents", "Frameworks")):
-        if os.path.basename(d) == "lib-dynload":
-            mods |= {f.split(".")[0] for f in files if f.endswith(".so")}
+    for top in dynload_dirs:
+        for d, _dirs, files in os.walk(top):
+            if os.path.basename(d) == "lib-dynload":
+                mods |= {f.split(".")[0] for f in files if f.endswith(".so")}
+    return mods
+
+
+def _write(mods, out, how):
     with open(out, "w", encoding="utf-8") as fh:
-        fh.write("# Modules frozen into the full release a patch runs on. Rebuild: python3 tools/frozen_modules.py --refresh <App.app>\n")
+        fh.write("# Modules frozen into the full release a patch runs on. Rebuild: %s\n" % how)
         fh.write("\n".join(sorted(mods)) + "\n")
     print("wrote %d modules to %s" % (len(mods), out))
+
+
+def refresh(app, out=LIST):
+    macos = os.path.join(app, "Contents", "MacOS")
+    mods = _collect(os.path.join(macos, os.listdir(macos)[0]),
+                    os.path.join(app, "Contents", "Resources", "base_library.zip"),
+                    [os.path.join(app, "Contents", "Frameworks")])
+    _write(mods, out, "python3 tools/frozen_modules.py --refresh <App.app>")
+
+
+def linux_list(arch):
+    return os.path.join(HERE, "frozen-modules-linux-%s.txt" % arch)
+
+
+def refresh_linux(bundle, arch, out=None, exe="apophis-server"):
+    """Write frozen-modules-linux-<arch>.txt (or `out`) from a built PyInstaller onedir (`bundle` holds the executable and _internal/)."""
+    internal = os.path.join(bundle, "_internal")
+    mods = _collect(os.path.join(bundle, exe), os.path.join(internal, "base_library.zip"), [internal])
+    _write(mods, out or linux_list(arch), "python3 tools/frozen_modules.py --refresh-linux <bundle-dir> <arch>")
+
+
+def platform_lists():
+    """{file name: module set} for the macOS list and every Linux list present. A patch zip serves every platform, so it
+    must import only what ALL of them bundle."""
+    out = {os.path.basename(LIST): load(LIST)}
+    for n in sorted(os.listdir(HERE)):
+        if n.startswith("frozen-modules-") and n.endswith(".txt"):
+            out[n] = load(os.path.join(HERE, n))
+    return out
+
+
+def diff(a, b):
+    """(only in a, only in b), both sorted."""
+    return sorted(a - b), sorted(b - a)
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 3 and sys.argv[1] == "--refresh":
         refresh(sys.argv[2])
+    elif len(sys.argv) in (4, 5) and sys.argv[1] == "--refresh-linux":
+        refresh_linux(sys.argv[2], sys.argv[3], *sys.argv[4:])
+    elif len(sys.argv) == 4 and sys.argv[1] == "--diff":    # built list vs committed list: the committed one must not promise more
+        gone, new = diff(load(sys.argv[2]), load(sys.argv[3]))
+        for m in new:
+            print("committed list has %s, the built bundle does not" % m)
+        for m in gone:
+            print("built bundle has %s, the committed list lacks it (refresh the list)" % m)
+        sys.exit(1 if new else 0)
     else:
-        bad = violations()
-        for f, ln, m in bad:
-            print("%s:%d imports %s, which the frozen app does not bundle" % (f, ln, m))
+        bad = [(n, v) for n, mods in platform_lists().items() for v in violations(frozen=mods)]
+        for n, (f, ln, m) in bad:
+            print("%s:%d imports %s, which the frozen app (%s) does not bundle" % (f, ln, m, n))
         sys.exit(1 if bad else 0)

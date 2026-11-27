@@ -9,10 +9,10 @@ from unittest import mock
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
 sys.path.insert(0, os.path.join(DEV, "tools"))
-import make_patch  # noqa: E402
-import overlay     # noqa: E402
-from cryptography.hazmat.primitives import serialization  # noqa: E402
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey  # noqa: E402
+import make_patch  # noqa: E402 - sys.path is set up before the import
+import overlay     # noqa: E402 - sys.path is set up before the import
+from cryptography.hazmat.primitives import serialization  # noqa: E402 - sys.path is set up before the import
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey  # noqa: E402 - sys.path is set up before the import
 
 
 class Signing(unittest.TestCase):

@@ -11,6 +11,7 @@ diagram: name, pixel height, png path.
 import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -23,13 +24,21 @@ CANDIDATES = [
     "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
     "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
 ]
+# Linux packages put the browser on PATH under one of these names
+PATH_NAMES = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "microsoft-edge", "brave-browser"]
 PROBE = "<script>document.title='H='+Math.ceil(document.documentElement.scrollHeight)</script>"
 
 
-def browser():
-    for c in [os.environ.get("CHROME")] + CANDIDATES:
-        if c and os.path.exists(c):
+def browser(env=None, exists=os.path.exists, which=shutil.which):
+    """A Chromium-family binary: $CHROME, a macOS app bundle, then a Linux package on PATH."""
+    env = os.environ if env is None else env
+    for c in [env.get("CHROME")] + CANDIDATES:
+        if c and exists(c):
             return c
+    for name in PATH_NAMES:
+        found = which(name)
+        if found:
+            return found
     raise SystemExit("no Chromium-family browser found; set CHROME to its binary")
 
 

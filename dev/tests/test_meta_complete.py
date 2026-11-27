@@ -5,7 +5,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from netgen.campaign.actions import meta  # noqa: E402
+from netgen.campaign.actions import meta  # noqa: E402 - sys.path is set up before the import
 
 
 class MetaComplete(unittest.TestCase):

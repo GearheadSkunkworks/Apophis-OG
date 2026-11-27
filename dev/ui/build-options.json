@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "about": "Compose options table. One row per opt-in build option; the page renders it, sends it to /api/generate and reads the estimate hints from it. To add an option, add one row. api.field is the generate body field (network_options or exports) and api.key the name the engine accepts (a network option key, or an EXPORT_NAMES entry); tests/test_build_options.py checks every row against the engine. Time: one run with all four exports on took 54 s against 45 s without (1.7M packets); per-export times were not measured separately, so no per-row time is claimed. The two flow exports together took 50 s against 45 s without (one run, 1.7M packets); not split per export.",
+  "groups": [
+    {
+      "id": "network",
+      "label": "Network options",
+      "lead": "Opt-in changes to how the capture is framed on the wire. Off by default, and a default capture is unchanged."
+    },
+    {
+      "id": "exports",
+      "label": "Exports",
+      "lead": "Extra files written beside the capture. Off by default; each one is listed in the build manifest with its size and hash."
+    }
+  ],
+  "options": [
+    {
+      "id": "vlan",
+      "group": "network",
+      "label": "VLAN tagging",
+      "help": "Tag every frame with an 802.1Q VLAN ID, as a trunk or SPAN port would deliver it.",
+      "control": "toggle",
+      "default": false,
+      "api": {
+        "field": "network_options",
+        "key": "vlan"
+      },
+      "params": [
+        {
+          "id": "scheme",
+          "label": "Scheme",
+          "control": "select",
+          "default": "subnet",
+          "api": "scheme",
+          "options": [
+            {
+              "value": "subnet",
+              "label": "One VLAN per subnet"
+            },
+            {
+              "value": "fixed",
+              "label": "One fixed VLAN"
+            }
+          ],
+          "help": "Per subnet gives each emulated network its own ID; fixed puts the whole capture on one."
+        },
+        {
+          "id": "vid",
+          "label": "VLAN ID",
+          "control": "number",
+          "min": 1,
+          "max": 4094,
+          "default": 100,
+          "api": "vid",
+          "when": {
+            "scheme": "fixed"
+          },
+          "help": "1 to 4094."
+        },
+        {
+          "id": "qinq",
+          "label": "Add an outer tag (QinQ)",
+          "control": "toggle",
+          "default": false,
+          "api": null,
+          "help": "A service tag outside the VLAN tag (802.1ad), as a provider network would add."
+        },
+        {
+          "id": "svid",
+          "label": "Outer VLAN ID",
+          "control": "number",
+          "min": 1,
+          "max": 4094,
+          "default": 100,
+          "api": "qinq",
+          "when": {
+            "qinq": true
+          },
+          "help": "1 to 4094."
+        }
+      ],
+      "files": [],
+      "est": {
+        "bytes_per_packet": 4
+      },
+      "note": "Adds 4 bytes to every frame (8 with QinQ), under half a percent of the capture. Replaying a tagged capture needs a sensor port that accepts tagged frames."
+    },
+    {
+      "id": "truth",
+      "group": "exports",
+      "label": "Flow truth file",
+      "help": "One JSON line per flow, tagged with the scenario that produced it: what the generator put on the wire.",
+      "control": "toggle",
+      "default": false,
+      "api": {
+        "field": "exports",
+        "key": "truth"
+      },
+      "files": [
+        "-truth.jsonl"
+      ],
+      "est": {
+        "pcap_ratio": 0.0492
+      },
+      "note": "Adds about 5% to the capture's size (38 MB on a 773 MB capture). Measured once, at size 0.004 with every scenario."
+    },
+    {
+      "id": "ssl",
+      "group": "exports",
+      "label": "Zeek-style ssl and x509 logs",
+      "help": "TLS handshake and certificate logs in a Zeek-style layout, read back from the finished capture.",
+      "control": "toggle",
+      "default": false,
+      "api": {
+        "field": "exports",
+        "key": "ssl"
+      },
+      "files": [
+        "-ssl.log",
+        "-x509.log"
+      ],
+      "est": {
+        "pcap_ratio": 0.0096
+      },
+      "note": "Adds about 1% to the capture's size (7 MB on a 773 MB capture). Measured once, at size 0.004 with every scenario."
+    },
+    {
+      "id": "http",
+      "group": "exports",
+      "label": "Zeek-style http log",
+      "help": "Plaintext HTTP requests and responses in a Zeek-style layout. Not a claim of byte-identical Zeek output.",
+      "control": "toggle",
+      "default": false,
+      "api": {
+        "field": "exports",
+        "key": "http"
+      },
+      "files": [
+        "-http.log"
+      ],
+      "est": {
+        "pcap_ratio": 0.004
+      },
+      "note": "Adds under half a percent to the capture's size (3 MB on a 773 MB capture). Measured once, at size 0.004 with every scenario."
+    },
+    {
+      "id": "pcapng",
+      "group": "exports",
+      "label": "pcapng copy",
+      "help": "The same capture converted to pcapng, for tools that prefer it. The classic pcap stays the main output.",
+      "control": "toggle",
+      "default": false,
+      "api": {
+        "field": "exports",
+        "key": "pcapng"
+      },
+      "files": [
+        ".pcapng"
+      ],
+      "est": {
+        "pcap_ratio": 1.0387
+      },
+      "note": "A second full copy: about 4% larger than the pcap (803 MB beside 773 MB). Measured once, at size 0.004 with every scenario."
+    },
+    {
+      "id": "ipfix",
+      "group": "exports",
+      "label": "IPFIX flow export",
+      "help": "Flow records for the capture as export packets from a synthetic exporter, plus a CSV of the same records. Not tested against any flow collector.",
+      "control": "toggle",
+      "default": false,
+      "api": {
+        "field": "exports",
+        "key": "ipfix"
+      },
+      "files": [
+        "-ipfix.pcap",
+        "-ipfix.csv"
+      ],
+      "est": {
+        "pcap_ratio": 0.0374
+      },
+      "note": "Adds about 3.7% to the capture's size (12.6 MB pcap plus 16.4 MB CSV on a 775 MB capture). Measured once, at size 0.004 with every scenario."
+    },
+    {
+      "id": "netflow9",
+      "group": "exports",
+      "label": "NetFlow v9 flow export",
+      "help": "Flow records for the capture as export packets from a synthetic exporter, plus a CSV of the same records. Not tested against any flow collector.",
+      "control": "toggle",
+      "default": false,
+      "api": {
+        "field": "exports",
+        "key": "netflow9"
+      },
+      "files": [
+        "-netflow9.pcap",
+        "-netflow9.csv"
+      ],
+      "est": {
+        "pcap_ratio": 0.031
+      },
+      "note": "Adds about 3.1% to the capture's size (7.7 MB pcap plus 16.4 MB CSV on a 775 MB capture). Measured once, at size 0.004 with every scenario."
+    }
+  ]
+}

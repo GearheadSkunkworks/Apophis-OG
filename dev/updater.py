@@ -15,6 +15,7 @@ import hashlib
 import io
 import json
 import os
+import platform
 import plistlib
 import re
 import shutil
@@ -24,11 +25,13 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import urllib.parse
 import urllib.request
 import zipfile
 
 import overlay
+import updater_linux
 
 REPO = os.environ.get("OG_UPDATE_REPO", "GearheadSkunkworks/Apophis-OG")
 LIST_URL = os.environ.get("OG_UPDATE_URL", "https://api.github.com/repos/%s/releases?per_page=100" % REPO)
@@ -45,11 +48,13 @@ class UpdateError(Exception):
 
 
 def allowed_url(url):
-    """https to a GitHub host, or plain http to exactly 127.0.0.1 (local testing). Compared on the parsed host, never by prefix."""
+    """https to a GitHub host, or plain http to exactly 127.0.0.1 when OG_UPDATE_URL points the app at a local test feed.
+    Compared on the parsed host, never by prefix. Without that variable plain http is never allowed, so a hostile
+    release feed cannot make the app send a request to a local port."""
     p = urllib.parse.urlsplit(url)
     host = (p.hostname or "").lower()
     if p.scheme == "http":
-        return host == "127.0.0.1"
+        return host == "127.0.0.1" and bool(os.environ.get("OG_UPDATE_URL"))
     return p.scheme == "https" and (host in HOSTS or host.endswith((".github.com", ".githubusercontent.com")))
 
 
@@ -99,9 +104,19 @@ def current_version(app_dir):
     return overlay._read(os.path.join(app_dir, "VERSION")) or "0"
 
 
-def check(current, get=_get):
-    """What a check finds. state: current | patch | newer | error. `get(url, cap)` is injectable for tests."""
+def _linux_arch():
+    """The release architecture name on Linux, else None (macOS keeps its single universal app zip)."""
+    return updater_linux.arch_of(platform.machine()) if sys.platform.startswith("linux") else None
+
+
+def check(current, get=_get, arch=None):
+    """What a check finds. state: current | patch | newer | app | error. `get(url, cap)` and `arch` (a Linux release
+    architecture, default: this machine's) are injectable for tests."""
     cur = overlay.parse(current)
+    try:
+        arch = _linux_arch() if arch is None else arch
+    except updater_linux.LinuxUpdateError as e:
+        return {"state": "error", "current": current, "message": str(e)}
     try:
         releases = json.loads(get(LIST_URL, MAX_JSON * 8))
     except (ValueError, UpdateError) as e:
@@ -120,9 +135,10 @@ def check(current, get=_get):
                 best = (v, rel, assets)
         elif v[:2] > cur[:2]:
             assets = {a.get("name"): a.get("browser_download_url") for a in rel.get("assets", [])}
-            names = ("og-app-%d.%d.%d.json" % v, "og-app-%d.%d.%d.sig" % v, "OpenGenerator-%d.%d.%d-app.zip" % v)
+            names = updater_linux.names(".".join(map(str, v)), arch) if arch else ("og-app-%d.%d.%d.json" % v, "og-app-%d.%d.%d.sig" % v, "OpenGenerator-%d.%d.%d-app.zip" % v)
             if all(n in assets for n in names) and (app is None or v > app[0]):
-                app = (v, dict(zip(("json", "sig", "zip"), (assets[n] for n in names), strict=False)))
+                found = dict(zip(("json", "sig", "zip"), (assets[n] for n in names), strict=False))
+                app = (v, dict(found, files=assets) if arch else found)    # Linux: the download is named by the signed manifest, so keep every asset
             elif newer is None or v > newer:
                 newer = v
     if app:                                                       # a newer minor or major: the whole app is swapped, from any older version
@@ -174,7 +190,7 @@ def unpack(zip_bytes, dest):
 def install(info, app_dir, base=None, get=_get):
     """Download, verify and install the patch `check` found. Returns the new version. Nothing changes on any failure."""
     if info.get("state") == "app":
-        return install_app(info, app_dir, get=get)
+        return install_app_linux(info, app_dir, get=get) if sys.platform.startswith("linux") else install_app(info, app_dir, get=get)
     if not getattr(sys, "frozen", False) and base is None:
         raise UpdateError("This copy runs from source; update it with git pull instead.")
     a = info["assets"]
@@ -214,6 +230,36 @@ def install(info, app_dir, base=None, get=_get):
 
 def _run(cmd):
     subprocess.run(cmd, check=True, capture_output=True, timeout=300)
+
+
+def install_app_linux(info, app_dir, get=_get, exe=None, appimage=None, arch=None, keep=None, appdir=None):
+    """The Linux full-app swap (tarball or AppImage install); see updater_linux. A package-managed copy is refused with
+    the package-manager answer and nothing is touched. The caller restarts."""
+    if exe is None and not getattr(sys, "frozen", False):
+        raise UpdateError("This copy runs from source; update it with git pull instead.")
+    exe = exe or os.path.realpath(sys.executable)
+    appimage = os.environ.get("APPIMAGE", "") if appimage is None else appimage
+    appdir = os.environ.get("APPDIR", "") if appdir is None else appdir
+    kind = updater_linux.install_kind(exe, appimage, lambda p: os.access(p, os.W_OK), appdir)
+    try:
+        if kind in ("package", "readonly"):
+            raise updater_linux.LinuxUpdateError(updater_linux.refuse_text(kind))
+        arch = arch if arch is not None else _linux_arch()
+        a = info["assets"]
+        manifest_bytes, sig = get(a["json"], MAX_JSON), get(a["sig"], MAX_JSON)
+        m = verify_manifest(manifest_bytes, sig)
+        if overlay.parse(m.get("version", ""))[:2] <= overlay.parse(current_version(app_dir))[:2] or m.get("product") != "opengenerator":
+            raise updater_linux.LinuxUpdateError("This update is not for this version; nothing was changed.")
+        art = updater_linux.pick(m, kind, info["latest"], arch)
+        url = a["files"].get(art["name"])
+        if not url:
+            raise updater_linux.LinuxUpdateError("This update has no download for this kind of install; nothing was changed.")
+        data = get(url, MAX_APP)
+        keep = keep or os.path.join(os.path.dirname(overlay.base_dir()), "app-previous")
+        updater_linux.install(kind, data, art, exe, appimage, keep, m["version"], lambda t: overlay._read(os.path.join(t, "VERSION")))
+    except updater_linux.LinuxUpdateError as e:
+        raise UpdateError(str(e)) from None
+    return m["version"]
 
 
 def _plist(app):
@@ -291,15 +337,21 @@ def install_app(info, app_dir, bundle=None, get=_get, run=_run, keep=None):
 
 # ---- HTTP routes (server.py)
 _LAST = {}
+_LAST_AT = 0.0                                          # monotonic time of the check _LAST holds
+CHECK_TTL = 60.0                                        # seconds a repeat GET reuses the last result; ?force=1 skips it
 _INSTALL_LOCK = threading.Lock()
 
 
-def route_get(path, app_dir, get=_get):
+def route_get(path, app_dir, get=_get, query=""):
+    global _LAST_AT
     if path != "/api/update/check":
         return None
-    info = check(current_version(app_dir), get)
-    _LAST.clear()
-    _LAST.update(info)
+    fresh = _LAST and time.monotonic() - _LAST_AT < CHECK_TTL and "1" not in urllib.parse.parse_qs(query).get("force", ())
+    info = dict(_LAST) if fresh else check(current_version(app_dir), get)
+    if not fresh:
+        _LAST.clear()
+        _LAST.update(info)
+        _LAST_AT = 0.0 if info.get("state") == "error" else time.monotonic()    # a failed check is retried at once
     out = {k: v for k, v in info.items() if k != "assets"}
     out["frozen"] = bool(getattr(sys, "frozen", False))
     return 200, json.dumps(out), "application/json", None

@@ -19,7 +19,7 @@ class S01(unittest.TestCase):
     def test_preflight_with_missing_tool(self):
         import replay
         with mock.patch.object(replay, "find_tool", return_value=None):
-            r = replay.preflight(None, None)
+            r = replay.preflight(None, None, fresh=True)
         self.assertTrue(any("was not found" in e for e in r["errors"]))
 
 

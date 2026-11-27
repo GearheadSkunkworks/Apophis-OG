@@ -31,7 +31,7 @@ def self_test():
         return {"ok": n == PIN,
                 "detail": "no-module baseline (--scale %s) = %d packets, expected %d"
                           % (SCALE, n, PIN)}
-    except Exception as e:                                   # noqa: BLE001
+    except Exception as e:                                   # noqa: BLE001 - build failure is the check result, returned as not ok
         return {"ok": False, "detail": "build failed: %s" % e}
     finally:
         shutil.rmtree(d, ignore_errors=True)

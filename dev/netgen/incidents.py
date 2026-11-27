@@ -5077,7 +5077,8 @@ _NFS_FILES = ["report.xlsx", "budget-fy27.xlsx", "roadmap.pptx", "handbook.pdf",
 def _nfs_file(i):
     """Stable per-file facts derived from the file id: handle, fileid, size in 8 KiB reads."""
     import hashlib
-    h = hashlib.sha1((get_current().prefix.lower().encode() + b"backup1:/export/shared:%d") % i).digest()
+    # lint-ok: derives a stable synthetic file handle, never a security decision
+    h = hashlib.sha1((get_current().prefix.lower().encode() + b"backup1:/export/shared:%d") % i, usedforsecurity=False).digest()
     reads = 2 + h[0] % 4
     return {"name": _NFS_FILES[i], "fh": h + h[:8], "fileid": 4096 + i * 17,
             "size": 8192 * (reads - 1) + 1024 + (h[1] << 5) % 7000, "reads": reads}
@@ -5101,7 +5102,8 @@ def nfs_slow_read(ctx, client, ts, g=1.0):
     uid = 10000 + n
     gid = 100
     cred = P.rpc_auth_unix(client.name.lower(), uid=uid, gid=gid, gids=(1000 + n % 7,) if n % 3 == 0 else ())
-    root_fh = hashlib.sha1((get_current().prefix.lower().encode() + b"backup1:/export/shared")).digest() + b"\x00" * 8
+    # lint-ok: derives a stable synthetic file handle, never a security decision
+    root_fh = hashlib.sha1((get_current().prefix.lower().encode() + b"backup1:/export/shared"), usedforsecurity=False).digest() + b"\x00" * 8
     mounted = ctx.__dict__.setdefault("_nfs_mounted", set())
     t_nfs = ts + 0.001
     if client.name not in mounted:
@@ -5786,6 +5788,16 @@ def custom_import_scenario(ctx, eng, tag, win):
                          "skipped": [sk for r in reports for sk in r["skipped"]]}
 
 
+def ndr_ipv6_rogue_ra(ctx, eng, tag, win):
+    from . import ipv6_attacks
+    ipv6_attacks.rogue_ra(ctx, eng, tag, win, attacker(ctx))
+
+
+def ndr_ipv6_nd_flood(ctx, eng, tag, win):
+    from . import ipv6_attacks
+    ipv6_attacks.nd_flood(ctx, eng, tag, win, attacker(ctx))
+
+
 def campaign_scenario(ctx, eng, tag, win):
     """Campaign built from threat indicators (netgen.campaign). The import is guarded so a missing
     or broken campaign package can never break a normal build; with no campaign supplied the
@@ -5797,6 +5809,10 @@ def campaign_scenario(ctx, eng, tag, win):
     _campaign_runner.campaign_scenario(ctx, eng, tag, win)
 
 
+_reg("ndr-ipv6-rogue-ra", "NDR", "ipv6-rogue-ra", "IPv6 rogue RA + DHCPv6 takeover (mitm6 style)",
+     ((11, 0), (11, 30)), ndr_ipv6_rogue_ra, "a workstation sends rogue Router Advertisements, answers DHCPv6 with itself as DNS, serves wpad over IPv6, collects NTLM and relays it over IPv4")
+_reg("ndr-ipv6-nd-flood", "NDR", "ipv6-nd-flood", "IPv6 neighbour-discovery flood (RA flood + NS storm)",
+     ((11, 40), (12, 10)), ndr_ipv6_nd_flood, "a workstation floods the segment with random-source Router Advertisements, then solicits non-existent addresses so the gateway retries each")
 _reg("campaign", "CAMPAIGN", "campaign", "Campaign built from threat indicators",
      ((9, 0), (16, 0)), campaign_scenario,
      "an ATT&CK-mapped attack campaign compiled from threat indicators (or a campaign file); stages "
@@ -5920,7 +5936,7 @@ _reg("crp-anonymous-ftp", "CRP", "anon-ftp", "Anonymous FTP on a smart board (in
 # (imported here, after this module is otherwise defined, so its lazy `from netgen import incidents`
 # inside build() never cycles). Pin-safe: hosts are injected in the builder, so an unselected build
 # is unchanged (609,554).
-from .netscaler import build as _netscaler_build       # noqa: E402
+from .netscaler import build as _netscaler_build       # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-netscaler-compromise", "IR", "netscaler-compromise",
      "NetScaler Compromise (webshell → beacon → DTLS → replay → exfil → LDAP SPN scan → SMB → reverse SSH)",
      ((14, 0), (16, 30)), _netscaler_build,
@@ -5933,7 +5949,7 @@ _reg("ir-netscaler-compromise", "IR", "netscaler-compromise",
 # IR -- a SECOND NetScaler/Gateway incident (CVE-2026-88771), its own sibling package. A different
 # offender exploits the same class of appliance, drops a webshell, beacons to its own C2, and pivots
 # inward to the DC and the SQL server. Same lazy-import discipline; same pin-safe runtime injection.
-from .netscaler88771 import build as _netscaler88771_build    # noqa: E402
+from .netscaler88771 import build as _netscaler88771_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-netscaler-cve88771", "IR", "netscaler-cve88771",
      "NetScaler CVE-2026-88771 (exploit → webshell → C2 beacon → LDAP SPN scan → SMB → TDS/MSSQL pivot)",
      ((11, 0), (13, 0)), _netscaler88771_build,
@@ -5948,7 +5964,7 @@ _reg("ir-netscaler-cve88771", "IR", "netscaler-cve88771",
 # IR -- BeyondTrust Remote Support / PRA zero-day (CVE-2026-102764). A new internet-published
 # appliance host is exploited via the origin-spoofed file-read/write bypass, then -- as a
 # privileged-access broker -- originates admin protocols inward. Same lazy-import, pin-safe pattern.
-from .beyondtrust102764 import build as _beyondtrust102764_build    # noqa: E402
+from .beyondtrust102764 import build as _beyondtrust102764_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-beyondtrust-cve102764", "IR", "beyondtrust-cve102764",
      "BeyondTrust CVE-2026-102764 (origin-spoofed file ops → webshell → C2 → inward RDP/SMB/LDAP pivot)",
      ((9, 0), (11, 0)), _beyondtrust102764_build,
@@ -5963,7 +5979,7 @@ _reg("ir-beyondtrust-cve102764", "IR", "beyondtrust-cve102764",
 
 # IR -- Metabase unauthenticated SQL-injection zero-day (CVE-2026-72898). A new published Metabase
 # host is taken over via /reset_password SQLi, then exfils data from its connected backend SQL1.
-from .metabase72898 import build as _metabase72898_build    # noqa: E402
+from .metabase72898 import build as _metabase72898_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-metabase-cve72898", "IR", "metabase-cve72898",
      "Metabase CVE-2026-72898 (unauth /reset_password SQLi → admin takeover → bulk TDS exfil from SQL1)",
      ((12, 0), (13, 30)), _metabase72898_build,
@@ -5977,7 +5993,7 @@ _reg("ir-metabase-cve72898", "IR", "metabase-cve72898",
 # IR -- SharePoint "ToolShell" deserialization RCE (CVE-2026-58644). A new published SharePoint host
 # is taken via the ToolPane.aspx exploit (spinstall0.aspx webshell + MachineKey theft), then pivots
 # to its content DB (SQL1) and the DC. Same lazy-import, pin-safe pattern.
-from .sharepoint58644 import build as _sharepoint58644_build    # noqa: E402
+from .sharepoint58644 import build as _sharepoint58644_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-sharepoint-cve58644", "IR", "sharepoint-cve58644",
      "SharePoint ToolShell CVE-2026-58644 (ToolPane RCE → spinstall0 webshell + MachineKey theft → DB/DC pivot)",
      ((16, 30), (18, 0)), _sharepoint58644_build,
@@ -5992,7 +6008,7 @@ _reg("ir-sharepoint-cve58644", "IR", "sharepoint-cve58644",
 # IR -- PAN-OS GlobalProtect authentication bypass (CVE-2026-0257). A forged auth-override cookie on
 # a new published gateway stands up an unauthorized VPN session; the attacker's VPN-assigned internal
 # IP then does RDP/SMB/LDAP lateral movement. Same lazy-import, pin-safe pattern.
-from .panos0257 import build as _panos0257_build    # noqa: E402
+from .panos0257 import build as _panos0257_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-panos-globalprotect-cve0257", "IR", "panos-globalprotect-cve0257",
      "PAN-OS GlobalProtect CVE-2026-0257 (forged auth-override cookie → unauthorized VPN → RDP/SMB/LDAP lateral)",
      ((7, 30), (9, 30)), _panos0257_build,
@@ -6006,7 +6022,7 @@ _reg("ir-panos-globalprotect-cve0257", "IR", "panos-globalprotect-cve0257",
 
 # IR -- VMware vCenter Syslog-service traversal -> root RCE (CVE-2026-59310). A new vCenter host is
 # taken via /etc/cron.d, dials reverse SSH out, and deploys ransomware to the ESXi hosts it manages.
-from .vcenter59310 import build as _vcenter59310_build    # noqa: E402
+from .vcenter59310 import build as _vcenter59310_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-vcenter-cve59310", "IR", "vcenter-cve59310",
      "VMware vCenter CVE-2026-59310 (syslog traversal → cron RCE → reverse SSH → ESXi ransomware push)",
      ((18, 0), (19, 30)), _vcenter59310_build,
@@ -6022,7 +6038,7 @@ _reg("ir-vcenter-cve59310", "IR", "vcenter-cve59310",
 # new WordPress site (WEB4) is updated; for a few seconds the staged installer is web-reachable
 # under wp-content/upgrade/, and a scanner that lands inside the window completes setup-config.php
 # with database settings pointing at an attacker-run MySQL server. Same lazy-import, pin-safe pattern.
-from .wordpress_upgrade_race import build as _wordpress_upgrade_race_build    # noqa: E402
+from .wordpress_upgrade_race import build as _wordpress_upgrade_race_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-wordpress-upgrade-race", "IR", "wordpress-upgrade-race",
      "WordPress upgrade-window race (CVE-2026-119977): staged setup-config.php -> rogue MySQL takeover",
      ((8, 0), (11, 0)), _wordpress_upgrade_race_build,
@@ -6040,7 +6056,7 @@ _reg("ir-wordpress-upgrade-race", "IR", "wordpress-upgrade-race",
 # IR -- Linux IPv4 TCP use-after-free race (CVE-2026-98432, Akamai / Red Hat RHSB-2026-016). Two internet
 # sources spray one Linux host each with SYNs that carry IPv4 options and are retransmitted; the plain TCP
 # listener never completes a handshake, the MPTCP listener loses one race (leak, payload, callback).
-from .ipopt_tcp_uaf import build as _ipopt_tcp_uaf_build    # noqa: E402
+from .ipopt_tcp_uaf import build as _ipopt_tcp_uaf_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-ipopt-tcp-uaf", "IR", "ipopt-tcp-uaf",
      "Linux IPv4 TCP use-after-free race (CVE-2026-98432): IP-options SYN retry spray -> MPTCP listener leak and callback",
      ((18, 0), (19, 30)), _ipopt_tcp_uaf_build,
@@ -6056,7 +6072,7 @@ _reg("ir-ipopt-tcp-uaf", "IR", "ipopt-tcp-uaf",
 
 # IR -- the November 2026 batch (headline incidents of the month). Each is a sibling pack, same lazy-import,
 # pin-safe pattern: hosts are injected inside build(), nothing runs unless the scenario is selected.
-from .armorycastle_vcenter123890 import build as _armorycastle_build    # noqa: E402
+from .armorycastle_vcenter123890 import build as _armorycastle_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-armorycastle-vcenter-cve123890", "IR", "armorycastle-vcenter-cve123890",
      "ARMORY CASTLE vCenter chain (CVE-2026-123890): edge-appliance exploit -> internal pivot -> vmdir bypass -> SSO admin -> secrets theft",
      ((14, 0), (16, 0)), _armorycastle_build,
@@ -6068,7 +6084,7 @@ _reg("ir-armorycastle-vcenter-cve123890", "IR", "armorycastle-vcenter-cve123890"
      "secrets leave over HTTP. Own offender (203.0.113.123) and sinks (192.0.2.124-125); vCenter/ESXi heartbeats and "
      "vSphere Client visits ship as look-alikes. Cleartext LDAP; cleartext-in-TLS HTTP")
 
-from .outlook_ntlm_leak import build as _outlook_ntlm_leak_build    # noqa: E402
+from .outlook_ntlm_leak import build as _outlook_ntlm_leak_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-outlook-ntlm-leak-cve124194", "IR", "outlook-ntlm-leak-cve124194",
      "Outlook NTLM hash leak (CVE-2026-124194): crafted message -> outbound SMB/WebDAV NTLM to an external host -> portal spray",
      ((9, 0), (11, 0)), _outlook_ntlm_leak_build,
@@ -6078,7 +6094,7 @@ _reg("ir-outlook-ntlm-leak-cve124194", "IR", "outlook-ntlm-leak-cve124194",
      "minutes later the harvested account is sprayed and used at the mail portal from the same external network. Own "
      "offenders (203.0.113.124-125); ordinary NTLM file-share logons and portal visits ship as look-alikes. Decodable SMB2/NTLM")
 
-from .freeswitch_sip_message import build as _freeswitch_sip_message_build    # noqa: E402
+from .freeswitch_sip_message import build as _freeswitch_sip_message_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-freeswitch-sip-message-cve116779", "IR", "freeswitch-sip-message-cve116779",
      "FreeSWITCH SIP MESSAGE command injection (CVE-2026-116779): scanner sweep -> MESSAGE to the api handler -> callback -> toll fraud",
      ((10, 0), (12, 0)), _freeswitch_sip_message_build,
@@ -6088,7 +6104,7 @@ _reg("ir-freeswitch-sip-message-cve116779", "IR", "freeswitch-sip-message-cve116
      "callback, a C2 beacon, and bursts of outbound INVITEs with brief G.711 media to a premium-rate gateway. Own offender "
      "(203.0.113.126) and sinks; internal phone registrations ship as look-alikes. Cleartext SIP/RTP")
 
-from .optimjack_skimmer import build as _optimjack_build    # noqa: E402
+from .optimjack_skimmer import build as _optimjack_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-optimjack-supplychain", "IR", "optimjack-supplychain",
      "OPTIMJACK third-party-script skimmer: tampered experimentation-platform script -> card/cookie/wallet exfil from visitors",
      ((11, 0), (13, 0)), _optimjack_build,
@@ -6099,7 +6115,7 @@ _reg("ir-optimjack-supplychain", "IR", "optimjack-supplychain",
      "loader fetch -- before the script returns to normal. Own infrastructure (192.0.2.144-145, 198.51.100.144-145). "
      "Real key-logged TLS; decrypts with the exported keys")
 
-from .puppet_report_rce import build as _puppet_report_rce_build    # noqa: E402
+from .puppet_report_rce import build as _puppet_report_rce_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-puppet-report-rce-cve115731", "IR", "puppet-report-rce-cve115731",
      "Puppet report-processing RCE (CVE-2026-115731): enrol + impersonate -> oversized report -> server callback, SSH, CA-key exfil",
      ((15, 0), (17, 0)), _puppet_report_rce_build,
@@ -6109,7 +6125,7 @@ _reg("ir-puppet-report-rce-cve115731", "IR", "puppet-report-rce-cve115731",
      "managed nodes, sends the CA key out in a cleartext PUT, and the next agent runs pull an abnormally large catalog and a "
      "~1 MB file blob. Own offender (203.0.113.127) and C2 (192.0.2.128). Cleartext-in-TLS HTTP on 8140")
 
-from .openssh_sshole import build as _openssh_sshole_build    # noqa: E402
+from .openssh_sshole import build as _openssh_sshole_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-openssh-sshole-cve123158", "IR", "openssh-sshole-cve123158",
      "OpenSSH 'SSHole' auth bypass (CVE-2026-123158): botnet SSH wave -> bypass -> script fetch -> Stratum cryptomining",
      ((19, 0), (21, 0)), _openssh_sshole_build,
@@ -6119,7 +6135,7 @@ _reg("ir-openssh-sshole-cve123158", "IR", "openssh-sshole-cve123158",
      "speaks cleartext Stratum JSON-RPC on :3333 (login, jobs, share submissions) while administrators' OpenSSH sessions "
      "continue. Own sources (203.0.113.151-155) and sinks (192.0.2.150, 192.0.2.153). Encrypted SSH; cleartext Stratum")
 
-from .turla_cereal_exchange import build as _turla_cereal_build    # noqa: E402
+from .turla_cereal_exchange import build as _turla_cereal_build    # noqa: E402 - scenario builder imported late, after the registry it registers into is defined
 _reg("ir-turla-cereal-exchange", "IR", "turla-cereal-exchange",
      "Turla Exchange-resident implant (mail-borne C2 pattern; ESET 'Cereal' toolset): task mail in -> server replies out -> bulk collected-mail archives to a first-seen MX",
      ((16, 0), (18, 0)), _turla_cereal_build,

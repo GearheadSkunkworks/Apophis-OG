@@ -33,7 +33,9 @@ import argparse, collections, json, os, subprocess, sys, tempfile, time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent      # dev/
-TSHARK_DEFAULT = "/Applications/Wireshark.app/Contents/MacOS/tshark"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from tshark_locate import find_tshark  # noqa: E402 - sys.path is set up first
+TSHARK_DEFAULT = find_tshark() or "tshark"
 SIG_FIELDS = ["frame.len", "ip.src", "ip.dst", "ip.proto", "tcp.srcport", "tcp.dstport", "udp.srcport", "udp.dstport"]
 
 

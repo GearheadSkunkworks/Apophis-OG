@@ -2885,6 +2885,76 @@
     "dev/netgen/incidents.py (registry entry)"
    ],
    "notes": "Steps follow the registry note and the pack's builder functions."
+  },
+  {
+   "id": "ndr-ipv6-rogue-ra",
+   "family": "SEC",
+   "title": "IPv6 rogue RA + DHCPv6 takeover (mitm6 style)",
+   "category": "Credential access",
+   "category_fit": "direct",
+   "expected_observation": "A workstation advertises itself with Router Advertisements, answers DHCPv6 with its own address as the DNS server, serves a proxy-discovery file over IPv6 and collects NTLM authentication, then reuses that identity against a file server over IPv4: a sensor should flag the rogue router, the DHCPv6 server that is not a server, and the relayed authentication.",
+   "protocols": [
+    "ICMPv6",
+    "DHCPv6",
+    "DNS",
+    "HTTP",
+    "NTLM",
+    "SMB"
+   ],
+   "hosts": [
+    "Workstation (attacker)",
+    "Workstations (victims, same segment)",
+    "File server (relay target)"
+   ],
+   "zone_path": [
+    "user",
+    "server"
+   ],
+   "steps": [
+    "The attacker sends Router Advertisements with the managed and other-configuration flags set and no default router, repeating them through the window.",
+    "A victim asks for DHCPv6 configuration and the attacker answers, offering its own address as the DNS server.",
+    "The victim looks up the proxy-discovery name through the attacker, fetches the file over IPv6 and answers an NTLM challenge.",
+    "The attacker uses the captured identity to open an SMB session to a file server over IPv4."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/ipv6_attacks.py:108 (rogue_ra)",
+    "dev/netgen/ipv6_attacks.py:43 (_rogue_ra)",
+    "dev/netgen/ipv6_attacks.py:50 (_dhcp_takeover)",
+    "dev/netgen/ipv6_attacks.py:73 (_wpad)",
+    "dev/netgen/incidents.py:5810 (registry entry)"
+   ],
+   "notes": "Modelled on the public description of the mitm6 technique. The relay leg is SMB with the victim's account name, not an LDAP relay; the traffic shape (rogue router, non-server DHCPv6, NTLM to a workstation) is the finding."
+  },
+  {
+   "id": "ndr-ipv6-nd-flood",
+   "family": "SEC",
+   "title": "IPv6 neighbour-discovery flood (RA flood + NS storm)",
+   "category": "Impact",
+   "category_fit": "stretch",
+   "expected_observation": "A workstation sends hundreds of Router Advertisements from random source addresses, each announcing a different prefix, then solicits addresses that do not exist so the gateway retries each one: a sensor should flag the advertisement flood and the neighbour-discovery volume.",
+   "protocols": [
+    "ICMPv6"
+   ],
+   "hosts": [
+    "Workstation (attacker)",
+    "Gateway"
+   ],
+   "zone_path": [
+    "user"
+   ],
+   "steps": [
+    "The attacker resolves its gateway through ordinary neighbour discovery.",
+    "It floods the segment with Router Advertisements, each from a new random link-local source and carrying a new prefix.",
+    "After a pause it sends Neighbor Solicitations for addresses nobody holds.",
+    "For every one of them the gateway solicits the missing address three times, a second apart."
+   ],
+   "confidence": "medium",
+   "sources": [
+    "dev/netgen/ipv6_attacks.py:141 (nd_flood)",
+    "dev/netgen/incidents.py:5812 (registry entry)"
+   ],
+   "notes": "Category is a judgement: the flood is a denial of service on the segment (impact); some taxonomies call it discovery abuse."
   }
  ]
 }

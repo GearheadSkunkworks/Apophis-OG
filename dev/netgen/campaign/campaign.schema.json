@@ -247,6 +247,15 @@
           "type": "array",
           "uniqueItems": true
         },
+        "ip_family": {
+          "default": "v4",
+          "enum": [
+            "v4",
+            "v6",
+            "dual"
+          ],
+          "type": "string"
+        },
         "lateral_target": {
           "default": "server",
           "pattern": "^[A-Za-z][A-Za-z0-9_:-]{0,39}$",

@@ -14,8 +14,8 @@ DEV = os.path.dirname(HERE)
 if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
-import keystore                                        # noqa: E402
-import keys_api                                        # noqa: E402
+import keystore                                        # noqa: E402 - sys.path is set up before the import
+import keys_api                                        # noqa: E402 - sys.path is set up before the import
 
 SECRET = 'sk-TEST "quoted" \\ key 0123456789'
 
@@ -122,18 +122,18 @@ class Mocked(unittest.TestCase):
 
 
 class NotMac(unittest.TestCase):
+    """Off macOS the Keychain is never touched: the file or Secret Service backend answers instead."""
     def setUp(self):
-        p = mock.patch.object(keystore.sys, "platform", "linux"); p.start(); self.addCleanup(p.stop)
+        for p in (mock.patch.object(keystore.sys, "platform", "linux"),
+                  mock.patch.object(keystore, "probe_secret_service", lambda: "no-tool")):
+            p.start(); self.addCleanup(p.stop)
+        keystore.reset(); self.addCleanup(keystore.reset)
 
-    def test_unavailable(self):
-        self.assertFalse(keystore.available())
-        self.assertEqual(keys_api.keys_status({}), (200, {"available": False, "stored": []}))
+    def test_security_tool_never_run(self):
         with mock.patch.object(keystore.subprocess, "run") as run:
-            self.assertEqual(keys_api.keys_save({"id": "feed:otx", "key": "k"})[0], 400)
-            self.assertEqual(keys_api.keys_forget({"id": "feed:otx"})[0], 400)
-            with self.assertRaises(keystore.KeystoreError):
-                keys_api.resolve_key("feed:otx", "", True)
-            self.assertEqual(keys_api.resolve_key("feed:otx", "", False), "")
+            self.assertTrue(keystore.available())
+            self.assertEqual(keystore.status()["backend"], "file")
+            self.assertEqual(keys_api.keys_save("nope")[0], 400)
             run.assert_not_called()
 
 

@@ -5,7 +5,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import make_diagram as MD  # noqa: E402
+import make_diagram as MD  # noqa: E402 - sys.path is set up before the import
 
 NETS = dict(user_net="192.168.10.0/24", server_net="192.168.20.0/24")
 STOCK = re.compile(r"10\.10\.(?:10|20)\.\d+")

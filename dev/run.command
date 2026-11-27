@@ -56,15 +56,15 @@ if ! "$PY" -c 'import cryptography' >/dev/null 2>&1; then
   case "$a" in
     [yY]*)
       say ""
-      "$PY" -m pip install --user -r requirements.txt || {
+      "$PY" -m pip install --user -r requirements.txt || {   # lint-ok: a first-run install on the person's own Python (3.9+, outside the locked CI set), only after they answer y
         bad "Install failed. Try a virtual environment instead:"
-        say "      $PY -m venv .venv && .venv/bin/pip install -r requirements.txt"
+        say "      $PY -m venv .venv && .venv/bin/pip install -r requirements.txt"   # lint-ok: a first-run install on the person's own Python (3.9+, outside the locked CI set), only after they answer y
         say "      NWTG_PYTHON=\$(pwd)/.venv/bin/python3 ./run.command"
         hold 1
       };;
     *)
       say ""
-      say "  Install it yourself with:  $PY -m pip install -r requirements.txt"
+      say "  Install it yourself with:  $PY -m pip install -r requirements.txt"   # lint-ok: a first-run install on the person's own Python (3.9+, outside the locked CI set), only after they answer y
       hold 1;;
   esac
 fi

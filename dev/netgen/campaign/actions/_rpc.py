@@ -116,11 +116,10 @@ class LdapSession:
 
 def open_ldap(ctx, src, dst, ts, user=None):
     """Kerberos ldap/ ticket, TCP 389, GSS-SPNEGO bind."""
-    from ...core import TcpSession
     acct = user or own_user(src)
     pre, t = F.kerberos_tgs(ctx, src, "ldap", dst, ts, user=None if acct == own_user(src) else acct)
     out = arp_between(ctx, src, dst, t)
-    s = TcpSession(ctx.link, src, dst, 389, t + 0.001, vantage=vantage_for(ctx, src, dst)).handshake()
+    s = ctx.tcp(src, dst, 389, t + 0.001, vantage=vantage_for(ctx, src, dst)).handshake()
     s.c2s(P.ldap_bind_request(1, P.krb_ap_req_token(acct, "ldap", dst.fqdn)), think=0.0005)
     s.s2c(P.ldap_bind_response(1), think=rng.uniform(0.001, 0.004))
     return LdapSession(s, pre, out, acct, dst)

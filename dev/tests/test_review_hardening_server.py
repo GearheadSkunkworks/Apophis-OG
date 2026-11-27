@@ -3,6 +3,7 @@ import json
 import os
 import pathlib
 import sys
+import shutil
 import tempfile
 import threading
 import unittest
@@ -99,41 +100,58 @@ class ReplayStart(unittest.TestCase):
 
 
 class RootSafe(unittest.TestCase):
+    """Root-owned is the only thing trusted on the privileged path. Tests cannot create a root-owned file, so
+    `owners` names the current user in the positive cases; the default (root only) is what ships."""
     def _tool(self, mode_dir=0o755, mode_file=0o755):
         d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d, True)
         os.chmod(d, mode_dir)
         f = os.path.join(d, "tcpreplay")
         open(f, "w").close()
         os.chmod(f, mode_file)
         return d, f
 
-    def test_user_owned_dir_is_not_root_safe(self):
+    def test_user_owned_tool_is_not_root_safe(self):
         import replay
         d, f = self._tool()
         if os.getuid() == 0:
             self.skipTest("running as root")
-        self.assertFalse(replay.root_safe(f, prefixes=[]))
+        self.assertFalse(replay.root_safe(f))
 
-    def test_owner_of_package_prefix_is_trusted_inside_it_only(self):
+    def test_user_owned_package_prefix_is_no_longer_trusted(self):
         import replay
         d, f = self._tool()
-        self.assertTrue(replay.root_safe(f, prefixes=[d]))
-        other, g = self._tool()
-        self.assertFalse(replay.root_safe(g, prefixes=[d]) and os.getuid() != 0)
+        if os.getuid() == 0:
+            self.skipTest("running as root")
+        self.assertFalse(replay.root_safe(f))                    # d plays a user-owned Homebrew prefix
+        self.assertIsNone(replay.privileged_tool("tcpreplay", f, fallback_dirs=(d,)))
+
+    def test_owner_in_the_allowed_set_passes(self):
+        import replay
+        d, f = self._tool()
+        self.assertTrue(replay.root_safe(f, owners=(os.getuid(),)))
 
     def test_group_or_world_writable_rejected(self):
         import replay
+        me = (os.getuid(),)
         d, f = self._tool(mode_dir=0o775)
-        self.assertFalse(replay.root_safe(f, prefixes=[d]))
+        self.assertFalse(replay.root_safe(f, me))
         d2, f2 = self._tool(mode_file=0o757)
-        self.assertFalse(replay.root_safe(f2, prefixes=[d2]))
+        self.assertFalse(replay.root_safe(f2, me))
 
     def test_privileged_tool_falls_back_then_none(self):
         import replay
-        bad, fb = self._tool()
+        me = (os.getuid(),)
+        bad, fb = self._tool(mode_dir=0o775)
         good, gf = self._tool()
-        self.assertEqual(replay.privileged_tool("tcpreplay", fb, fallback_dirs=(good,), prefixes=[good]), gf)
-        self.assertIsNone(replay.privileged_tool("tcpreplay", fb, fallback_dirs=(), prefixes=[good]))
+        self.assertEqual(replay.privileged_tool("tcpreplay", fb, fallback_dirs=(good,), owners=me), gf)
+        self.assertIsNone(replay.privileged_tool("tcpreplay", fb, fallback_dirs=(), owners=me))
+
+    def test_the_hint_installs_a_root_owned_copy(self):
+        import replay
+        h = replay.root_copy_hint("/opt/homebrew/bin/tcpreplay")
+        self.assertIn("-o root", h)
+        self.assertIn("/usr/local/bin/tcpreplay", h)
 
 
 class CampaignRunErrors(unittest.TestCase):

@@ -83,13 +83,13 @@ def _check_python():
 def _check_cryptography():
     """Import what netgen/tls.py imports, then exercise the native binding."""
     try:
-        import cryptography                                             # noqa: F401
-        from cryptography import x509                                   # noqa: F401
-        from cryptography.hazmat.primitives import hashes, serialization  # noqa: F401
-        from cryptography.hazmat.primitives.asymmetric import padding, rsa  # noqa: F401
+        import cryptography                                             # noqa: F401 - imported only to prove the package is installed
+        from cryptography import x509                                   # noqa: F401 - imported only to prove the package is installed
+        from cryptography.hazmat.primitives import hashes, serialization  # noqa: F401 - imported only to prove the package is installed
+        from cryptography.hazmat.primitives.asymmetric import padding, rsa  # noqa: F401 - imported only to prove the package is installed
         from cryptography.hazmat.primitives.ciphers.aead import AESGCM
         AESGCM(b"\x00" * 16)                     # touches the compiled backend, ~instant
-    except Exception as e:                                              # noqa: BLE001
+    except Exception as e:                                              # noqa: BLE001 - import failure is the probe result, reported as a missing dependency
         return _entry("cryptography", True, False,
                       "real RSA certificates and AES-GCM TLS",
                       hint=REINSTALL_HINT if _frozen() else "pip3 install -r requirements.txt",
@@ -107,7 +107,7 @@ def _check_tzdata():
     try:
         import zoneinfo
         zoneinfo.ZoneInfo(TZ_NAME)
-    except Exception as e:                                              # noqa: BLE001
+    except Exception as e:                                              # noqa: BLE001 - failure is the probe result, reported as missing time zone data
         return _entry("time zone data", True, False,
                       f"the business day is built in {TZ_NAME}",
                       hint=REINSTALL_HINT if _frozen() else "pip3 install tzdata",
@@ -134,7 +134,7 @@ def _check_inventory():
         version = f"{base} assets" + (f" + {ot} OT (optional)" if ot else "")
         return _entry("inventory.json", True, True, "the host inventory the capture is built from",
                       version=version, detail=path)
-    except Exception as e:                                              # noqa: BLE001
+    except Exception as e:                                              # noqa: BLE001 - failure is the probe result, reported in the entry detail
         return _entry("inventory.json", True, False, "the host inventory the capture is built from",
                       hint=regen,
                       detail=f"{type(e).__name__}: {e}")
@@ -164,10 +164,10 @@ def _check_engine():
     if APP_DIR not in sys.path:
         sys.path.insert(0, APP_DIR)
     try:
-        import opengenerator_build                                          # noqa: F401
+        import opengenerator_build                                          # noqa: F401 - imported only to prove the package is installed
         import netgen.incidents as INC
         n = len(INC.REGISTRY)
-    except Exception as e:                                              # noqa: BLE001
+    except Exception as e:                                              # noqa: BLE001 - import failure is the probe result, reported in the entry
         # ModuleNotFoundError carries .name; a plain ImportError raised from deeper in a
         # package (a broken binding re-raising) may not, so fall back to the message.
         root = ""

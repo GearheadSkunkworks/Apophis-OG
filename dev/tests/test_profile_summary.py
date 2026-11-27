@@ -37,7 +37,8 @@ class ProfileSummary(unittest.TestCase):
 
             def get(p):
                 u = "http://127.0.0.1:%d/profile/summary?path=%s" % (srv.server_port, urllib.parse.quote(p))
-                return json.loads(urllib.request.urlopen(u).read())
+                rq = urllib.request.Request(u, headers={"Cookie": "og_ui=" + server.UI_SECRET})
+                return json.loads(urllib.request.urlopen(rq).read())
             ok = get(os.path.join(d, "t.pcap"))
             self.assertTrue(ok["ok"], ok)
             self.assertEqual(ok["packets"], 3)

@@ -12,10 +12,11 @@ import subprocess
 import tempfile
 import unittest
 
+from checks.tshark_locate import find_tshark
 from netgen.campaign import actions as A
 from netgen.campaign.actions.meta_a import META
 
-TSHARK = "/Applications/Wireshark.app/Contents/MacOS/tshark"
+TSHARK = find_tshark()
 TACTICS = ("command-and-control", "exfiltration", "collection")
 TOKENS = ("cloud_service_c2 dga_lookup dns_beacon dns_tunnel http_beacon https_beacon icmp_tunnel payload_download "
           "tor_connect cloud_storage_upload dns_exfil ftp_upload https_upload smtp_exfil archive_stage smb_collect "
@@ -95,9 +96,9 @@ class MetaA(unittest.TestCase):
         plains = [m["plain"] for m in META.values()]
         self.assertEqual(len(plains), len(set(plains)))
 
-    @unittest.skipUnless(os.path.exists(TSHARK) or shutil.which("tshark"), "tshark not installed")
+    @unittest.skipUnless(TSHARK, "tshark not installed")
     def test_filter_syntax_with_tshark(self):
-        tshark = TSHARK if os.path.exists(TSHARK) else shutil.which("tshark")
+        tshark = TSHARK
         specs = _specs()
         with tempfile.TemporaryDirectory() as d:
             pcap = os.path.join(d, "empty.pcap")

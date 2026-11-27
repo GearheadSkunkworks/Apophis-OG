@@ -14,8 +14,9 @@ from datetime import datetime
 
 from . import flows as F
 from . import protocols as P
+from .identity import DEFAULT as _TEMPLATE_IDENTITY, get_current as _current_identity, H
 from .core import Host, Link, ArpModel, PcapWriter, Engine
-from .tls import PKI
+from .tls import PKI, open_private
 
 SEED = 20260914                 # reseeded per build by netgen.reseed_all()
 rng = random.Random(SEED)
@@ -332,7 +333,6 @@ def remap_inventory(inv, user_net=None, server_net=None, ot_nets=None):
     return out
 
 
-from .identity import DEFAULT as _TEMPLATE_IDENTITY, get_current as _current_identity, H  # noqa: E402
 
 _NX_TEMPLATE = None
 
@@ -1673,7 +1673,7 @@ def main():
     hosts, link, sites, resolvers = build_hosts(args.inventory)
     arp = ArpModel(link)
     pki = PKI()
-    keylog = open(args.keylog, "w")  # noqa: SIM115 handle outlives this scope
+    keylog = open_private(args.keylog, "w")
     ctx = F.Ctx(hosts, link, arp, pki, keylog, scale=args.scale)
     ctx.sites = sites
     ctx.isp_resolvers = resolvers

@@ -8,7 +8,7 @@ def _defaults(token):
     try:
         from netgen.campaign import actions as A
         return {k: d.get("default") for k, d in A.get(token).params.items()}
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to None
         return None
 
 

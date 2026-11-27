@@ -11,10 +11,14 @@ canonical JSON of everything else, so an edit is detectable (tools/verify_manife
 import hashlib
 import json
 import os
+import re
 import time
+
+import safeio
 
 SCHEMA_VERSION = 1
 NORMAL_DAY = "normal-day"
+IPV6 = "ipv6"                           # bucket of the opt-in dual-stack layer (every tag starting "v6:")
 SLACK_BEFORE_S = 300                    # a scenario may start this long before its window (set-up traffic)
 SLACK_AFTER_S = 1800                    # and run this long after it (retries, follow-on traffic, clean-up)
 
@@ -23,7 +27,7 @@ def by_scenario(stats, selected, total_packets, total_bytes):
     """-> (by_scenario dict, consistency dict). Never raises."""
     out = {n: {"packets": 0, "bytes": 0, "first_ts": None, "last_ts": None} for n in [NORMAL_DAY] + list(selected)}
     for tag, st in stats.items():
-        name = tag[len("incident:"):] if tag.startswith("incident:") else NORMAL_DAY
+        name = _scenario(tag)
         b = out.setdefault(name, {"packets": 0, "bytes": 0, "first_ts": None, "last_ts": None})
         b["packets"] += st[0]
         b["bytes"] += st[2]
@@ -34,6 +38,58 @@ def by_scenario(stats, selected, total_packets, total_bytes):
     ok = dp == 0 and db == 0
     return out, ({"counters_consistent": True} if ok else
                  {"counters_consistent": False, "counters_delta": {"packets": dp, "bytes": db}})
+
+
+def _scenario(tag):
+    if tag.startswith("incident:"):
+        return tag[len("incident:"):]
+    return IPV6 if tag.startswith("v6:") else NORMAL_DAY
+
+
+scenario_of = _scenario                 # public name: the tunnel wrapper maps engine tags to scenarios with it
+
+
+def spans_by_scenario(tag_rec, gap=600.0):
+    """Engine.tag_rec -> {scenario: {"packet_range": [first, last], "active_spans": [[t0, t1, packets], ...]}}.
+    Packet numbers are 1-based main-writer numbers; spans of a scenario's tags are re-merged under `gap`."""
+    acc = {}
+    for tag, (_i, f, l, sp) in tag_rec.items():
+        a = acc.setdefault(_scenario(tag), {"r": [f, l], "s": []})
+        a["r"] = [min(a["r"][0], f), max(a["r"][1], l)]
+        a["s"] += [list(x) for x in sp]
+    out = {}
+    for n, a in acc.items():
+        merged = []
+        for x in sorted(a["s"]):
+            if merged and x[0] - merged[-1][1] <= gap:
+                merged[-1][1] = max(merged[-1][1], x[1])
+                merged[-1][2] += x[2]
+            else:
+                merged.append(x)
+        out[n] = {"packet_range": a["r"], "active_spans": merged}
+    return out
+
+
+def write_tags(path, tag_rec, tag_log):
+    """Atomically write the sidecar: b"OGTAGS1\n" + one JSON header line + one byte per packet."""
+    table = [t for t, _ in sorted(((t, r[0]) for t, r in tag_rec.items()), key=lambda x: x[1])]
+    tmp = path + ".tmp"
+    with safeio.create_new(tmp, "wb") as f:
+        f.write(b"OGTAGS1\n" + json.dumps({"tags": table, "packets": len(tag_log)}).encode() + b"\n")
+        f.write(bytes(tag_log))
+    os.replace(tmp, path)
+
+
+def read_tags(path):
+    """-> (tag table list, bytes of tag ids)."""
+    with open(path, "rb") as f:
+        if f.readline() != b"OGTAGS1\n":
+            raise ValueError("not a tag sidecar")
+        h = json.loads(f.readline())
+        body = f.read()
+    if len(body) != h["packets"]:
+        raise ValueError("tag sidecar truncated")
+    return h["tags"], body
 
 
 def sha256_file(path):
@@ -54,6 +110,13 @@ def seal(m):
     return m
 
 
+def export_error(ex):
+    """The reason an export failed, for the sealed manifest: the exception type and its message with every absolute path cut
+    down to the file name (an OSError message names the folder, which would put the person's directories into a file that is shared)."""
+    msg = ex.strerror if isinstance(ex, OSError) and ex.strerror else str(ex)
+    return "%s: %s" % (type(ex).__name__, re.sub(r"(?:/[^/\s'\"]+)+/([^/\s'\"]+)", r"\1", msg))
+
+
 def _outputs(base_dir, paths):
     rows, seen = [], set()
     for p in paths:
@@ -68,9 +131,10 @@ def _outputs(base_dir, paths):
 
 
 def write(out, version, parameters, selected, registry, resolve_window, day_start, buckets, consistency,
-          totals, extra_paths, meta_get, windows=None, shifts=None):
+          totals, extra_paths, meta_get, windows=None, shifts=None, tag_rec=None, exports=None, network=None):
     """Write <stem>.manifest.json atomically beside `out`; returns its path."""
     base_dir = os.path.dirname(os.path.abspath(out))
+    sp = spans_by_scenario(tag_rec) if tag_rec else {}
     scenarios = []
     for n in selected:
         inc = registry[n]
@@ -87,17 +151,22 @@ def write(out, version, parameters, selected, registry, resolve_window, day_star
                           "observed": dict(ob), "declared_protocols": list(meta.get("protocols") or []),
                           "size_behaviour": (meta.get("scale") or {}).get("behaviour"),
                           "emitted_in_window": bool(inside),
-                          **({"shift_min": shifts[n]} if shifts and shifts.get(n) else {})})
+                          **({"shift_min": shifts[n]} if shifts and shifts.get(n) else {}),
+                          **sp.get(n, {})})
     m = {"schema_version": SCHEMA_VERSION, "generator": version,
          "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
          "parameters": parameters, "window_slack_s": {"before": SLACK_BEFORE_S, "after": SLACK_AFTER_S},
          "outputs": _outputs(base_dir, [out] + list(extra_paths)),
-         "totals": totals, "scenarios": scenarios, "normal_day": dict(buckets[NORMAL_DAY])}
+         "totals": totals, "scenarios": scenarios, "normal_day": {**buckets[NORMAL_DAY], **sp.get(NORMAL_DAY, {})}}
     m.update(consistency)
+    if exports:                                              # additive; absent unless an export ran
+        m["exports"] = exports
+    if network:                                              # additive; absent unless an opt-in network option ran
+        m["network"] = network
     m = seal(m)
     path = (out[:-5] if out.endswith(".pcap") else out) + ".manifest.json"
     tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+    with safeio.create_new(tmp, "w", encoding="utf-8") as f:
         json.dump(m, f, indent=2)
         f.write("\n")
     os.replace(tmp, path)

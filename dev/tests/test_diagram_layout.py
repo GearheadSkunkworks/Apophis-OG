@@ -17,9 +17,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DEV = os.path.dirname(HERE)
 sys.path.insert(0, DEV)
 
-from diagrams.campaign import layout, lint                              # noqa: E402
-from diagrams.campaign.panels import flowmap                            # noqa: E402
-from netgen.campaign import schema                                      # noqa: E402
+from diagrams.campaign import layout, lint                              # noqa: E402 - sys.path is set up before the import
+from diagrams.campaign.panels import flowmap                            # noqa: E402 - sys.path is set up before the import
+from netgen.campaign import schema                                      # noqa: E402 - sys.path is set up before the import
 
 FIX = os.path.join(HERE, "fixtures", "campaigns")
 
@@ -570,7 +570,7 @@ class TestFixtures(unittest.TestCase):
     def _build(self, name):
         try:
             V = importlib.import_module("diagrams.campaign.view")
-        except Exception as e:                                          # noqa: BLE001
+        except Exception as e:                                          # noqa: BLE001 - an import failure skips the test with the reason
             self.skipTest("view.py not importable: %s" % e)
         data = self.load(name)
         camps = data if isinstance(data, list) else [data]
@@ -609,7 +609,7 @@ class TestFixtures(unittest.TestCase):
     def test_vulnerability_only_has_no_flow_map(self):
         try:
             V = importlib.import_module("diagrams.campaign.view")
-        except Exception as e:                                          # noqa: BLE001
+        except Exception as e:                                          # noqa: BLE001 - an import failure skips the test with the reason
             self.skipTest("view.py not importable: %s" % e)
         c = self.load("09-vuln-only.json")
         c.setdefault("stages", [])

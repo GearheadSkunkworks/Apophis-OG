@@ -15,7 +15,7 @@ def _order():
     try:
         from netgen.campaign import attack
         return [(t["slug"], t["name"]) for t in attack.tactics()]
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to an empty list
         return []
 
 

@@ -7,13 +7,14 @@ import subprocess
 import tempfile
 import unittest
 
+from checks.tshark_locate import find_tshark
 from netgen.core import PcapWriter
 from netgen.identity import H
 from netgen.campaign import actions as A
 from netgen.campaign.actions import meta, spec_actions as S
 from tests.test_actions_a import T0, _urandom_patch, check_packet, ext_host, make_world
 
-TSHARK = shutil.which("tshark") or "/Applications/Wireshark.app/Contents/MacOS/tshark"
+TSHARK = find_tshark()
 GOOD = {"token": "unit_spec_probe", "title": "Unit spec", "tactic": "reconnaissance", "techniques": ["T1595.003"],
         "summary": "A test exchange.", "direction": "inbound", "tls": False, "port": 80, "repeat": 2, "gap_s": 0.2,
         "requests": [{"method": "GET", "path": "/a", "status": "404 Not Found", "reply": "nope"},
@@ -84,7 +85,7 @@ class TestWire(unittest.TestCase):
     def test_packets_valid(self):
         self.assertTrue(self._pcap())
 
-    @unittest.skipUnless(os.path.exists(TSHARK), "tshark not installed")
+    @unittest.skipUnless(TSHARK, "tshark not installed")
     def test_dissected_as_specified(self):
         pk = self._pcap()
         d = tempfile.mkdtemp()
@@ -123,7 +124,7 @@ class TestTcpKind(unittest.TestCase):
         self.assertTrue(S.validate(dict(TCP, exchanges=[{"send": "x", "extra": 1}])))
         self.assertTrue(S.validate(dict(TCP, kind="udp")))
 
-    @unittest.skipUnless(os.path.exists(TSHARK), "tshark not installed")
+    @unittest.skipUnless(TSHARK, "tshark not installed")
     def test_wire_is_smtp(self):
         d = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, d, True)

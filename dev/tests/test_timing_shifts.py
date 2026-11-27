@@ -13,7 +13,7 @@ import unittest
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import opengenerator_build as OGB  # noqa: E402
+import opengenerator_build as OGB  # noqa: E402 - sys.path is set up before the import
 
 INC = OGB.INC
 NAMES = ["npm-http-errors", "npm-sql1-service-failure", "npm-fw-update", "ndr-edge-exploit"]

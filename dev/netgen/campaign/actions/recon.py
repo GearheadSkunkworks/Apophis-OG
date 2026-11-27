@@ -11,7 +11,7 @@ import struct
 from . import ActionSpec, register
 from ... import flows as F
 from ... import protocols as P
-from ...core import Host, TcpSession, SYN, ACK, RST, eth, ipv4, arp, ETH_IP, rng
+from ...core import Host, SYN, ACK, RST, eth, ipv4, arp, ETH_IP, rng
 
 # --------------------------------------------------------------------------- shared helpers
 
@@ -110,13 +110,14 @@ def _absent_hosts(ctx, anchor, n):
 
 def _syn_probe(ctx, src, host, port, t, sport, vant, is_open, complete_open=False):
     """One SYN probe: SYN -> SYN/ACK + RST (open, half-open) or RST/ACK (closed)."""
-    s = TcpSession(ctx.link, src, host, port, t, sport=sport, vantage=vant)
+    s = ctx.tcp(src, host, port, t, sport=sport, vantage=vant)
     seq = s.cseq
-    copts = struct.pack("!BBH", 2, 4, 1460) + b"\x01\x03\x03\x08\x01\x01\x04\x02"
+    mss = 1460 - (20 if ctx.v6 is not None else 0)             # IPv6 headers are 20 bytes larger
+    copts = struct.pack("!BBH", 2, 4, mss) + b"\x01\x03\x03\x08\x01\x01\x04\x02"
     s._emit(src, host, sport, port, seq, 0, SYN, 64240, b"", copts)
     s.t += s.rtt * rng.uniform(0.5, 1.5)
     if is_open:
-        sopts = struct.pack("!BBH", 2, 4, 1460) + b"\x01\x01\x04\x02"
+        sopts = struct.pack("!BBH", 2, 4, mss) + b"\x01\x01\x04\x02"
         s._emit(host, src, port, sport, s.sseq, seq + 1, SYN | ACK, 65535, b"", sopts)
         s.t += rng.uniform(0.0005, 0.003)
         if complete_open:
@@ -154,9 +155,12 @@ def syn_scan(ctx, src, dst, *, ts, ports=None, scope="subnet", max_hosts=12, tar
 
 
 # --------------------------------------------------------------------------- icmp_sweep
-def _icmp_frame(ctx, a, b, vant, t, ident, seq, request):
+def _icmp_frame(ctx, a, b, vant, t, ident, seq, request, payload=b""):
+    """One echo frame; ICMPv6 when the action runs on the IPv6 context (campaign option ip_family)."""
+    if ctx.v6 is not None:
+        return (t, ctx.v6.echo(a, b, vant, ident, seq, request, payload))
     dmac, smac, ttl = ctx.link.addr(a, b, vant)
-    return (t, eth(dmac, smac, ETH_IP, ipv4(a, b, 1, P.icmp_echo(ident, seq, request, payload=b""), ttl=ttl)))
+    return (t, eth(dmac, smac, ETH_IP, ipv4(a, b, 1, P.icmp_echo(ident, seq, request, payload=payload), ttl=ttl)))
 
 
 @deterministic
@@ -177,8 +181,8 @@ def icmp_sweep(ctx, src, dst, *, ts, scope="subnet", max_hosts=16, targets=None,
         elif not is_external(ctx, src) and h.ipb[:3] == src.ipb[:3]:
             # nobody holds the address: the ARP request goes unanswered (three tries), no echo is ever sent
             for k in range(3):
-                out.append((t + k * 1.0, eth(b"\xff" * 6, src.mac, 0x0806,
-                                             arp(1, src.mac, src.ipb, b"\x00" * 6, h.ipb))))
+                out.append((t + k * 1.0, ctx.v6.ns_probe(src, h) if ctx.v6 is not None else
+                            eth(b"\xff" * 6, src.mac, 0x0806, arp(1, src.mac, src.ipb, b"\x00" * 6, h.ipb))))
             t += 0.05
             continue
         out.append(_icmp_frame(ctx, src, h, vant, t, ident, n, True))
@@ -198,7 +202,7 @@ def port_probe(ctx, src, dst, *, ts, ports=None, gap_s=0.8):
     out, t = arp_between(ctx, src, dst, ts), ts
     for port in ports:
         if _is_open(dst, port):
-            s = TcpSession(ctx.link, src, dst, port, t + 0.001, vantage=vant).handshake()
+            s = ctx.tcp(src, dst, port, t + 0.001, vantage=vant).handshake()
             out += s.close(think=rng.uniform(0.001, 0.02))
         else:
             out += _syn_probe(ctx, src, dst, port, t, src.eph(), vant, False)
@@ -233,7 +237,7 @@ def ldap_recon(ctx, src, dst, *, ts, max_entries=40, page_size=20):
     pre, t = F.kerberos_tgs(ctx, src, "ldap", dst, ts)
     out = arp_between(ctx, src, dst, t)
     user = own_user(src)
-    s = TcpSession(ctx.link, src, dst, 389, t + 0.001, vantage=vantage_for(ctx, src, dst)).handshake()
+    s = ctx.tcp(src, dst, 389, t + 0.001, vantage=vantage_for(ctx, src, dst)).handshake()
     mid = 1
     s.c2s(P.ldap_bind_request(mid, P.krb_ap_req_token(user, "ldap", dst.fqdn)), think=0.0005)
     s.s2c(P.ldap_bind_response(mid), think=rng.uniform(0.001, 0.004))

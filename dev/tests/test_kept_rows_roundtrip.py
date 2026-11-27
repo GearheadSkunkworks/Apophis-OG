@@ -9,8 +9,8 @@ import unittest
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import captures_store as cs  # noqa: E402
-import opengenerator_build as OGB  # noqa: E402
+import captures_store as cs  # noqa: E402 - sys.path is set up before the import
+import opengenerator_build as OGB  # noqa: E402 - sys.path is set up before the import
 
 REG = list(OGB.INC.REGISTRY)
 

@@ -6,7 +6,7 @@ import unittest
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(DEV, "tools"))
-import frozen_modules  # noqa: E402
+import frozen_modules  # noqa: E402 - sys.path is set up before the import
 
 
 class FrozenImports(unittest.TestCase):

@@ -9,6 +9,8 @@ from the capture instead of from the plan.
 Inert when no campaign is supplied (``ctx.campaigns`` empty), so the baseline never moves.
 Randomness is the engine's reseeded generator (netgen.flows.rng) only.
 """
+import ipaddress
+
 from .. import model
 from ..flows import rng            # noqa: F401  (documented: the only random source in this package)
 from . import hosts as HOSTS
@@ -22,6 +24,7 @@ def _options(campaign):
     o.setdefault("address_mode", "mapped")
     o.setdefault("start", "10:00")
     o.setdefault("speed", "realistic")
+    o.setdefault("ip_family", "v4")
     return o
 
 
@@ -83,7 +86,7 @@ def _validate(campaign):
             out = norm(campaign)
             if isinstance(out, dict):
                 campaign = out
-        except Exception as e:                                    # noqa: BLE001
+        except Exception as e:                                    # noqa: BLE001 - normalise failure is returned to the caller as an error message
             return ["normalise failed: %s" % e], campaign
     return [], campaign
 
@@ -96,7 +99,7 @@ def _ioc_table(campaign):
         if ioc.get("type") in HOSTS.ADDRESSABLE:
             try:
                 row["address"] = HOSTS.address_for(ioc, campaign)
-            except Exception as e:                                # noqa: BLE001
+            except Exception as e:                                # noqa: BLE001 - address failure is recorded on the row
                 row["address_error"] = str(e)
         rows.append(row)
     return rows
@@ -191,7 +194,7 @@ def _schedule_campaign(ctx, eng, tag, camp, label, report, ACT):
                 if ts > end_of_day:
                     raise ValueError("falls after the end of the capture day")
                 placed.append((ts, entry, spec, src, dst, dict(a.get("params") or {})))
-            except Exception as e:                                # noqa: BLE001
+            except Exception as e:                                # noqa: BLE001 - action failure is recorded as skipped and reported in the run report
                 entry["status"] = "skipped"
                 entry["error"] = "%s" % e
                 crep["errors"].append({"stage": st.get("id"), "action": a.get("action"), "error": str(e)})
@@ -203,17 +206,33 @@ def _schedule_campaign(ctx, eng, tag, camp, label, report, ACT):
     hi = max(p[0] for p in placed)
     from ..incidents import sched_factory
     sched = sched_factory(eng, ctx, tag, (lo, hi))
-    for ts, entry, spec, src, dst, params in placed:
-        sched(ts, _wrap(spec.fn, entry), src, dst, **params)
+    layer = None
+    for n, (ts, entry, spec, src, dst, params) in enumerate(placed):
+        v6 = options["ip_family"] == "v6" or options["ip_family"] == "dual" and n % 2 == 1   # dual: every other action
+        if v6 and layer is None:
+            from .. import dualstack                         # imported only when a campaign asks for IPv6
+            layer = dualstack.campaign_layer(ctx)
+        entry["ip_family"] = "v6" if v6 else "v4"
+        if v6:                                               # the addresses the capture carries (the IPv4 ones are not on the wire)
+            entry["from_host"]["ip6"], entry["to_host"]["ip6"] = (_text6(layer.map.addr(h)) for h in (src, dst))
+        sched(ts, _wrap(spec.fn, entry, layer if v6 else None, "campaign:%s:%d" % (label, n)), src, dst, **params)
 
 
-def _wrap(fn, entry):
+def _text6(addr):
+    return str(ipaddress.IPv6Address(addr))
+
+
+def _wrap(fn, entry, layer=None, key=None):
     """Run the action and record what it emitted. A failing action is recorded, not raised, so
-    one bad action cannot abort the whole capture."""
+    one bad action cannot abort the whole capture. With ``layer`` (campaign option ip_family v6) the action
+    runs on the IPv6 context, on isolated random streams, so the rest of the day is unaffected."""
     def run(ctx, src, dst, *, ts, **params):
         try:
-            pkts = fn(ctx, src, dst, ts=ts, **params) or []
-        except Exception as e:                                    # noqa: BLE001
+            if layer is None:
+                pkts = fn(ctx, src, dst, ts=ts, **params) or []
+            else:
+                pkts = layer.isolated(key, lambda: fn(layer.ctx, src, dst, ts=ts, **params) or [])
+        except Exception as e:                                    # noqa: BLE001 - action failure is recorded as failed and reported in the run report
             entry["status"] = "failed"
             entry["error"] = "%s: %s" % (type(e).__name__, e)
             return []

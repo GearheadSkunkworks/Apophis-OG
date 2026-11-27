@@ -76,7 +76,7 @@ def collection_preflight(sensor, apikey, stix_path=None, target="sensor"):
                 ident["hostname"], ident["platform"], ident["version"])
             if ident.get("cert_sha256"):
                 report["appliance"] += ", certificate SHA-256 %s" % ident["cert_sha256"]
-    except Exception as e:                                 # noqa: BLE001
+    except Exception as e:                                 # noqa: BLE001 - failure is reported through the provider's explain() text
         report["errors"].append(provider.explain(e))
         return report
 
@@ -84,7 +84,7 @@ def collection_preflight(sensor, apikey, stix_path=None, target="sensor"):
         cols = provider.list_collections()
         report["collections"] = len(cols)
         report["existing"] = len(provider.find_our_collections(cols, COLLECTION_NAME))
-    except Exception as e:                                 # noqa: BLE001
+    except Exception as e:                                 # noqa: BLE001 - failure is reported through the provider's explain() text
         report["errors"].append(provider.explain(e))
         return report
 
@@ -226,7 +226,7 @@ def _trun(sensor, apikey, stix_path, name, target, detections):
                     _tlog("detections on match: set %s=true%s"
                           % (field, "" if ok else " — the sensor did not keep it; set the match "
                                                   "option by hand."))
-                except Exception as e:                     # noqa: BLE001
+                except Exception as e:                     # noqa: BLE001 - failure falls back to manual detection setup, which is logged
                     with TLOCK:
                         TSTATE["detections"] = "manual"
                     _tlog("could not enable detections on match (%s) — set the match option by "
@@ -239,7 +239,7 @@ def _trun(sensor, apikey, stix_path, name, target, detections):
         with TLOCK:
             TSTATE.update(phase="done", done=True, running=False)
         _tlog("done: %s is loaded on %s." % (name, sensor))
-    except Exception as e:                                 # noqa: BLE001
+    except Exception as e:                                 # noqa: BLE001 - worker failure is stored in state and shown to the user
         with TLOCK:
             TSTATE.update(running=False, done=True, phase="error", error=provider.explain(e))
         _tlog("stopped: %s" % provider.explain(e))

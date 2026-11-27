@@ -1,0 +1,4 @@
+{
+ "note": "Ratchet for tools/lint_rules.py: counts may only go down. Regenerate with --rebaseline after fixing violations.",
+ "violations": {}
+}

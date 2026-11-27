@@ -12,7 +12,7 @@ from unittest import mock
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from intel import cache, classify, filters, model, parsers, roles, sources  # noqa: E402
+from intel import cache, classify, filters, model, parsers, roles, sources  # noqa: E402 - sys.path is set up before the import
 
 FIX = os.path.join(HERE, "fixtures", "intel")
 

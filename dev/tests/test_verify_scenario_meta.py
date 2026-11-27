@@ -7,7 +7,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tools"))
-import verify_scenario_meta as V  # noqa: E402
+import verify_scenario_meta as V  # noqa: E402 - sys.path is set up before the import
 
 
 class TestResolve(unittest.TestCase):

@@ -76,6 +76,7 @@ _weakrefset
 _zoneinfo
 _zstd
 abc
+agent_api
 annotationlib
 argparse
 array
@@ -355,8 +356,13 @@ encodings.uu_codec
 encodings.zlib_codec
 enum
 errno
+exports_ipfix
+exports_logs
+exports_pcapng
+exports_truth
 faulthandler
 fcntl
+flowtable
 fnmatch
 fractions
 ftplib
@@ -417,6 +423,7 @@ intel.sources
 intel.tlds
 io
 ipaddress
+ipfixenc
 itertools
 json
 json.decoder
@@ -436,6 +443,7 @@ mimetypes
 mmap
 netgen
 netgen.accounts
+netgen.armorycastle_vcenter123890
 netgen.asn1
 netgen.beyondtrust102764
 netgen.campaign
@@ -468,11 +476,16 @@ netgen.campaign.runner
 netgen.campaign.schema
 netgen.capwap
 netgen.core
+netgen.dualstack
 netgen.flows
+netgen.frames6
+netgen.freeswitch_sip_message
 netgen.ftpfiles
 netgen.identity
 netgen.incidents
 netgen.ipopt_tcp_uaf
+netgen.ipv6_attacks
+netgen.keypool
 netgen.metabase72898
 netgen.model
 netgen.netscaler
@@ -482,11 +495,18 @@ netgen.netscaler.nsconf
 netgen.netscaler.phases
 netgen.netscaler.wire
 netgen.netscaler88771
+netgen.openssh_sshole
+netgen.optimjack_skimmer
+netgen.outlook_ntlm_leak
+netgen.packkit
 netgen.panos0257
 netgen.platform
 netgen.protocols
+netgen.puppet_report_rce
 netgen.sharepoint58644
 netgen.tls
+netgen.tunnel
+netgen.turla_cereal_exchange
 netgen.vcenter59310
 netgen.wordpress_upgrade_race
 netrc
@@ -500,6 +520,7 @@ overlay
 page_template
 pathlib
 pathlib._os
+pcapngconv
 pcapprofile
 pickle
 pkgutil
@@ -525,6 +546,7 @@ replay
 reprlib
 resource
 runpy
+safeio
 scenario_meta
 select
 selectors
@@ -566,6 +588,7 @@ types
 typing
 unicodedata
 updater
+updater_linux
 urllib
 urllib.error
 urllib.parse
@@ -584,6 +607,8 @@ xml.sax.expatreader
 xml.sax.handler
 xml.sax.saxutils
 xml.sax.xmlreader
+zeekapp
+zeeklogs
 zipfile
 zipfile._path
 zipfile._path.glob

@@ -18,17 +18,18 @@ DEV = os.path.dirname(HERE)
 if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
-import netgen                                            # noqa: E402
-from netgen import flows as F                            # noqa: E402
-from netgen.core import ArpModel, Host, PcapWriter  # noqa: E402
-from netgen.identity import H                            # noqa: E402
-from netgen.model import build_hosts, set_capture_day    # noqa: E402
-from netgen.tls import PKI                               # noqa: E402
-from netgen.accounts import Directory                    # noqa: E402
-from netgen import protocols as P                        # noqa: E402
-from netgen.campaign import actions as A                 # noqa: E402
+import netgen                                            # noqa: E402 - sys.path is set up before the import
+from checks.tshark_locate import find_tshark             # noqa: E402 - sys.path is set up first
+from netgen import flows as F                            # noqa: E402 - sys.path is set up before the import
+from netgen.core import ArpModel, Host, PcapWriter  # noqa: E402 - sys.path is set up before the import
+from netgen.identity import H                            # noqa: E402 - sys.path is set up before the import
+from netgen.model import build_hosts, set_capture_day    # noqa: E402 - sys.path is set up before the import
+from netgen.tls import PKI                               # noqa: E402 - sys.path is set up before the import
+from netgen.accounts import Directory                    # noqa: E402 - sys.path is set up before the import
+from netgen import protocols as P                        # noqa: E402 - sys.path is set up before the import
+from netgen.campaign import actions as A                 # noqa: E402 - sys.path is set up before the import
 
-TSHARK = "/Applications/Wireshark.app/Contents/MacOS/tshark"
+TSHARK = find_tshark()
 INVENTORY = os.path.join(DEV, "inventory.json")
 T0 = 1_780_000_000.0
 
@@ -312,7 +313,7 @@ class ActionsBTest(unittest.TestCase):
         self.assertNotIn(b"OpenSCManagerW", blob)
 
     def test_tshark(self):
-        if not os.path.exists(TSHARK):
+        if not TSHARK:
             self.skipTest("no tshark")
         d = tempfile.mkdtemp()
         try:

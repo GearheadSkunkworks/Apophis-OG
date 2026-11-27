@@ -8,6 +8,7 @@ import tempfile
 import unittest
 
 from netgen.campaign.actions import load_all
+from checks.tshark_locate import find_tshark
 from netgen.campaign.actions.meta_c import META
 
 TOKENS = {
@@ -21,8 +22,7 @@ TOKENS = {
     "reconnaissance": ["subdomain_enum", "web_dir_scan"],
 }
 ALL = [t for v in TOKENS.values() for t in v]
-TSHARK = shutil.which("tshark") or ("/Applications/Wireshark.app/Contents/MacOS/tshark"
-                                    if os.path.exists("/Applications/Wireshark.app/Contents/MacOS/tshark") else None)
+TSHARK = find_tshark()
 # vendor and company names built from fragments so this file does not itself spell them in one piece
 VENDORS = ["micro" + "soft", "win" + "dows", "cis" + "co", "extra" + "hop", "vec" + "tra", "crowd" + "strike", "pal" + "o alto",
            "forti" + "net", "ubu" + "ntu", "deb" + "ian", "goo" + "gle", "app" + "le", "ama" + "zon", "sym" + "antec", "mc" + "afee",

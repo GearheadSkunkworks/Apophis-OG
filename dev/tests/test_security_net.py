@@ -21,12 +21,12 @@ from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import campaign_api  # noqa: E402
-import server  # noqa: E402
-from intel import sources  # noqa: E402
-from sensorops import _util  # noqa: E402
+import campaign_api  # noqa: E402 - sys.path is set up before the import
+import server  # noqa: E402 - sys.path is set up before the import
+from intel import sources  # noqa: E402 - sys.path is set up before the import
+from sensorops import _util  # noqa: E402 - sys.path is set up before the import
 try:
-    from sensorops.providers.network_sensor import NetworkSensorProvider  # noqa: E402
+    from sensorops.providers.network_sensor import NetworkSensorProvider  # noqa: E402 - sys.path is set up before the import
 except ImportError:                                  # public builds do not ship the vendor connector
     NetworkSensorProvider = None
 
@@ -49,6 +49,8 @@ class FakeResp:
 
     def read(self, n=-1):
         return self._chunks.pop(0) if self._chunks else b""
+
+    read1 = read                                   # http_get reads with read1 so its deadline is checked per receive
 
     def __enter__(self):
         return self
@@ -416,6 +418,7 @@ class TestServer(unittest.TestCase):
         c.putrequest(method, path, skip_host=True, skip_accept_encoding=True)
         h = dict(headers or {})
         h.setdefault("Host", "127.0.0.1:%d" % self.port)
+        h.setdefault("Cookie", "og_ui=" + server.UI_SECRET)
         for k, v in h.items():
             if v is not None:
                 c.putheader(k, v)
@@ -447,14 +450,15 @@ class TestServer(unittest.TestCase):
     def test_post_body_cap(self):
         n = campaign_api.BODY_CAP + 1
         self.assertEqual(self.status("POST", "/api/campaign/validate", None, b"x" * n), 413)
-        out = self.raw(b"POST /api/campaign/validate HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 99999999999\r\n\r\n")
+        out = self.raw(b"POST /api/campaign/validate HTTP/1.1\r\nHost: 127.0.0.1\r\nCookie: og_ui=" + server.UI_SECRET.encode() + b"\r\nContent-Length: 99999999999\r\n\r\n")
         self.assertIn(b" 413 ", out.split(b"\r\n")[0] + b" ")
         for bad in ("-5", "abc", "1e3"):
-            out = self.raw(("POST /api/campaign/validate HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: %s\r\n\r\n" % bad).encode())
+            out = self.raw(("POST /api/campaign/validate HTTP/1.1\r\nHost: 127.0.0.1\r\nCookie: og_ui=%s\r\nContent-Length: %s\r\n\r\n"
+                           % (server.UI_SECRET, bad)).encode())
             self.assertTrue(out.startswith(b"HTTP/1.0 400") or out.startswith(b"HTTP/1.1 400"), (bad, out[:40]))
 
     def test_chunked_refused(self):
-        out = self.raw(b"POST /api/campaign/validate HTTP/1.1\r\nHost: 127.0.0.1\r\nTransfer-Encoding: chunked\r\n\r\n"
+        out = self.raw(b"POST /api/campaign/validate HTTP/1.1\r\nHost: 127.0.0.1\r\nCookie: og_ui=" + server.UI_SECRET.encode() + b"\r\nTransfer-Encoding: chunked\r\n\r\n"
                        b"5\r\nhello\r\n0\r\n\r\n")
         self.assertIn(b" 411 ", out.split(b"\r\n")[0] + b" ")
 

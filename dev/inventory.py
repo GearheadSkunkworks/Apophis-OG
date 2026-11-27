@@ -8,6 +8,7 @@ services it listens on. This file is the single source of truth for the
 architecture diagram (task 1) and the pcap generators (tasks 2 and 3).
 """
 import csv
+import os
 import json
 import random
 
@@ -115,17 +116,28 @@ for i in range(1, 21):
 # --------------------------------------------------------------- validations
 user_hosts = [h for h in hosts if h["subnet"] == USER_NET and not h["hostname"].startswith(("EXL-FW", "EXL-SW"))]
 srv_hosts = [h for h in hosts if h["hostname"] in {s[0] for s in servers}]
-assert len(user_hosts) == 125, len(user_hosts)
-assert len(srv_hosts) == 13, len(srv_hosts)
+def _require(ok, msg):
+    if not ok:
+        raise ValueError("inventory validation failed: %s" % msg)
+
+
+_require(len(user_hosts) == 125, "user hosts: %d" % len(user_hosts))
+_require(len(srv_hosts) == 13, "server hosts: %d" % len(srv_hosts))
 ips = [h["ip"] for h in hosts]
-assert len(ips) == len(set(ips)), "duplicate IP"
+_require(len(ips) == len(set(ips)), "duplicate IP")
 macs = [h["mac"] for h in hosts]
-assert len(set(macs)) == len(macs), "duplicate MAC"  # FW1 has three interfaces, three MACs
+_require(len(set(macs)) == len(macs), "duplicate MAC")  # FW1 has three interfaces, three MACs
 
 if __name__ == "__main__":
-    with open("inventory.json", "w") as f:
+    # Writes where asked (argv[1]); with no argument, beside this module. Never the caller's
+    # directory by accident, and a build that needs a missing inventory asks for its own path,
+    # so nothing is ever written into the source tree behind the caller's back.
+    import sys
+    target = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "inventory.json")
+    with open(target, "w") as f:
         json.dump({"org": ORG, "domain": DOMAIN, "hosts": hosts}, f, indent=2)
-    with open("inventory.csv", "w", newline="") as f:
+    with open(os.path.splitext(target)[0] + ".csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(hosts[0].keys()))
         w.writeheader()
         w.writerows(hosts)

@@ -35,6 +35,7 @@ Outputs (defaults, next to --out):
     example-threat-collection.stix.json/.csv  embedded IOCs, importable into the platform
 """
 import argparse
+import hashlib
 import ipaddress
 import os
 import subprocess
@@ -51,8 +52,8 @@ import scenario_meta
 # Sentinel for build(iocs_prefix=...): distinguishes "caller said nothing, derive the name from
 # the company" from None ("skip the threat-collection export") and from an explicit string.
 _DERIVE = object()
-from netgen.core import ArpModel, PcapWriter, Engine, Cancelled
-from netgen.tls import PKI
+from netgen.core import ArpModel, PcapWriter, Engine, Cancelled, VlanTagger
+from netgen.tls import PKI, open_private
 from netgen import flows as F
 from netgen import incidents as INC
 from netgen.accounts import Directory
@@ -129,6 +130,76 @@ def validate_nets(user_net=None, server_net=None, ot_nets=None):
         raise ValueError("every emulated network must be a distinct /24 "
                          f"(got {', '.join(seen)})")
     return u, s_, out
+
+
+QINQ_DEFAULT_SVID = 100                          # outer service VID when QinQ is asked for without one
+DEFAULT_IPV6_SHARE = 0.25                        # share of workstations that are dual-stack when --ipv6 has no value
+
+
+def _normalize_ipv6(v):
+    """{"ipv6": True | <share> | {"share": 0-1, "chatter": bool}} -> {"share", "chatter"}."""
+    if v is True:
+        v = {}
+    elif isinstance(v, (int, float, str)) and not isinstance(v, bool):
+        v = {"share": v}
+    elif not isinstance(v, dict):
+        raise ValueError("ipv6 must be true, a share between 0 and 1, or an object")
+    unknown = set(v) - {"share", "chatter"}
+    if unknown:
+        raise ValueError("unknown ipv6 key(s): " + ", ".join(sorted(unknown)))
+    try:
+        share = float(v.get("share", DEFAULT_IPV6_SHARE))
+    except (TypeError, ValueError):
+        raise ValueError("ipv6 share must be a number between 0 and 1") from None
+    chatter = v.get("chatter", True)
+    if not 0 < share <= 1:
+        raise ValueError("ipv6 share must be above 0 and at most 1")
+    if not isinstance(chatter, bool):
+        raise ValueError("ipv6 chatter must be true or false")
+    return {"share": share, "chatter": chatter}
+
+
+def normalize_network_options(opts):
+    """Canonical form of the opt-in network options, or None when nothing is on.
+
+    {"vlan": True | "subnet" | <vid int> | {"scheme": "subnet"|"fixed", "vid": int, "qinq": bool|svid},
+     "ipv6": True | <share> | {"share": 0-1, "chatter": bool},
+     "tunnels": [{"carrier": "gre"|"vxlan"|"6in4", "scenarios": [...], "mtu": int} | "carrier:scenario"]}
+    becomes {"vlan": {"scheme", "vid", "qinq"}, "ipv6": {"share", "chatter"}, "tunnels": [...]} with only the options that are
+    on, with vid None for "subnet" and qinq None or the outer VID. The canonical dict goes into the build
+    parameters, so a tagged and an untagged build (or one with and without IPv6) are never the same capture.
+    Unknown keys raise: a typo must not silently build the default capture."""
+    opts = dict(opts or {})
+    v, v6, tun = opts.pop("vlan", None), opts.pop("ipv6", None), opts.pop("tunnels", None)
+    if opts:
+        raise ValueError("unknown network option(s): " + ", ".join(sorted(opts)) + ". Known: vlan, ipv6, tunnels")
+    out = {}
+    if tun:
+        from netgen import tunnel
+        out["tunnels"] = tunnel.normalize(tun)
+    if v6 is not None and v6 is not False:
+        out["ipv6"] = _normalize_ipv6(v6)
+    if v is None or v is False:
+        return out or None
+    if v is True or v == "subnet":
+        v = {"scheme": "subnet"}
+    elif isinstance(v, int):
+        v = {"scheme": "fixed", "vid": v}
+    elif isinstance(v, str):
+        v = {"scheme": "fixed", "vid": int(v)} if v.isascii() and v.isdigit() else {"scheme": v}
+    elif not isinstance(v, dict):
+        raise ValueError("vlan must be true, 'subnet', a VLAN ID or an object")
+    unknown = set(v) - {"scheme", "vid", "qinq"}
+    if unknown:
+        raise ValueError("unknown vlan key(s): " + ", ".join(sorted(unknown)))
+    scheme, vid, q = v.get("scheme", "fixed" if v.get("vid") else "subnet"), v.get("vid"), v.get("qinq")
+    if scheme == "subnet" and vid is not None:
+        raise ValueError("vlan scheme 'subnet' takes no vid")
+    q = QINQ_DEFAULT_SVID if q is True else (q or None)
+    if isinstance(q, bool) or not (q is None or isinstance(q, int)) or isinstance(vid, bool):
+        raise ValueError("vlan qinq must be true or an outer VLAN ID")
+    VlanTagger.check(scheme, vid, q)
+    return {**out, "vlan": {"scheme": scheme, "vid": vid, "qinq": q}}
 
 
 def select_modules(modules=None, exclude=None, only=None):
@@ -231,6 +302,15 @@ def _export_generation_report(e):
 register_exporter("server-certs", _export_server_certs)
 register_exporter("threat-collection", _export_threat_collection)
 register_exporter("generation-report", _export_generation_report)
+import exports_truth as _xtruth  # noqa: E402  (after register_exporter, which it does not import)
+register_exporter("truth", _xtruth.export)           # runs only when the build option exports has "truth"
+import exports_logs as _xlogs      # noqa: E402 - same reason as above: after register_exporter, which they do not import
+import exports_pcapng as _xpcapng  # noqa: E402 - same reason as above
+register_exporter("zeek-style-logs", _xlogs.export)  # "ssl" (ssl.log + x509.log) and "http"
+register_exporter("pcapng", _xpcapng.export)         # <stem>.pcapng converter beside the pcap
+import exports_ipfix as _xipfix    # noqa: E402 - same reason as above
+register_exporter("flow-export", _xipfix.export)     # "ipfix" / "netflow9": exporter pcap + CSV from the flow table
+EXPORT_NAMES = ("truth", "ssl", "http", "pcapng", "ipfix", "netflow9")    # the values the build option exports accepts
 
 
 def preview_campaign(campaign, scale=1.0, date=None, inventory="inventory.json",
@@ -290,7 +370,9 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
           user_net=None, server_net=None, should_cancel=None, date=None,
           ot_net=None, ot_nets=None, recipe=None, recipes=None,
           company=None, industry=None, ot_protocols=None,
-          campaigns=None, address_mode=None, confirm_real_addresses=False, shifts=None):
+          campaigns=None, address_mode=None, confirm_real_addresses=False, shifts=None,
+          tag_sidecar=False, exports=None, network_options=None,
+          pcapng_comments=False, pcapng_embed_keys=False):
     """Generate the capture. Returns a summary dict.
 
     campaigns: a list of campaign dicts (see netgen.campaign / dev/docs/campaign-m1-contracts.md).
@@ -305,6 +387,23 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
       Validated against the selected scenarios and each one's limits (INC.normalize_shifts), so an
       out-of-range, locked or unselected name raises ValueError. Linked scenarios move together.
       Empty or None builds the default day, byte-for-byte unchanged.
+
+    exports: opt-in outputs beside the pcap, any of EXPORT_NAMES: truth (<stem>-truth.jsonl), ssl
+      (Zeek-style <stem>-ssl.log + <stem>-x509.log), http (Zeek-style plaintext <stem>-http.log), pcapng
+      (<stem>.pcapng converted from the pcap), ipfix / netflow9 (<stem>-ipfix.pcap + .csv or
+      <stem>-netflow9.pcap + .csv: flow records as export packets from a synthetic exporter, derived from the
+      finished pcap). Off by default; the capture itself is never changed.
+    pcapng_comments / pcapng_embed_keys: pcapng options (need exports to include pcapng, both off by
+      default): one scenario-tag comment per packet, and the TLS key log embedded in the file instead of
+      only beside it.
+
+    network_options: opt-in capture options, {"vlan": True | "subnet" | <vid> | {"scheme", "vid", "qinq"},
+      "ipv6": True | <share> | {"share", "chatter"}, "tunnels": [{"carrier", "scenarios", "mtu"}]} (see
+      normalize_network_options). "tunnels" wraps the chosen scenarios' frames in GRE, VXLAN or 6in4. "ipv6" adds a dual-stack
+      slice (NDP, MLD, DHCPv6, v6 DNS/HTTPS/SMB flows from a share of the workstations) after the whole day,
+      tagged "v6:*" and on private random streams, so removing it leaves the option-off capture exactly. Native 802.1Q tagging at the writer: one VID per flow from the
+      vantage segment, tag added before padding, byte counts are bytes as written. None = untagged,
+      byte-for-byte the default day.
 
     modules/exclude/only: incident selection (see select_modules); the default builds every
     module, which is the historical behaviour.
@@ -392,8 +491,8 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
                 "Copy inventory.json into the output folder, or run from source.")
         if progress:
             print(f"{inventory} not found — building it...", flush=True)
-        subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventory.py")],
-                       check=True)
+        subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventory.py"),
+                        os.path.abspath(inventory)], check=True, timeout=300)
 
     # The calendar day the capture sits on. Default is TODAY, so a capture uploaded to a
     # sensor for offline analysis appears where the operator is already looking instead of
@@ -425,8 +524,23 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
                "ot_protocols": sorted(ot_protocols) if ot_protocols else [],
                "recipes": len(recipe_list), "campaigns": len(campaign_list),
                "address_mode": address_mode, "scenarios": list(selected), "shifts": dict(shifts)}
+    network_options = normalize_network_options(network_options)
+    if network_options:                              # absent when off, so default builds keep their signature
+        _params["network_options"] = network_options
+    exports = {str(x) for x in (exports or ())}
+    if exports - set(EXPORT_NAMES):
+        raise ValueError("unknown export(s): " + ", ".join(sorted(exports - set(EXPORT_NAMES))) + ". Known: " + ", ".join(EXPORT_NAMES))
+    pcapng_options = {k: True for k, v in (("comments", pcapng_comments), ("embed_keys", pcapng_embed_keys)) if v}
+    if pcapng_options and "pcapng" not in exports:
+        raise ValueError("pcapng_comments / pcapng_embed_keys need exports to include pcapng")
+    tag_sidecar = tag_sidecar or bool(exports)       # exports read the per-packet tags
+    if tag_sidecar:                                  # absent when off, so default builds keep their signature
+        _params["tag_sidecar"] = True
+    if exports:
+        _params["exports"] = sorted(exports)
+    if pcapng_options:                               # absent when off, so a plain pcapng export keeps its signature
+        _params["pcapng_options"] = pcapng_options
     if recipe_list or campaign_list:                 # same counts, different content must not look like the same build
-        import hashlib
         import json as _jh
         _params["inputs_sha256"] = hashlib.sha256(_jh.dumps([recipe_list, campaign_list], sort_keys=True,
                                                             default=str).encode()).hexdigest()
@@ -442,7 +556,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
         for _h in (writer, kl):
             try:
                 _h.close()
-            except Exception:                    # noqa: BLE001
+            except Exception:                    # noqa: BLE001 - best-effort cleanup, a failure must not abort the build
                 pass
         for _p in (out, keylog):
             try:
@@ -452,7 +566,7 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
         if held:
             held.rollback()
     try:
-        kl = open(keylog, "w")  # noqa: SIM115 handle outlives this scope
+        kl = open_private(keylog, "w")
         ctx = F.Ctx(hosts, link, ArpModel(link), pki, kl, scale=scale)
         ctx.sites = sites
         ctx.isp_resolvers = resolvers
@@ -463,8 +577,18 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
         # the same on every run — a demo that tells a different story each build is not a demo.
         ctx.dir = Directory(hosts, P.username_for)
 
-        writer = PcapWriter(out)
+        vlan = network_options.get("vlan") if network_options else None
+        v6opt, v6layer = network_options.get("ipv6") if network_options else None, None
+        tagger = VlanTagger(link, vlan["scheme"], vlan.get("vid"), vlan.get("qinq"), hosts.values()) if vlan else None
+        writer = PcapWriter(out, tagger)
         eng = Engine(writer)
+        tunneler = None
+        if network_options and network_options.get("tunnels"):
+            from netgen import tunnel
+            tunnel.check_scenarios(network_options["tunnels"], [*INC.REGISTRY, BM.NORMAL_DAY, BM.IPV6])
+            tunneler = eng.wrap = tunnel.Tunneler(network_options["tunnels"], BM.scenario_of)
+        if tag_sidecar:
+            eng.record_tags()
         day = Day(ctx, eng, scale, ot_protocols=ot_protocols)
     except BaseException:
         _abort()
@@ -491,6 +615,9 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
             if should_cancel is not None and should_cancel():
                 raise Cancelled(0)
             INC.build(name, day, ctx, eng)
+        if v6opt:                           # after everything else is scheduled; the option-off build never imports it
+            from netgen import dualstack
+            v6layer = dualstack.schedule(ctx, eng, day, scale, v6opt)
         eng.run(progress=prog,
                 should_continue=None if should_cancel is None else (lambda: not should_cancel()))
     except BaseException:
@@ -518,13 +645,29 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
     # Run the registered post-build exporters (built-in: server certs, threat collection,
     # generation report). Each merges its keys into the summary; an exporter failing never
     # discards a finished capture.
+    _tp = _tags_err = None
+    if tag_sidecar and eng.tag_log is None:          # >256 distinct tags: the engine stopped recording, capture is fine
+        tag_sidecar = False
+        _tags_err = "more than 256 distinct tags; the tag sidecar was skipped"
+        if progress:
+            print("  " + _tags_err)
+    if tag_sidecar:                                  # before the exporters: the truth export reads it
+        _tp = (out[:-5] if out.endswith(".pcap") else out) + ".tags"
+        try:
+            BM.write_tags(_tp, eng.tag_rec, eng.tag_log)
+        except Exception as _te:                     # noqa: BLE001 -- never discard a finished capture
+            _tp = None
+            if progress:
+                print(f"  tag sidecar failed: {_te}")
     _ectx = _ExportCtx(out=out, writer=writer, pki=pki, ctx=ctx, selected=selected,
-                       certs_dir=certs_dir, iocs_prefix=iocs_prefix)
+                       certs_dir=certs_dir, iocs_prefix=iocs_prefix, exports=exports, tags_path=_tp,
+                       keylog=keylog, pcapng_options=pcapng_options, generator=_ver(),
+                       params_sha256=hashlib.sha256(BM.canonical(_params)).hexdigest())
     _exports = {}
     for _xname, _xfn in EXPORTERS:
         try:
             _exports.update(_xfn(_ectx) or {})
-        except Exception as _xe:                         # noqa: BLE001
+        except Exception as _xe:                         # noqa: BLE001 - one exporter failing is printed and the build continues without it
             if progress:
                 print(f"  exporter {_xname!r} failed: {_xe}")
     certs = _exports.get("certs")
@@ -613,19 +756,41 @@ def build(scale=1.0, out=None, keylog=None, inventory="inventory.json",
         summary["shifts"] = dict(shifts)
         summary["by_scenario"] = _bk
         summary.update(_cons)
-        _extra = [keylog, summary.get("report_csv"), (summary.get("iocs") or {}).get("stix"),
+        if _tp:
+            summary["tags"] = os.path.basename(_tp)
+        _xbs = {k: _exports[k] for k in EXPORT_NAMES if isinstance(_exports.get(k), dict)}
+        if _tags_err:
+            summary["tags_error"] = _tags_err
+            for _xb in _xbs.values():
+                if _xb.get("error"):
+                    _xb["error"] += " (" + _tags_err + ")"
+        if _xbs:
+            summary["exports"] = _xbs
+        _odir = os.path.dirname(os.path.abspath(out))
+        _xfiles = [os.path.join(_odir, fn) for _xb in _xbs.values()
+                   for fn in ([_xb["file"]] if "file" in _xb else []) + list(_xb.get("files") or [])]
+        _extra = [keylog, _tp, *_xfiles, summary.get("report_csv"), (summary.get("iocs") or {}).get("stix"),
                   (summary.get("iocs") or {}).get("csv"), summary.get("custom_report")]
         for _w in (summary.get("campaign") or {}).get("exports", {}).values():
             _extra += list(_w.values()) if isinstance(_w, dict) else []
         _first = min((b["first_ts"] for b in _bk.values() if b["first_ts"] is not None), default=None)
         _last = max((b["last_ts"] for b in _bk.values() if b["last_ts"] is not None), default=None)
+        _net = {}
+        if vlan:
+            _net["vlan"] = {**vlan, "tagged_frames": tagger.tagged, "tag_bytes": 4 * tagger.tagged * (2 if vlan.get("qinq") else 1)}
+        if tunneler:
+            _net["tunnels"] = tunneler.report()
+        if v6layer:
+            _net["ipv6"] = dualstack.report(v6layer, eng.stats)
         _mp = BM.write(out, _ver(), _params, selected, INC.REGISTRY, INC.resolve_window, local(5), _bk, _cons,
                        {"packets": writer.n, "bytes": writer.bytes, "first_ts": _first, "last_ts": _last,
                         "duration_s": round(_last - _first, 3) if _first is not None else 0.0},
                        _extra, scenario_meta.get,
-                       windows={n: INC.window_for(n, shifts) for n in selected}, shifts=shifts)
+                       windows={n: INC.window_for(n, shifts) for n in selected}, shifts=shifts,
+                       tag_rec=eng.tag_rec if tag_sidecar else None, exports=summary.get("exports"),
+                       network=_net or None)
         summary["manifest"] = os.path.basename(_mp)
-    except Exception as _me:                                # noqa: BLE001
+    except Exception as _me:                                # noqa: BLE001 - manifest failure is recorded in the summary, the capture is still valid
         summary["manifest_error"] = "%s: %s" % (type(_me).__name__, _me)
     if progress:
         print(f"\ndone: {writer.n:,} packets, {writer.bytes/1e6:.1f} MB -> {out}")
@@ -752,6 +917,30 @@ def main():
                     help="prefix for the exported threat collection "
                          "(default: <company>-threat-collection)")
     ap.add_argument("--no-iocs", action="store_true", help="skip the threat-collection export")
+    ap.add_argument("--exports", action="append", choices=list(EXPORT_NAMES), default=None,
+                    help="opt-in extra output beside the pcap: truth = <stem>-truth.jsonl (one line per flow, "
+                         "scenario-tagged); ssl = Zeek-style <stem>-ssl.log + <stem>-x509.log; http = Zeek-style "
+                         "plaintext <stem>-http.log; pcapng = <stem>.pcapng converted from the pcap; "
+                         "ipfix / netflow9 = <stem>-ipfix.pcap or -netflow9.pcap (flow records as export packets "
+                         "from a synthetic exporter) + a .csv of the same records. Any export turns the tag sidecar on")
+    ap.add_argument("--pcapng-comments", action="store_true",
+                    help="with --exports pcapng: one scenario-tag comment per packet (default off)")
+    ap.add_argument("--pcapng-embed-keys", action="store_true",
+                    help="with --exports pcapng: embed the TLS key log in the pcapng (default off: the key log "
+                         "stays a separate file)")
+    net_o = ap.add_argument_group("opt-in capture options (default: untagged IPv4)")
+    net_o.add_argument("--vlan", nargs="?", const="subnet", default=None, metavar="subnet|ID",
+                       help="tag every frame with an 802.1Q VLAN ID: 'subnet' (default; the vantage segment's third "
+                            "octet, 10.10.20.0/24 -> 20) or one fixed ID 1-4094")
+    net_o.add_argument("--vlan-qinq", nargs="?", const=QINQ_DEFAULT_SVID, type=int, default=None, metavar="SVID",
+                       help="802.1ad QinQ: add an outer service tag (0x88A8, default %d) over the VLAN tag; "
+                            "implies --vlan" % QINQ_DEFAULT_SVID)
+    net_o.add_argument("--ipv6", nargs="?", const=DEFAULT_IPV6_SHARE, type=float, default=None, metavar="SHARE",
+                       help="add a dual-stack IPv6 slice (NDP, MLD, DHCPv6, v6 DNS/HTTPS/SMB) for this share of the "
+                            "workstations, 0-1 (default %s); the IPv4 capture is unchanged" % DEFAULT_IPV6_SHARE)
+    net_o.add_argument("--tunnel", action="append", default=None, metavar="CARRIER:SCENARIO[,SCENARIO]",
+                       help="carry a scenario's frames in a tunnel: gre, vxlan or 6in4 (e.g. gre:ndr-data-exfil; "
+                            "'*' = every scenario, 'normal-day' = the baseline); repeat for several tunnels")
     ap.add_argument("--stats", default=None, help="optional per-conversation-type stats JSON")
     ap.add_argument("--recipe", action="append", default=None, metavar="JSON",
                     help="a pcap-import recipe JSON; repeat for several (one CUSTOM scenario per recipe)")
@@ -839,6 +1028,19 @@ def main():
             return
     modules = [] if args.no_modules else args.modules
     try:
+        network_options = {}
+        if args.vlan is not None or args.vlan_qinq is not None:
+            network_options = normalize_network_options({"vlan": args.vlan or "subnet"})
+            if args.vlan_qinq is not None:
+                network_options = normalize_network_options({"vlan": {**network_options["vlan"], "qinq": args.vlan_qinq}})
+        if args.ipv6 is not None:
+            network_options = normalize_network_options({**network_options, "ipv6": args.ipv6})
+        if args.tunnel:
+            network_options = normalize_network_options({**network_options, "tunnels": args.tunnel})
+        network_options = network_options or None
+    except ValueError as e:
+        ap.error(str(e))
+    try:
         chosen = select_modules(modules, args.exclude, args.only)
         ot_req = {"ot": args.ot_net, "ops": args.ot_ops_net, "idmz": args.ot_idmz_net} \
             if (args.ot_net or args.ot_ops_net or args.ot_idmz_net) else None
@@ -864,7 +1066,9 @@ def main():
               ot_nets=ot_nets, recipes=args.recipe,
               company=args.company, industry=args.industry,
               campaigns=campaigns or None, address_mode=args.address_mode,
-              confirm_real_addresses=args.confirm_real_addresses)
+              confirm_real_addresses=args.confirm_real_addresses, exports=args.exports,
+              network_options=network_options, pcapng_comments=args.pcapng_comments,
+              pcapng_embed_keys=args.pcapng_embed_keys)
     except ValueError as e:                      # a bad recipe: say so plainly, no traceback
         if args.recipe:
             raise SystemExit("error: %s" % e) from e

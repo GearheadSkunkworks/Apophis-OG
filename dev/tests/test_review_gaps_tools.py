@@ -12,8 +12,8 @@ from unittest import mock
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
 sys.path.insert(0, os.path.join(DEV, "tools"))
-import promote  # noqa: E402
-import compose_public  # noqa: E402
+import promote  # noqa: E402 - sys.path is set up before the import
+import compose_public  # noqa: E402 - sys.path is set up before the import
 
 
 def touch(base, rel, text="x"):
@@ -190,7 +190,7 @@ class DevToolHelpers(unittest.TestCase):
         with tempfile.NamedTemporaryFile() as f, mock.patch.dict(os.environ, {"CHROME": f.name}):
             self.assertEqual(RD.browser(), f.name)
         with mock.patch.dict(os.environ, {"CHROME": "/no/such"}), mock.patch.object(RD, "CANDIDATES", ["/no/other"]), \
-                self.assertRaises(SystemExit):
+                mock.patch.object(RD, "PATH_NAMES", []), self.assertRaises(SystemExit):
             RD.browser()
 
     def test_verify_scenario_meta_compare_and_verdict(self):

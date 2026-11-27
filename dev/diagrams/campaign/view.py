@@ -36,7 +36,7 @@ def _imp(name):
     try:
         import importlib
         return importlib.import_module(name, __package__)
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
         return None
 
 
@@ -56,7 +56,7 @@ def _actions():
         return None
     try:
         m.load_all()
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
         pass
     return m
 
@@ -66,7 +66,7 @@ def _spec(A, token):
         return None
     try:
         return A.get(token)
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
         return None
 
 
@@ -79,12 +79,12 @@ def make_ctx(inventory=None, ot_nets=None):
         data = MD.gather(inventory or os.path.join(MD.APP_DIR, "inventory.json"), ot_nets=ot_nets)
         try:
             mods, selected = MD.load_modules(None)
-        except Exception:                                        # noqa: BLE001
+        except Exception:                                        # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
             mods, selected = [], []
         c = MD.DiagramContext(data, mods, selected)
         c.ot_nets = ot_nets
         return c
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
         return None
 
 
@@ -124,7 +124,7 @@ def _zone_of_ip(ctx, ip):
             net = (ctx.nets or {}).get(key)
             if net and a in ipaddress.ip_network(net, strict=False):
                 return zone
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
         return None
     return None
 
@@ -134,7 +134,7 @@ def _tactic_title(slug):
         from netgen.campaign import attack
         t = attack.tactic(slug)
         return t["name"] if t else (slug or "")
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
         return slug or ""
 
 
@@ -142,7 +142,7 @@ def _technique(tid):
     try:
         from netgen.campaign import attack
         return attack.technique(tid)
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
         return None
 
 
@@ -226,7 +226,7 @@ class _Nodes:
         found = None
         try:
             found = H.find_ioc(self.campaign, ref)
-        except Exception:                                        # noqa: BLE001
+        except Exception:                                        # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
             found = None
         if found is None:
             ip = (host or {}).get("ip")
@@ -240,7 +240,7 @@ class _Nodes:
         if not addr:
             try:
                 addr = H.address_for(ioc, self.campaign) if not self.run else None
-            except Exception:                                    # noqa: BLE001
+            except Exception:                                    # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
                 addr = None
         label = dom or ip or str(ioc.get("value"))
         return self._put({"id": "ioc:%d" % idx, "label": label, "zone": "internet", "role": ioc.get("role") or "unknown",
@@ -252,7 +252,7 @@ class _Nodes:
         if self.resolve and not self.run:
             try:
                 r = self.resolve(self.ctx, ref, self.campaign, self.options)
-            except Exception:                                    # noqa: BLE001
+            except Exception:                                    # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
                 r = None
         if host and host.get("name"):
             zone = _zone_of_ip(self.ctx, host.get("ip")) or (r or {}).get("zone") or \
@@ -275,7 +275,7 @@ class _Nodes:
             from netgen.campaign import hosts as H
             if H.is_external_ref(ref):
                 return self.external(ref, host)
-        except Exception:                                        # noqa: BLE001
+        except Exception:                                        # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
             pass
         return self.internal(ref, host)
 
@@ -416,7 +416,7 @@ def build(campaign, summary=None, score=None, ctx=None, company=None):
         try:
             from netgen.campaign import runner
             est = runner.estimate(campaign)
-        except Exception:                                        # noqa: BLE001
+        except Exception:                                        # noqa: BLE001 - estimate failure falls back to counts taken from the stage list
             est = {"stages": len(stages), "actions": len(actions), "flows": len(actions)}
     duration = stages[-1]["end_s"] if stages else 0.0
     packets = sum(a["packets"] or 0 for a in actions) if run else None
@@ -470,7 +470,7 @@ def _iocs(campaign, options, srows, actions, run):
             elif not run:
                 try:
                     addr = H.address_for(ioc, dict(campaign, options=options))
-                except Exception:                                # noqa: BLE001
+                except Exception:                                # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
                     addr = None
             if addr:
                 ip, _ = H.ioc_host_text(ioc)
@@ -640,7 +640,7 @@ def _is_ot_action(a):
         A = _actions()
         s = _spec(A, a["action"])
         return bool(s is not None and getattr(s, "ot", False))
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - a failed check is treated as false
         return False
 
 
@@ -655,6 +655,6 @@ def _families(view):
                 name = (f or {}).get("name") or (f or {}).get("id")
                 if name and name not in out:
                     out.append(str(name))
-    except Exception:                                            # noqa: BLE001
+    except Exception:                                            # noqa: BLE001 - best-effort lookup, falls back to a neutral value so the diagram still renders
         pass
     return out

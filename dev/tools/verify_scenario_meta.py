@@ -31,6 +31,8 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEV = os.path.dirname(HERE)
+sys.path.insert(0, DEV)
+import safeio  # noqa: E402 - sys.path is set up before the import
 DOCS = os.path.join(DEV, "docs", "redesign")
 OUT_JSON = os.path.join(DOCS, "meta-verification.json")
 OUT_MD = os.path.join(DOCS, "meta-verification.md")
@@ -270,7 +272,7 @@ def load_results():
 def save_results(doc):
     os.makedirs(DOCS, exist_ok=True)
     tmp = OUT_JSON + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+    with safeio.create_new(tmp, "w", encoding="utf-8") as f:
         json.dump(doc, f, indent=1, sort_keys=False)
         f.write("\n")
     os.replace(tmp, OUT_JSON)

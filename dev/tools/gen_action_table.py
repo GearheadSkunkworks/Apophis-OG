@@ -14,8 +14,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 
-from netgen.campaign import actions, attack          # noqa: E402
-from netgen.campaign.actions import meta             # noqa: E402
+from netgen.campaign import actions, attack          # noqa: E402 - sys.path is set up before the import
+from netgen.campaign.actions import meta             # noqa: E402 - sys.path is set up before the import
 
 OUT = os.path.join(ROOT, "docs", "action-reference.md")
 

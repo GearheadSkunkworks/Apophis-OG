@@ -19,6 +19,7 @@ from ... import flows as F
 from ... import protocols as P
 from ...identity import get_current
 from . import ActionSpec, register
+from .recon import _icmp_frame
 from .c2 import (_p, _rb, _b32, _b64, _gap, _req, _resp, _tls_open, _tls_close, _host_of, _client_ua, _sz, _lookup)
 
 MAX_BYTES = 200_000_000
@@ -129,19 +130,18 @@ def icmp_tunnel(ctx, src, dst, *, ts, count=120, interval_s=1.0, jitter=0.1, siz
     data back. Ordinary ping payloads are fixed and printable; these are random and vary. Payloads are filler,
     not a tunnelling protocol."""
     count = max(1, min(int(count), 5000))
-    lo, hi = sorted((max(0, int(size_min)), min(1472, max(0, int(size_max)))))
-    fixed = min(1472, max(0, int(fixed_size)))
+    cap = 1452 if ctx.v6 is not None else 1472                  # path MTU less the IP and ICMP headers
+    lo, hi = sorted((max(0, int(size_min)), min(cap, max(0, int(size_max)))))
+    fixed = min(cap, max(0, int(fixed_size)))
     ident = F.rng.randint(1, 65535)
     out = list(ctx.arp_for(src, dst, ts))
     t = ts + F.rng.uniform(0.005, 0.05)
     for seq in range(1, count + 1):
         n = fixed or _sz(lo, hi)
-        dmac, smac, ttl = ctx.link.addr(src, dst, src)
-        out.append((t, F.eth(dmac, smac, F.ETH_IP, F.ipv4(src, dst, 1, P.icmp_echo(ident, seq, True, payload=_rb(n)), ttl=ttl))))
+        out.append(_icmp_frame(ctx, src, dst, src, t, ident, seq, True, _rb(n)))
         if F.rng.random() < float(reply_ratio):
             m = fixed or _sz(lo, hi)
-            dmac, smac, ttl = ctx.link.addr(dst, src, src)
-            out.append((t + F.rng.uniform(0.02, 0.12), F.eth(dmac, smac, F.ETH_IP, F.ipv4(dst, src, 1, P.icmp_echo(ident, seq, False, payload=_rb(m)), ttl=ttl))))
+            out.append(_icmp_frame(ctx, dst, src, src, t + F.rng.uniform(0.02, 0.12), ident, seq, False, _rb(m)))
         t += _gap(interval_s, jitter)
     return F.merged(out)
 

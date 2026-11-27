@@ -7,22 +7,28 @@ import importlib.util, os, struct, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
-from netgen import core  # noqa: E402
+from netgen import core  # noqa: E402 - sys.path is set up before the import
+from checks.tshark_locate import find_tshark  # noqa: E402 - sys.path is set up first
 
-TSHARK = sys.argv[1] if len(sys.argv) > 1 else "/Applications/Wireshark.app/Contents/MacOS/tshark"
+TSHARK = sys.argv[1] if len(sys.argv) > 1 else find_tshark()
 
 
 BASE_COMMIT = "848f757"      # the commit before the ip_options / linux SYN-ACK update; absent from a fresh clone, where the check is skipped
 
 
 def load_old():
-    r = subprocess.run(["git", "show", f"{BASE_COMMIT}:dev/netgen/core.py"], cwd=HERE, capture_output=True, text=True)
-    if r.returncode != 0:      # a shallow clone (CI) does not have that commit
+    try:
+        r = subprocess.run(["git", "show", f"{BASE_COMMIT}:dev/netgen/core.py"], cwd=HERE, capture_output=True, text=True,
+                           timeout=60)
+    except FileNotFoundError:      # no git installed: same as no history
+        r = None
+    if r is None or r.returncode != 0:      # a shallow clone (CI) does not have that commit
         print("check_ip_options: old-engine comparison skipped (%s not in history); byte-level checks still run" % BASE_COMMIT)
         return None
     src = r.stdout
     spec = importlib.util.spec_from_loader("core_old", loader=None)
     m = importlib.util.module_from_spec(spec)
+    # lint-ok: source comes from this repo's own git history (a pinned commit), not from input
     exec(compile(src, "core_old.py", "exec"), m.__dict__)
     return m
 
@@ -130,7 +136,7 @@ for _, p in t.pkts:
     assert core.csum(p[14:14 + (p[14] & 0xF) * 4]) == 0
 
 # 6. tshark agrees
-if os.path.exists(TSHARK):
+if TSHARK and os.path.exists(TSHARK):
     with tempfile.TemporaryDirectory() as d:
         pc = os.path.join(d, "t.pcap")
         with open(pc, "wb") as f:

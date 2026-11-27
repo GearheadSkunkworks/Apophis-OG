@@ -18,6 +18,8 @@ import tempfile
 import time
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, DEV)
+import safeio  # noqa: E402 - sys.path is set up before the import
 OUT = os.path.join(DEV, "scenario_scale.json")
 ANCHORS = [0.004, 0.02, 0.1, 0.5, 1.0]
 TIMEOUT = 900
@@ -86,7 +88,7 @@ def main():
             data["scenarios"][n] = row
             data["generated"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             tmp = OUT + ".tmp"
-            with open(tmp, "w", encoding="utf-8") as f:
+            with safeio.create_new(tmp, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=1)
             os.replace(tmp, OUT)
             print("%-34s %s%s" % (n, row["packets"], "  ERRORS" if "errors" in row else ""), flush=True)

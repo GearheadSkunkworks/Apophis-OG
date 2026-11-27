@@ -9,9 +9,9 @@ from unittest import mock
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import server  # noqa: E402
-import sessions_api  # noqa: E402
-from tests.test_campaign_api import ApiCase, FakeRun  # noqa: E402
+import server  # noqa: E402 - sys.path is set up before the import
+import sessions_api  # noqa: E402 - sys.path is set up before the import
+from tests.test_campaign_api import ApiCase, FakeRun  # noqa: E402 - sys.path is set up before the import
 
 
 class Modules(unittest.TestCase):

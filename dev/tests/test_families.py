@@ -14,9 +14,9 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from netgen.campaign import actions, compiler, console, exports, families, schema  # noqa: E402
-from netgen.campaign.actions import c2  # noqa: E402
-from netgen.tls import CLIENT_PROFILES  # noqa: E402
+from netgen.campaign import actions, compiler, console, exports, families, schema  # noqa: E402 - sys.path is set up before the import
+from netgen.campaign.actions import c2  # noqa: E402 - sys.path is set up before the import
+from netgen.tls import CLIENT_PROFILES  # noqa: E402 - sys.path is set up before the import
 
 actions.load_all()
 

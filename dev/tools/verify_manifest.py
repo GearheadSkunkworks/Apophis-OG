@@ -12,7 +12,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from build_manifest import canonical, sha256_file  # noqa: E402
+from build_manifest import canonical, sha256_file  # noqa: E402 - sys.path is set up before the import
 
 
 def verify(path):
@@ -24,6 +24,9 @@ def verify(path):
         problems.append("manifest_sha256 mismatch: the manifest was edited after it was written")
     base = os.path.dirname(os.path.abspath(path))
     for o in m.get("outputs", []):
+        if os.path.basename(o["name"]) != o["name"]:                # outputs sit beside the manifest, never elsewhere
+            problems.append("output name is not a plain file name: %r" % o["name"])
+            continue
         p = os.path.join(base, o["name"])
         if not os.path.isfile(p):
             problems.append("missing output: %s" % o["name"])
@@ -32,6 +35,7 @@ def verify(path):
         elif sha256_file(p) != o["sha256"]:
             problems.append("sha256 mismatch: %s" % o["name"])
     buckets = [s["observed"] for s in m.get("scenarios", [])] + [m.get("normal_day", {})]
+    buckets.append((m.get("network") or {}).get("ipv6") or {})      # the opt-in dual-stack layer is its own bucket
     t = m.get("totals", {})
     for k in ("packets", "bytes"):
         if sum(b.get(k, 0) for b in buckets) != t.get(k):

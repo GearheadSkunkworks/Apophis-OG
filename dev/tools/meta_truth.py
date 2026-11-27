@@ -23,8 +23,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DEV = os.path.dirname(HERE)
 sys.path.insert(0, DEV)
 sys.path.insert(0, os.path.join(DEV, "checks"))
+from tshark_locate import find_tshark  # noqa: E402 - sys.path is set up first
 
-TSHARK = "/Applications/Wireshark.app/Contents/MacOS/tshark"
+TSHARK = find_tshark()
 # Filters that describe an option the default example does not exercise are also tried against these variants
 # (extra parameter sets, built as separate examples); a filter matches when any variant matches.
 ALT_PARAMS = {
@@ -62,7 +63,16 @@ def render(template, src, dst, spec, example):
 
 def tshark_count(pcap, keylog, flt):
     """(status, detail): status 'match' / 'nomatch' / 'invalid'."""
-    cmd = [TSHARK, "-r", pcap, "-o", "tls.keylog_file:" + keylog, "-Y", flt, "-T", "fields", "-e", "frame.number"]
+    # Dissector versions disagree about RDP on port 3389. 3.6 (Ubuntu 22.04) hands the connection request to the TLS
+    # heuristic, so rdp.* fields never appear; 4.0 (Debian 12) keeps the whole stream as TPKT after the handshake, so
+    # tls.* fields never appear. Naming the port's protocol per filter makes the result the same on every version.
+    # (Applied to the whole port it would break the other kind of filter, hence per filter.)
+    decode_as = []
+    if "rdp." in flt:
+        decode_as = ["-d", "tcp.port==3389,tpkt"]
+    elif "tls." in flt and "3389" in flt:
+        decode_as = ["-d", "tcp.port==3389,tls"]
+    cmd = [TSHARK, "-r", pcap, "-o", "tls.keylog_file:" + keylog] + decode_as + ["-Y", flt, "-T", "fields", "-e", "frame.number"]
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     if r.returncode == 2 or ("isn't a valid display filter" in r.stderr) or ("is neither a field" in r.stderr):
         return "invalid", r.stderr.strip()[-200:]
@@ -154,7 +164,7 @@ def run(only=None, keep=None):
                     elif inverse and st == "match":
                         st, det = "nomatch", "expected no packets but " + det
                     rows.append(dict(base, what=what, template=tpl, rendered=flt, expect=exp, status=st, detail=det))
-            except Exception as e:                                 # noqa: BLE001
+            except Exception as e:                                 # noqa: BLE001 - failure is recorded as an error row
                 for what, tpl, exp in rec["filters"]:
                     rows.append(dict(base, what=what, template=tpl, rendered=None, expect=exp, status="error",
                                      detail="%s: %s" % (type(e).__name__, e)))
@@ -166,8 +176,8 @@ def main(argv=None):
     ap.add_argument("--only", action="append", default=[], metavar="TOKEN")
     ap.add_argument("--keep", metavar="DIR", help="copy each action's pcap and key log into DIR")
     a = ap.parse_args(argv)
-    if not os.path.exists(TSHARK):
-        print("tshark not found at", TSHARK)
+    if not TSHARK:
+        print("tshark not found: install Wireshark/tshark or set TSHARK to its path")
         return 2
     rows = run(set(a.only) or None, a.keep)
     for r in rows:

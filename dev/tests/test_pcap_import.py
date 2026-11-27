@@ -16,7 +16,7 @@ DEV = os.path.dirname(HERE)
 if DEV not in sys.path:
     sys.path.insert(0, DEV)
 
-import pcapprofile as P                                # noqa: E402
+import pcapprofile as P                                # noqa: E402 - sys.path is set up before the import
 
 ETH = b"\x00\x01\x02\x03\x04\x05" + b"\x06\x07\x08\x09\x0a\x0b"
 

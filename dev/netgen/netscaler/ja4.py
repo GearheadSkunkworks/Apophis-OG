@@ -79,7 +79,8 @@ def ja4s(tls_version="13", ext_codepoints=(), cipher=0x1302, alpn=None):
 
 def hassh(kex, enc_c2s, mac_c2s, comp_c2s):
     """HASSH (client) = md5(kex;enc;mac;comp), each a comma-joined KEXINIT name-list."""
-    return hashlib.md5((";".join([kex, enc_c2s, mac_c2s, comp_c2s])).encode()).hexdigest()
+    # lint-ok: the HASSH fingerprint is defined as an MD5, an identifier and not a security control
+    return hashlib.md5((";".join([kex, enc_c2s, mac_c2s, comp_c2s])).encode(), usedforsecurity=False).hexdigest()
 
 
 def ja4h_a(method="ge", version="11", cookie=True, referer=True, nhdr=0, lang="en-US"):

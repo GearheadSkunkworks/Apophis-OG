@@ -325,8 +325,10 @@ def _row(line, delim):
 
 
 # ---------------------------------------------------------------- STIX
+# Linear on hostile text: the type must start at a token boundary and the path cannot contain ':' (so a run of "a:a:a:" or one
+# long word cannot make the lazy path rescan from every start; this was quadratic: 8 s for one 20 KB pattern).
 _STIX_CMP = re.compile(
-    r"(?P<type>[a-z][a-z0-9-]*):(?P<path>[^\s=!<>]+?)\s*(?P<op>!=|=|ISSUBSET|ISSUPERSET|LIKE|MATCHES|IN)\s*"
+    r"(?<![a-z0-9-])(?P<type>[a-z][a-z0-9-]*):(?P<path>[^\s=!<>:]+?)\s*(?P<op>!=|=|ISSUBSET|ISSUPERSET|LIKE|MATCHES|IN)\s*"
     r"(?:'(?P<val>(?:[^'\\]|\\.)*)'|\((?P<lst>[^)]*)\))", re.I)
 _STIX_STR = re.compile(r"'((?:[^'\\]|\\.)*)'")
 _HASHNAMES = {"MD5": "md5", "SHA-1": "sha1", "SHA1": "sha1", "SHA-256": "sha256", "SHA256": "sha256"}

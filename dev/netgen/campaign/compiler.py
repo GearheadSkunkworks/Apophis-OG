@@ -115,8 +115,8 @@ class _Builder:
         try:
             from .actions import c2 as _c2
             self.profiles = set(getattr(_c2, "PROFILES", {}))
-        except Exception:
-            pass
+        except ImportError:
+            pass   # the c2 action family is optional; profiles stay None and are not validated
 
     # ---- IOC helpers
     def hosts(self, role, types=("ipv4", "domain", "url")):

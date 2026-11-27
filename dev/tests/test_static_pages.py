@@ -12,7 +12,7 @@ from http.server import ThreadingHTTPServer
 
 DEV = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DEV)
-import server  # noqa: E402
+import server  # noqa: E402 - sys.path is set up before the import
 
 
 def _pcap(path):
@@ -47,7 +47,7 @@ class TestStaticPages(unittest.TestCase):
 
     def get(self, path):
         c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=60)
-        c.request("GET", path)
+        c.request("GET", path, headers={"Cookie": "og_ui=" + server.UI_SECRET})
         r = c.getresponse()
         body = r.read().decode("utf-8", "replace")
         c.close()

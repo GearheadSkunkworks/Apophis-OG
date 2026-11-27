@@ -11,8 +11,8 @@ from unittest import mock
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from diagrams.campaign import api, narrate, page, view as V          # noqa: E402
-from diagrams.campaign.panels import coverage, filters, stages, timeline, trace   # noqa: E402
+from diagrams.campaign import api, narrate, page, view as V          # noqa: E402 - sys.path is set up before the import
+from diagrams.campaign.panels import coverage, filters, stages, timeline, trace   # noqa: E402 - sys.path is set up before the import
 
 FIXTURES = os.path.join(HERE, "fixtures", "campaigns")
 

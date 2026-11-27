@@ -113,7 +113,7 @@ def _domain(s):
     tld = labels[-1]
     if not (tld.startswith("xn--") or (tld.isalpha() and 2 <= len(tld) <= 63)):
         return None
-    if all(c.isdigit() or c == "." for c in s):
+    if all(c in "0123456789." for c in s):
         return None
     return s
 
@@ -239,14 +239,11 @@ def _classify(s):
     if "/" in s and not _PATHFILE.match(s):
         # cidr?
         a, _, p = s.partition("/")
-        if p.isdigit():
-            if is_ipv4(a) and 0 <= int(p) <= 32:
+        if p.isascii() and p.isdigit() and len(p) <= 3 and ((is_ipv4(a) and int(p) <= 32) or (":" in a and int(p) <= 128)):
+            try:
                 return "cidr", str(ipaddress.ip_network(s, strict=False))
-            if ":" in a and 0 <= int(p) <= 128:
-                try:
-                    return "cidr", str(ipaddress.ip_network(s, strict=False))
-                except ValueError:
-                    return None, orig
+            except ValueError:
+                return None, orig
         return None, orig
     if "@" in s:
         m = _EMAIL.match(s)
